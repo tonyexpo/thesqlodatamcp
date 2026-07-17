@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("thesqlodatamcp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+421d4888d51102bdc6653f482f5181edc3b49552")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6e85214397c1dcc704314797ecd1abe4afa6b76")]
 [assembly: System.Reflection.AssemblyProductAttribute("thesqlodatamcp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("thesqlodatamcp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
