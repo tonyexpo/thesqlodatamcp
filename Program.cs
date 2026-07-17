@@ -26,7 +26,13 @@ class Program
             return;
         }
 
-        Console.WriteLine("Placeholder for Database Connector, DQL Validator, and MCP Server Initialization.");
+        var databaseConnector = new DatabaseConnector(settings.SqlConnectionString);
+        var dqlValidator = new DqlValidator();
+        var mcpTools = new McpTools(databaseConnector, dqlValidator);
+
+        Console.WriteLine("Placeholder for MCP Server Initialization and Tools Registration.");
         Console.WriteLine("Tools to be registered: list_tables, get_table_schema, execute_dql_query.");
+        
+        // Placeholder for actual server transport and authentication initialization using ModelContextProtocol SDK
     }
 }
