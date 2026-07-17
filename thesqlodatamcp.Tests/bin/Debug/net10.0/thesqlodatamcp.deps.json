@@ -1,0 +1,245 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "thesqlodatamcp/1.0.0": {
+        "dependencies": {
+          "ModelContextProtocol": "0.1.0-preview.1.25171.12"
+        },
+        "runtime": {
+          "thesqlodatamcp.dll": {}
+        }
+      },
+      "Microsoft.Extensions.AI/9.3.0-preview.1.25161.3": {
+        "dependencies": {
+          "Microsoft.Extensions.AI.Abstractions": "9.3.0-preview.1.25161.3",
+          "Microsoft.Extensions.Caching.Abstractions": "9.0.3",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.AI.dll": {
+            "assemblyVersion": "9.3.0.0",
+            "fileVersion": "9.300.25.16103"
+          }
+        }
+      },
+      "Microsoft.Extensions.AI.Abstractions/9.3.0-preview.1.25161.3": {
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.AI.Abstractions.dll": {
+            "assemblyVersion": "9.3.0.0",
+            "fileVersion": "9.300.25.16103"
+          }
+        }
+      },
+      "Microsoft.Extensions.Caching.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Caching.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Configuration.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.3": {
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Diagnostics.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Options": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Diagnostics.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Hosting.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.3",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Diagnostics.Abstractions": "9.0.3",
+          "Microsoft.Extensions.FileProviders.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Options/9.0.3": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Primitives": "9.0.3"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Options.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "Microsoft.Extensions.Primitives/9.0.3": {
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Primitives.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.325.11113"
+          }
+        }
+      },
+      "ModelContextProtocol/0.1.0-preview.1.25171.12": {
+        "dependencies": {
+          "Microsoft.Extensions.AI": "9.3.0-preview.1.25161.3",
+          "Microsoft.Extensions.AI.Abstractions": "9.3.0-preview.1.25161.3",
+          "Microsoft.Extensions.Hosting.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.3"
+        },
+        "runtime": {
+          "lib/net8.0/ModelContextProtocol.dll": {
+            "assemblyVersion": "0.1.0.0",
+            "fileVersion": "0.100.25.17112"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "thesqlodatamcp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Extensions.AI/9.3.0-preview.1.25161.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i1LLMJucYogyImy91Fm+eJv+AfsQ3gdpQnDcrsweWg6SWoa/xFlVnqYRtifsHwucRxv2da/JET1RMRiVB6rIug==",
+      "path": "microsoft.extensions.ai/9.3.0-preview.1.25161.3",
+      "hashPath": "microsoft.extensions.ai.9.3.0-preview.1.25161.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.AI.Abstractions/9.3.0-preview.1.25161.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1BGoGmGQKwDOkf4I5/Ybt3GL5O+/3JPlZ/AM0uLspHn5DpPb2Wpi9HYKEMjTECFvW+pk+vtFaBYQmNdudl26fw==",
+      "path": "microsoft.extensions.ai.abstractions/9.3.0-preview.1.25161.3",
+      "hashPath": "microsoft.extensions.ai.abstractions.9.3.0-preview.1.25161.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Caching.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-t8b0R6wtqC4o0hJ+oQkLPydw2MMLEoLEpQXCWbzXAm9NBMOngkDZNcvwF6DxbYdL5SlfZJXbYmiOxKZmwHNgNg==",
+      "path": "microsoft.extensions.caching.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.caching.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-q5qlbm6GRUrle2ZZxy9aqS/wWoc+mRD3JeP6rcpiJTh5XcemYkplAcJKq8lU11ZfPom5lfbZZfnQvDqcUhqD5Q==",
+      "path": "microsoft.extensions.configuration.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.configuration.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-TfaHPSe39NyL2wxkisRxXK7xvHGZYBZ+dy3r+mqGvnxKgAPdHkMu3QMQZI4pquP6W5FIQBqs8FJpWV8ffCgDqQ==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Diagnostics.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/fn0Xe8t+3YbMfwyTk4hFirWyAG1pBA5ogVYsrKAuuD2gbqOWhFuSA28auCmS3z8Y2eq3miDIKq4pFVRWA+J6g==",
+      "path": "microsoft.extensions.diagnostics.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.diagnostics.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-umczZ3+QPpzlrW/lkvy+IB0p52+qZ5w++aqx2lTCMOaPKzwcbVdrJgiQ3ajw5QWBp7gChLUiCYkSlWUpfjv24g==",
+      "path": "microsoft.extensions.fileproviders.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.fileproviders.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Hosting.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rHabYVhQsGYNfgnfnYLqZRx/hLe85i6jW5rnDjA9pjt3x7yjPv8T/EXcgN5T9T38FAVwZRA+RMGUkEHbxvCOBQ==",
+      "path": "microsoft.extensions.hosting.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.hosting.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-H/MBMLt9A/69Ux4OrV7oCKt3DcMT04o5SCqDolulzQA66TLFEpYYb4qedMs/uwrLtyHXGuDGWKZse/oa8W9AZw==",
+      "path": "microsoft.extensions.logging.abstractions/9.0.3",
+      "hashPath": "microsoft.extensions.logging.abstractions.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Options/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xE7MpY70lkw1oiid5y6FbL9dVw8oLfkx8RhSNGN8sSzBlCqGn0SyT3Fqc8tZnDaPIq7Z8R9RTKlS564DS+MV3g==",
+      "path": "microsoft.extensions.options/9.0.3",
+      "hashPath": "microsoft.extensions.options.9.0.3.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Primitives/9.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yCCJHvBcRyqapMSNzP+kTc57Eaavq2cr5Tmuil6/XVnipQf5xmskxakSQ1enU6S4+fNg3sJ27WcInV64q24JsA==",
+      "path": "microsoft.extensions.primitives/9.0.3",
+      "hashPath": "microsoft.extensions.primitives.9.0.3.nupkg.sha512"
+    },
+    "ModelContextProtocol/0.1.0-preview.1.25171.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-RDSuZiydcRj12fcYSrIluuBau+r6Wwppt1CcfhMloyEnD8m3pmR9rPAoOvgUEe8FleFKTA65Rr+kSfID46Rj7w==",
+      "path": "modelcontextprotocol/0.1.0-preview.1.25171.12",
+      "hashPath": "modelcontextprotocol.0.1.0-preview.1.25171.12.nupkg.sha512"
+    }
+  }
+}

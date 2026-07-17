@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TheSqlODataMCP;
 
@@ -23,8 +24,19 @@ public class SettingsManager
 
         string jsonContent = File.ReadAllText(_settingsFilePath);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        _settings = JsonSerializer.Deserialize<AppSettings>(jsonContent, options) 
-            ?? throw new InvalidOperationException("Failed to deserialize settings.");
+        
+        try
+        {
+            _settings = JsonSerializer.Deserialize<AppSettings>(jsonContent, options);
+            if (_settings == null)
+            {
+                throw new InvalidOperationException("Failed to deserialize settings.");
+            }
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException("Failed to deserialize settings.");
+        }
     }
 
     public AppSettings GetSettings() => _settings!;

@@ -1,33 +1,27 @@
 using System;
 using System.Threading.Tasks;
-using ModelContextProtocol;
-using ModelContextProtocol.Server;
+using TheSqlODataMCP;
 
-namespace TheSqlODataMcp
+namespace TheSqlODataMCP;
+
+class Program
 {
-    class Program
+    static async Task Main(string[] args)
     {
-        static async Task Main(string[] args)
+        Console.WriteLine("SQL OData MCP Connector v1.0.0 initializing...");
+        
+        try
         {
-            Console.WriteLine("SQL OData MCP Connector starting...");
-            
-            // TODO: Load settings and bearer token
-            // TODO: Initialize database connection
-            
-            var server = new McpServer(
-                new ServerInfo
-                {
-                    Name = "SqlODataMcpConnector",
-                    Version = "1.0.0"
-                }
-            );
-
-            // Register MCP Tools
-            // TODO: Implement list_tables, get_table_schema, execute_dql_query
-            
-            Console.WriteLine("MCP Server initialized and ready.");
-            
-            // TODO: Start MCP server (stdio or SSE)
+            var settingsManager = new SettingsManager("settings.json");
+            Console.WriteLine("Settings loaded successfully.");
+            Console.WriteLine($"Bearer Token: {settingsManager.GetBearerToken()}");
+            Console.WriteLine($"SQL Connection String: {settingsManager.GetSqlConnectionString()}");
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading settings: {ex.Message}");
+        }
+
+        Console.WriteLine("Placeholder for MCP Server Initialization and Tools Registration.");
     }
 }
