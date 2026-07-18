@@ -40,7 +40,7 @@ The removed executable also wrote diagnostic text, including the bearer token an
 
 ## Product direction to preserve
 
-The complete product direction is now defined by [AI Data Gateway — Project Handoff](./AI_DATA_GATEWAY_HANDOFF.md). It supersedes the earlier assumption that OData and a JSON query API would simply be added after an MCP SQL connector.
+The complete product direction is now defined by [AI Data Gateway — Project Handoff](./AI_DATA_GATEWAY_HANDOFF.md). It supersedes the earlier assumption that OData and a JSON query API would simply be added after an MCP SQL connector. The handoff's working title was subsequently finalized as `thesqlodatamcp` in [ADR 0001](./decisions/0001-project-identity.md).
 
 The target is a new self-hosted .NET 10 / ASP.NET Core gateway with:
 
@@ -58,4 +58,4 @@ There is no caller-supplied SQL and no static bearer-token shortcut in the targe
 
 The project owner's complete ChatGPT analysis was recovered and imported unchanged on 2026-07-18 as `docs/AI_DATA_GATEWAY_HANDOFF.md`. It is the implementation baseline. README, architecture, roadmap, and backlog have been reconciled around it.
 
-The legacy code now exists only in Git history and the historical tag. This repository will be reused for the clean implementation under Apache License 2.0. Milestone 0 must still settle final product/namespace naming, package research, and the new solution/CI baseline before production implementation begins.
+The legacy code now exists only in Git history and the historical tag. This repository will be reused for the clean `thesqlodatamcp` implementation under Apache License 2.0. Milestone 0 must still settle .NET identifier casing, package research, and the new solution/CI baseline before production implementation begins.

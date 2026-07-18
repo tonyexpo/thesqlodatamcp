@@ -10,6 +10,7 @@
 - Imported the complete original `AI_DATA_GATEWAY_HANDOFF.md` as the authoritative product and architecture baseline, with an identical SHA-256 hash to the supplied source file.
 - Added a milestone-based v1 roadmap with explicit outcomes and exit gates.
 - Added the annotated historical tag `legacy-poc-final-2026-07-18` at the final committed PoC state.
+- Added ADR 0001, recording `thesqlodatamcp` as the definitive product/repository name and closing repository/licensing decisions.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
@@ -17,6 +18,7 @@
 - Reworked README, architecture, backlog, and project status around the authoritative AI Data Gateway baseline.
 - Replaced the earlier incremental MCP → OData → “ATP JSON” assumption with the settled architecture: MCP Streamable HTTP, OData 4.01, JSON/HTTP `QUERY`, and one shared Canonical Query Model.
 - Confirmed Apache License 2.0 and retention of this existing public repository for the clean implementation.
+- Replaced the “AI Data Gateway” working title in current project documentation with the definitive public name `thesqlodatamcp`; the original imported handoff remains unchanged.
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.

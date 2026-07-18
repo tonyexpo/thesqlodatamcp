@@ -11,11 +11,13 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Import the complete original AI Data Gateway handoff into `docs/` without modification.
 - [x] Reconcile README, architecture, roadmap, backlog, project status, and changelog with the handoff.
 - [x] Preserve the Qwen 3.6 35B → Codex 5.6 Terra transition and the legacy QA record.
-- [ ] Choose the final product name, possible repository rename, assembly root, and namespaces.
+- [x] Set `thesqlodatamcp` as the definitive public product and repository name.
+- [ ] Select the corresponding .NET solution/project/assembly/namespace casing during scaffolding.
 - [x] Confirm Apache License 2.0 as the final license.
 - [x] Retain and rebaseline this existing public Git repository.
 - [x] Preserve the final PoC as `legacy-poc-final-2026-07-18` and remove obsolete source/tests from `main`.
-- [ ] Record settled implementation choices as short ADRs.
+- [x] Record project identity, repository continuity, historical preservation, and licensing in ADR 0001.
+- [ ] Record subsequent settled implementation choices as short ADRs.
 
 ### Implementation-time research spikes
 

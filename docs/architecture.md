@@ -8,7 +8,7 @@ This document is the concise implementation map. The root-level C# source from t
 
 ## Target system
 
-AI Data Gateway is a .NET 10 / ASP.NET Core web application. It exposes one read-only query capability through multiple protocol adapters:
+`thesqlodatamcp` is a .NET 10 / ASP.NET Core web application. It exposes one read-only query capability through multiple protocol adapters:
 
 ```mermaid
 flowchart LR
@@ -86,7 +86,7 @@ tests/
   Gateway.ProtocolTests/
 ```
 
-Names remain provisional. Avoid additional projects until a dependency boundary justifies them.
+The public product name is final. Project labels in this sketch are structural placeholders until the .NET identifier casing is selected; avoid additional projects until a dependency boundary justifies them.
 
 ## Legacy proof-of-concept disposition
 
@@ -104,7 +104,7 @@ The project owner chose to keep this public repository, preserve the final PoC s
 
 The following choices are intentionally not frozen by the handoff:
 
-- final product, assembly, and namespace names; the existing public repository is retained and may be renamed later;
+- exact .NET solution, project, assembly, and namespace casing for the final public name `thesqlodatamcp`;
 - exact supported package versions;
 - ASP.NET Core OData runtime-EDM approach on .NET 10;
 - JSON Schema and YAML libraries;
@@ -112,4 +112,4 @@ The following choices are intentionally not frozen by the handoff:
 
 These choices may change implementation detail, but not the settled product boundaries.
 
-The repository license is Apache License 2.0.
+The definitive product/repository name and Apache License 2.0 are recorded in [ADR 0001](./decisions/0001-project-identity.md).

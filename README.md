@@ -1,8 +1,8 @@
-# AI Data Gateway
+# thesqlodatamcp
 
-> Working title. The final product and repository name are still to be chosen.
+> A self-hosted, read-only data gateway for AI assistants, agents, OData clients, Power BI, and ordinary HTTP clients.
 
-AI Data Gateway is a planned self-hosted, read-only data gateway for AI assistants, agents, OData clients, Power BI, and ordinary HTTP clients.
+`thesqlodatamcp` is the definitive product and repository name. The imported architecture handoff uses “AI Data Gateway” as its original working title; [ADR 0001](./docs/decisions/0001-project-identity.md) records the subsequent naming decision.
 
 The target product exposes relational reporting data through:
 
@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project is now being rebaselined from the authoritative AI Data Gateway handoff. The target architecture is a new .NET 10 / ASP.NET Core solution rather than an incremental extension of the stdio/raw-DQL prototype.
 
-Implementation has not restarted yet. The next work is the remainder of Milestone 0: confirm final product naming, validate implementation-time library choices, and scaffold the new solution and CI baseline.
+Implementation has not restarted yet. The next work is the remainder of Milestone 0: validate implementation-time library choices, select .NET identifier casing, and scaffold the new solution and CI baseline.
 
 ## Product boundaries
 
@@ -36,6 +36,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 ## Documentation
 
 - [Authoritative project handoff](./docs/AI_DATA_GATEWAY_HANDOFF.md) — settled product boundaries, contracts, security model, release sequence, and v1 definition of done.
+- [ADR 0001: project identity](./docs/decisions/0001-project-identity.md) — definitive name, repository continuity, historical tag, and license.
 - [Project status and agent handoff](./docs/project-status-handoff.md) — legacy assessment and transition from Qwen 3.6 35B to Codex 5.6 Terra.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
