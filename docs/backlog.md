@@ -17,8 +17,8 @@
 - [x] Implement the `get_table_schema(table_name)` tool: Query system views (e.g., `sys.columns`, `sys.types`) to get column names and types for a specific table.
 
 ### Phase 4: MCP Tools Implementation (`modelcontextprotocol` NuGet package)
-- [ ] Register MCP tools: `list_tables`, `get_table_schema(table_name)`, `execute_dql_query(table_name, where_conditions_json_or_sql)`.
-- [ ] Implement `execute_dql_query`: Use the T-SQL DQL Parser & Validator to validate the query or conditions, then execute using `SqlClient` with parameterized queries.
+- [x] Register MCP tools: `list_tables`, `get_table_schema(table_name)`, `execute_dql_query(table_name, where_conditions_json_or_sql)`.
+- [x] Implement `execute_dql_query`: Use the T-SQL DQL Parser & Validator to validate the query or conditions, then execute using `SqlClient` with parameterized queries.
 
 ### Phase 5: MCP Server Initialization & Authentication
 - [ ] Initialize the MCP server using `ModelContextProtocol` and `ModelContextProtocol.Server`.

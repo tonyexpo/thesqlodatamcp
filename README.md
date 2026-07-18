@@ -13,6 +13,14 @@ By leveraging the MCP standard, this connector enables seamless integration betw
 - **Flexible Deployment:** Supports both on-premises and SaaS harness environments.
 - **Secure Agent Integration:** Provides a controlled, audit-friendly bridge between AI agents and underlying SQL databases.
 
+## MCP Tools
+
+The connector exposes the following MCP tools:
+
+- `list_tables`: List available tables in the database.
+- `get_table_schema(table_name)`: Retrieve the schema (column names and data types) for a specific table.
+- `execute_dql_query(table_name, where_conditions_json_or_sql)`: Execute a validated DQL query using parameterized conditions.
+
 ## Documentation
 
 - [Architecture](./docs/architecture.md)

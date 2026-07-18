@@ -6,6 +6,14 @@
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 
+## [v0.4.0 - Phase 3 & 4 Completion: SqlClient Connector & MCP Tools Execution]
+
+### Database Connector & MCP Tools
+- Completed Phase 3: Implemented `DatabaseConnector` with `ListTables()` and `GetTableSchema(tableName)` using `SqlConnection` and `SqlCommand`.
+- Completed Phase 4: Implemented `McpTools.ExecuteDqlQueryAsync` to execute validated DQL queries via `SqlClient` with parameterized conditions.
+- JSON condition processing is now supported in `execute_dql_query`, converting JSON filters to parameterized SQL WHERE clauses.
+- Security enforcement ensures all values are passed as pure parameters via `SqlCommand.Parameters`.
+
 ## [v0.2.0 - Architectural Decisions & v1 Scope]
 
 ### Platform & Stack
