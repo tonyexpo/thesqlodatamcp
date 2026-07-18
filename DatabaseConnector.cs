@@ -71,4 +71,42 @@ public class DatabaseConnector
         
         return schema;
     }
+
+    public string ExecuteDqlQuery(string query, System.Collections.Generic.Dictionary<string, object> parameters)
+    {
+        var resultBuilder = new System.Text.StringBuilder();
+        
+        using (var connection = new SqlConnection(_connectionString))
+        {
+            connection.Open();
+            using (var command = new SqlCommand(query, connection))
+            {
+                // Add parameters
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+                    }
+                }
+                
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var rowBuilder = new System.Text.StringBuilder();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            string columnName = reader.GetName(i);
+                            object value = reader[i] ?? DBNull.Value;
+                            rowBuilder.Append($"{columnName}={value}; ");
+                        }
+                        resultBuilder.AppendLine(rowBuilder.ToString());
+                    }
+                }
+            }
+        }
+        
+        return resultBuilder.ToString();
+    }
 }

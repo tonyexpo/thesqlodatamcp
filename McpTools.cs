@@ -29,26 +29,63 @@ public class McpTools
     public async Task<string> ExecuteDqlQueryAsync(string tableName, string whereConditionsJsonOrSql)
     {
         // Construct the DQL query based on table name and conditions
-        string query = $"SELECT * FROM {tableName}";
+        // Use bracketed table name to prevent SQL injection via table name
+        string query = $"SELECT * FROM [{tableName}]";
         
+        System.Collections.Generic.Dictionary<string, object> parameters = new System.Collections.Generic.Dictionary<string, object>();
+        int paramIndex = 1;
+
         if (!string.IsNullOrWhiteSpace(whereConditionsJsonOrSql))
         {
-            // If whereConditionsJsonOrSql is a SQL snippet, append it
-            if (whereConditionsJsonOrSql.TrimStart().ToUpperInvariant().StartsWith("WHERE"))
+            // Try to parse as JSON or process as SQL snippet
+            string trimmedConditions = whereConditionsJsonOrSql.Trim();
+            
+            if (trimmedConditions.StartsWith("{") && trimmedConditions.EndsWith("}"))
             {
-                query += " " + whereConditionsJsonOrSql;
+                // JSON conditions: e.g., {"status": "active", "age": 30}
+                try
+                {
+                    string jsonConditions = trimmedConditions;
+                    var matches = System.Text.RegularExpressions.Regex.Matches(jsonConditions, @"\"([a-zA-Z_0-9]+)\"\s*:\s*(?:\"([^\"]+)\"|(\\d+))");
+                    foreach (System.Text.RegularExpressions.Match match in matches)
+                    {
+                        string key = match.Groups[1].Value;
+                        string valueStr = match.Groups[2].Value != null ? match.Groups[2].Value : match.Groups[3].Value;
+                        
+                        if (!query.Contains("WHERE"))
+                        {
+                            query += " WHERE ";
+                        }
+                        else
+                        {
+                            query += " AND ";
+                        }
+                        
+                        string paramKey = $"@p{paramIndex++}";
+                        query += $"[{key}] = {paramKey}";
+                        parameters[paramKey] = valueStr;
+                    }
+                }
+                catch (Exception)
+                {
+                    throw new ArgumentException("Invalid JSON conditions format.");
+                }
+            }
+            else if (trimmedConditions.ToUpperInvariant().StartsWith("WHERE"))
+            {
+                // SQL snippet starting with WHERE, append it
+                query += " " + trimmedConditions;
             }
             else
             {
-                // TODO: Handle JSON conditions conversion to SQL WHERE clause
-                throw new NotImplementedException("JSON condition processing is not implemented yet.");
+                throw new ArgumentException("Invalid whereConditionsJsonOrSql format.");
             }
         }
 
         // Validate the DQL query
         _dqlValidator.IsValidDql(query);
 
-        // Execute query using DatabaseConnector (placeholder for actual implementation)
-        throw new NotImplementedException("ExecuteDqlQueryAsync actual execution via SqlClient is not implemented yet.");
+        // Execute query using DatabaseConnector
+        return _databaseConnector.ExecuteDqlQuery(query, parameters);
     }
 }
