@@ -21,9 +21,8 @@
 - [x] Implement `execute_dql_query`: Use the T-SQL DQL Parser & Validator to validate the query or conditions, then execute using `SqlClient` with parameterized queries.
 
 ### Phase 5: MCP Server Initialization & Authentication
-- [x] Initialize the MCP server structure using `ModelContextProtocol.Server` and `ModelContextProtocol.Protocol.Models`.
-- [x] Implement Bearer token authentication validation using the token from `settings.json`.
-- [ ] Finalize transport initialization (stdio) and tool registration execution once the MCP SDK API is fully aligned.
+- [x] Initialize the MCP server structure and Bearer token authentication validation using the token from `settings.json`.
+- [ ] Finalize transport initialization (stdio) and tool registration execution (`server.AddToolAsync`, `StdioServerTransport`) once the MCP SDK API is fully aligned or a compatible version is available.
 
 ### Phase 6: Testing & Validation
 - [x] Test the DQL Validator locally (unit tests cover valid queries, forbidden constructs, subqueries, comments handling).

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using ModelContextProtocol.Server;
 using TheSqlODataMCP;
 
 namespace TheSqlODataMCP;
@@ -42,5 +43,6 @@ class Program
         Console.WriteLine("Bearer token authentication validated successfully.");
         
         // Placeholder for actual server transport and authentication initialization using ModelContextProtocol SDK
+        // Once the SQL Server is operational, we will finalize the MCP server transport (stdio) and tool registration execution.
     }
 }
