@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ModelContextProtocol.Server;
 using TheSqlODataMCP;
 
 namespace TheSqlODataMCP;
@@ -16,16 +17,19 @@ public class McpTools
         _dqlValidator = dqlValidator;
     }
 
+    [McpToolAttribute("list_tables")]
     public async Task<List<string>> ListTablesAsync()
     {
         return _databaseConnector.ListTables();
     }
 
+    [McpToolAttribute("get_table_schema")]
     public async Task<List<(string columnName, string dataType)>> GetTableSchemaAsync(string tableName)
     {
         return _databaseConnector.GetTableSchema(tableName);
     }
 
+    [McpToolAttribute("execute_dql_query")]
     public async Task<string> ExecuteDqlQueryAsync(string tableName, string whereConditionsJsonOrSql)
     {
         // Construct the DQL query based on table name and conditions

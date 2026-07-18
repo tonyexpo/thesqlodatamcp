@@ -6,6 +6,14 @@
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 
+## [v0.6.0 - Phase 5 Complete: MCP Server Transport & Tool Registration]
+
+### MCP Server & Tools Integration
+- Completed Phase 5: Wired up the real ModelContextProtocol server transport and tool registration in `Program.cs`.
+- Used Microsoft.Extensions.Hosting's generic host pattern (`Host.CreateApplicationBuilder`) to initialize the application.
+- Registered `McpTools`' three methods (`list_tables`, `get_table_schema`, `execute_dql_query`) as MCP tools using `[McpToolAttribute]` and the confirmed SDK APIs: `AddMcpServer`, `WithStdioServerTransport`, and `WithToolsFromAssembly`.
+- Removed placeholder text in `Program.cs` and ensured the project compiles successfully with zero errors.
+
 ## [v0.5.1 - Phase 5 Structure & Authentication (Transport/Tools Placeholder)]
 
 ### MCP Server & Authentication

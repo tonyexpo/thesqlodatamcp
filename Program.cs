@@ -1,5 +1,11 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using ModelContextProtocol;
+using ModelContextProtocol.Configuration;
+using ModelContextProtocol.Protocol.Types;
 using ModelContextProtocol.Server;
 using TheSqlODataMCP;
 
@@ -9,8 +15,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        Console.WriteLine("SQL OData MCP Connector v1.0.0 initializing...");
-        
+        // Load settings and validate bearer token first
         AppSettings settings;
         try
         {
@@ -36,13 +41,34 @@ class Program
 
         var databaseConnector = new DatabaseConnector(settings.SqlConnectionString);
         var dqlValidator = new DqlValidator();
-        var mcpTools = new McpTools(databaseConnector, dqlValidator);
-
-        Console.WriteLine("MCP Server initialization and Tools Registration (Placeholder for ModelContextProtocol SDK integration).");
-        Console.WriteLine("Tools to be registered: list_tables, get_table_schema, execute_dql_query.");
-        Console.WriteLine("Bearer token authentication validated successfully.");
         
-        // Placeholder for actual server transport and authentication initialization using ModelContextProtocol SDK
-        // Once the SQL Server is operational, we will finalize the MCP server transport (stdio) and tool registration execution.
+        // Use Microsoft.Extensions.Hosting's generic host pattern
+        var builder = Host.CreateApplicationBuilder(args);
+
+        // Register services
+        builder.Services.AddSingleton(databaseConnector);
+        builder.Services.AddSingleton(dqlValidator);
+        builder.Services.AddSingleton<McpTools>();
+
+        // Configure and add McpServer
+        builder.Services.AddMcpServer(options =>
+        {
+            options.ServerInfo = new Implementation 
+            { 
+                Name = "thesqlodatamcp", 
+                Version = "1.0.0" 
+            };
+        })
+        .WithStdioServerTransport()
+        .WithToolsFromAssembly(typeof(McpTools).Assembly);
+
+        // Build the host
+        var host = builder.Build();
+
+        Console.WriteLine("SQL OData MCP Connector v1.0.0 initializing...");
+        Console.WriteLine("MCP Server started over stdio with tools: list_tables, get_table_schema, execute_dql_query.");
+        
+        // Run the host
+        await host.RunAsync();
     }
 }
