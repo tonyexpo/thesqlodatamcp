@@ -45,13 +45,14 @@ public class McpTools
                 // JSON conditions: e.g., {"status": "active", "age": 30}
                 try
                 {
-                    string jsonConditions = trimmedConditions;
-                    var matches = System.Text.RegularExpressions.Regex.Matches(jsonConditions, @"\"([a-zA-Z_0-9]+)\"\s*:\s*(?:\"([^\"]+)\"|(\\d+))");
-                    foreach (System.Text.RegularExpressions.Match match in matches)
+                    using var jsonDoc = System.Text.Json.JsonDocument.Parse(trimmedConditions);
+                    foreach (var property in jsonDoc.RootElement.EnumerateObject())
                     {
-                        string key = match.Groups[1].Value;
-                        string valueStr = match.Groups[2].Value != null ? match.Groups[2].Value : match.Groups[3].Value;
-                        
+                        string key = property.Name;
+                        string valueStr = property.Value.ValueKind == System.Text.Json.JsonValueKind.String 
+                            ? property.Value.GetString() 
+                            : property.Value.GetInt32().ToString();
+
                         if (!query.Contains("WHERE"))
                         {
                             query += " WHERE ";
