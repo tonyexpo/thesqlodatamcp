@@ -3,7 +3,7 @@
 ## Development Phases v1
 
 ### Phase 1: Configuration & Settings Management
-- [x] Implement reading and parsing of `settings.json` file (Bearer token, SQL connection string).
+- [x] Implement reading and parsing of `settings.json` (Bearer token, SQL connection string).
 - [x] Ensure settings are loaded securely at application startup.
 
 ### Phase 2: T-SQL DQL Parser & Validator (Option A - Security)
