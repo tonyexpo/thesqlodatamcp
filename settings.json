@@ -1,5 +1,0 @@
-{
-  "BearerToken": "your-bearer-token-here",
-  "SqlConnectionStr": "Server=localhost;Database=YourDatabase;Trusted_Connection=True;",
-  "AuthSettingsFile": "settings.json"
-}

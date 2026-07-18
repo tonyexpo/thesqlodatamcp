@@ -6,17 +6,26 @@
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 - Public project handoff documenting the transition from Qwen 3.6 35B to Codex 5.6 Terra.
-- A verified project-status document and a recovery-first backlog for the future MCP, OData, and ATP JSON work.
+- A verified project-status document and an initial recovery-first backlog.
+- Imported the complete original `AI_DATA_GATEWAY_HANDOFF.md` as the authoritative product and architecture baseline, with an identical SHA-256 hash to the supplied source file.
+- Added a milestone-based v1 roadmap with explicit outcomes and exit gates.
+- Added the annotated historical tag `legacy-poc-final-2026-07-18` at the final committed PoC state.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
 - Reclassified the current implementation as an incomplete proof of concept, not a deployable read-only SQL connector.
+- Reworked README, architecture, backlog, and project status around the authoritative AI Data Gateway baseline.
+- Replaced the earlier incremental MCP → OData → “ATP JSON” assumption with the settled architecture: MCP Streamable HTTP, OData 4.01, JSON/HTTP `QUERY`, and one shared Canonical Query Model.
+- Confirmed Apache License 2.0 and retention of this existing public repository for the clean implementation.
+
+### Removed
+- Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
 
 ### Known limitations
 - Current stdout diagnostics are incompatible with MCP stdio and expose secrets.
 - Current bearer-token configuration is not real client authentication or OAuth.
 - The current DQL blacklist and free-form `WHERE` input do not constitute a safe read-only boundary.
-- OData and ATP JSON support are future work only.
+- OData and the JSON query API are not implemented by the legacy proof of concept; both are now defined as v1 adapters over the shared CQM.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
 

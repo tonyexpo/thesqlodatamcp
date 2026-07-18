@@ -18,17 +18,17 @@ Qwen's work established a small .NET proof of concept, but did not reach a deplo
 - the required MCP tool surface and its compatibility strategy for future OData consumers were not designed;
 - the DQL-only guarantee was attempted with a keyword blacklist, which is not sufficient as a security boundary.
 
-The repository therefore remains an **incomplete proof of concept**, not a safe SQL connector and not a release candidate. No production database credentials should be placed in its current `settings.json` convention or used with the current executable.
+The legacy repository state was therefore an **incomplete proof of concept**, not a safe SQL connector and not a release candidate. Its final committed state is now preserved by `legacy-poc-final-2026-07-18`; the obsolete executable, settings, source project, generated artifacts, and tests have been removed from `main`.
 
-## Verified current state
+## Verified legacy state before removal
 
-The latest source at the time of this handoff builds successfully and the existing unit suite reports 13 passing tests. That verification is deliberately narrow: it does **not** prove MCP protocol interoperability, tool registration, SQL connectivity, OAuth/authentication, or read-only security.
+The legacy source at the time of the handoff built successfully and its unit suite reported 13 passing tests. That verification was deliberately narrow: it did **not** prove MCP protocol interoperability, tool registration, SQL connectivity, OAuth/authentication, or read-only security.
 
-The current MCP hosting attempt uses the correct general `Generic Host` direction for the pinned SDK, but the tool container class lacks `[McpToolType]`. The installed SDK documents that `WithToolsFromAssembly(...)` discovers types marked with that attribute. As a consequence, the build can succeed while no MCP tools are registered.
+The removed MCP hosting attempt used the correct general `Generic Host` direction for the pinned SDK, but the tool container class lacked `[McpToolType]`. The installed SDK documented that `WithToolsFromAssembly(...)` discovers types marked with that attribute. As a consequence, the build could succeed while no MCP tools were registered.
 
-The executable also currently writes diagnostic text, including the bearer token and SQL connection string, to standard output. MCP stdio requires stdout to contain only protocol messages, so this must be corrected before any interoperability test. Secrets must never be logged.
+The removed executable also wrote diagnostic text, including the bearer token and SQL connection string, to standard output. MCP stdio requires stdout to contain only protocol messages. This remains part of the historical failure record; the replacement architecture uses remote Streamable HTTP and must never log secrets.
 
-## Security and functional gaps
+## Historical security and functional gaps
 
 - `settings.json` uses names that do not match the deserialized settings properties, so its SQL connection string currently resolves to an empty value.
 - The static bearer-token setting is not checked against a request, does not authorize a caller, and is not a substitute for OAuth. In particular, stdio has no HTTP bearer header to validate.
@@ -40,16 +40,22 @@ The executable also currently writes diagnostic text, including the bearer token
 
 ## Product direction to preserve
 
-The intended product direction is valid:
+The complete product direction is now defined by [AI Data Gateway — Project Handoff](./AI_DATA_GATEWAY_HANDOFF.md). It supersedes the earlier assumption that OData and a JSON query API would simply be added after an MCP SQL connector.
 
-1. a secure, read-only SQL capability for MCP clients;
-2. a later OData-facing adapter for older clients, including Power BI;
-3. a later ATP JSON-query capability.
+The target is a new self-hosted .NET 10 / ASP.NET Core gateway with:
 
-These interfaces should not be built independently on top of arbitrary SQL text. The design should first define a common, restricted query contract: authorized entities or views, selectable fields, typed filters, ordering, pagination, result limits, and a stable result schema. MCP, OData, and ATP JSON can then be adapters over that contract.
+- MCP over Streamable HTTP;
+- a base read-only OData 4.01 profile in v1, including target Power BI scenarios;
+- a versioned JSON query API and HTTP `QUERY`/`POST`;
+- one Canonical Query Model shared by every protocol;
+- real standalone OAuth through OpenIddict;
+- a SQL Server provider that compiles structural queries into one parameterized `SELECT`;
+- a SQLite control store for OAuth, catalog revisions, approval tokens, and minimal administration.
 
-## Deferred project analysis
+There is no caller-supplied SQL and no static bearer-token shortcut in the target architecture.
 
-The project owner has a prior analysis document on another computer. When it becomes available, add it to `docs/` and reconcile it with the backlog before implementation resumes. It is expected to contain product and architecture decisions that must guide the remaining work.
+## Project analysis incorporated
 
-Until that analysis is incorporated, the current code should be treated as reference material only. Do not expand the feature set or claim a production security posture.
+The project owner's complete ChatGPT analysis was recovered and imported unchanged on 2026-07-18 as `docs/AI_DATA_GATEWAY_HANDOFF.md`. It is the implementation baseline. README, architecture, roadmap, and backlog have been reconciled around it.
+
+The legacy code now exists only in Git history and the historical tag. This repository will be reused for the clean implementation under Apache License 2.0. Milestone 0 must still settle final product/namespace naming, package research, and the new solution/CI baseline before production implementation begins.

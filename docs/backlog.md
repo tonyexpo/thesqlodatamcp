@@ -1,77 +1,117 @@
-# Backlog — SQL OData MCP Connector
+# Backlog
 
-## Current status
+## Source of truth
 
-The current code is an incomplete proof of concept. A successful build and the 13 existing unit tests do not validate MCP tool discovery, MCP interoperability, SQL behavior, authentication, or a safe read-only boundary. See [Project Status & Handoff](./project-status-handoff.md) for the verified state and the agent transition record.
+The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative product baseline. The [roadmap](./roadmap.md) defines milestone order and exit gates. This file tracks implementation work; it must not silently change settled product boundaries.
 
-No new product feature should be implemented until Phase 0 is completed and the prior project analysis from the owner's other computer has been added to this repository.
+## Milestone 0 — Rebaseline and de-risk
 
-## Phase 0 — Recovery and project design baseline
+### Documentation and decisions
 
-- [x] Record the public project handoff from Qwen 3.6 35B to Codex 5.6 Terra.
-- [x] Document the current proof-of-concept limitations and known security issues.
-- [ ] Add the owner's existing project-analysis documentation to `docs/` when it is available.
-- [ ] Reconcile that analysis with this backlog, architecture document, and product scope.
-- [ ] Define target users and deployment modes: local stdio only, remote HTTP, or both.
-- [ ] Define supported SQL Server versions, network topology, tenancy assumptions, and the data-classification model.
-- [ ] Produce a threat model, including agent trust, credential storage, SQL injection, data exfiltration, denial of service, and audit requirements.
-- [ ] Define explicit v1 non-goals; in particular, decide whether arbitrary SQL text is out of scope.
+- [x] Import the complete original AI Data Gateway handoff into `docs/` without modification.
+- [x] Reconcile README, architecture, roadmap, backlog, project status, and changelog with the handoff.
+- [x] Preserve the Qwen 3.6 35B → Codex 5.6 Terra transition and the legacy QA record.
+- [ ] Choose the final product name, possible repository rename, assembly root, and namespaces.
+- [x] Confirm Apache License 2.0 as the final license.
+- [x] Retain and rebaseline this existing public Git repository.
+- [x] Preserve the final PoC as `legacy-poc-final-2026-07-18` and remove obsolete source/tests from `main`.
+- [ ] Record settled implementation choices as short ADRs.
 
-## Phase 1 — Security and identity architecture
+### Implementation-time research spikes
 
-- [ ] Require a dedicated database identity with least-privilege `SELECT` permissions, preferably against approved views rather than arbitrary base tables.
-- [ ] Define allowlists for schemas, entities/views, columns, and optionally row-level policies.
-- [ ] Choose authentication per transport:
-  - [ ] For stdio, define local process/client trust and credential ownership; do not pretend a configured bearer token is request authentication.
-  - [ ] For future remote HTTP transport, design real OAuth 2.1/OIDC integration, token validation, authorization policies, and audience/scopes.
-- [ ] Replace the tracked runtime `settings.json` pattern with a safe template/example and ignored local secrets.
-- [ ] Fix settings schema alignment and fail fast when required configuration is missing.
-- [ ] Define structured logging, secret redaction, audit events, rate limits, query timeouts, cancellation, maximum rows, and maximum response size.
+- [ ] Verify the current supported official .NET MCP SDK with Streamable HTTP and structured tool output.
+- [ ] Verify ASP.NET Core OData compatibility with .NET 10 and runtime EDM generation without a reporting-source EF model.
+- [ ] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation.
+- [ ] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
+- [ ] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
 
-## Phase 2 — Common query contract
+### Solution baseline
 
-- [ ] Design a transport-neutral, typed read-query contract over approved entities/views.
-- [ ] Define projections, typed comparisons, boolean filter composition, sorting, pagination/cursors, aggregate support, and explicit limits.
-- [ ] Define stable request/response DTOs and error semantics.
-- [ ] Decide whether joins, aggregates, and subqueries are supported; if so, specify them structurally rather than accepting raw SQL.
-- [ ] Define metadata discovery: schemas, primary keys, relationships, descriptions, and data types.
-- [ ] Map the contract deliberately to OData query semantics and document any unsupported OData features.
-- [ ] Reserve a versioned mapping for the future ATP JSON-query interface.
+- [ ] Scaffold the five target source projects and four test projects without further fragmentation.
+- [ ] Add central package/version management, nullable analysis, formatting, analyzers, and deterministic builds.
+- [ ] Establish CI for restore, build, unit tests, and documentation/link checks.
+- [x] Remove legacy tracked `bin/`/`obj/` artifacts and ignore local agent state.
+- [ ] Establish the new example-configuration and local-secret ignore convention when the solution is scaffolded.
 
-## Phase 3 — MCP server baseline
+## Milestone 1 — Catalog foundation
 
-- [ ] Decide whether to remain on the pinned preview SDK or upgrade after validating its real API and compatibility policy.
-- [ ] Make tool discovery operational (`[McpToolType]`, method attributes, dependency injection) and verify it with an MCP client.
-- [ ] Keep MCP stdio stdout protocol-only; send diagnostics to an appropriate logger/stderr without secrets.
-- [ ] Replace ad-hoc string and tuple tool results with serializable DTOs and documented schemas.
-- [ ] Define the v1 MCP tool list from the common query contract, including metadata and paged read tools.
-- [ ] Add protocol-level integration tests for initialize, list-tools, invalid input, authorization behavior, and tool invocation.
+- [ ] Define technical catalog, entity, field, key, relationship, type, capability, and revision models.
+- [ ] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection.
+- [ ] Exclude system and unsupported programmable objects by construction.
+- [ ] Implement canonical SQL type mapping with preserved provider details.
+- [ ] Implement Markdown plus YAML/front-matter import and the v1 structured schema.
+- [ ] Reject forbidden semantic sections and invalid physical references.
+- [ ] Implement merge precedence, FK/configured relationships, keyless-view rules, and deterministic hashes.
+- [ ] Add SQLite control-store migrations and catalog revision persistence.
+- [ ] Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
+- [ ] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.
 
-## Phase 4 — SQL Server implementation
+## Milestone 2 — CQM and SQL Server query engine
 
-- [ ] Implement the contract using parameterized ADO.NET commands with explicit SQL types and sizes.
-- [ ] Quote/validate all identifiers through allowlists, never through caller-provided bracket interpolation.
-- [ ] Remove the free-form SQL `WHERE` input. If raw SQL is ever retained, use a real parser/AST and treat it as a separately reviewed capability.
-- [ ] Enforce query limits, timeouts, cancellation, deterministic ordering for pagination, and structured output.
-- [ ] Add SQL Server integration tests for permissions, schema discovery, filtering, paging, limits, failures, and cancellation.
-- [ ] Add regression tests for `SELECT INTO`, `WAITFOR`, identifier escaping, comment handling, and all other security findings.
+- [ ] Define versioned strict CQM DTOs and a published JSON Schema.
+- [ ] Implement expression normalization, canonical scalar types, type inference, aliases, and stable validation errors/paths.
+- [ ] Implement entity/analytical classification, grouping rules, aggregate rules, and v1 operator/function capabilities.
+- [ ] Implement explicit/named/automatic join resolution with ambiguity errors and v1 join limits.
+- [ ] Implement provider abstractions and SQL Server catalog-only identifier resolution/quoting.
+- [ ] Compile exactly one parameterized `SELECT`; expose no SQL-fragment or raw-query escape hatch.
+- [ ] Implement typed parameter binding, deterministic aliases, offset paging, stable-order warnings, and total-count behavior.
+- [ ] Implement compact result envelopes, cancellation, timeout, concurrency, row, byte, join, aggregate, and expression limits.
+- [ ] Add golden compiler tests and disposable-SQL integration tests for the full v1 query surface.
+- [ ] Add security regression tests for injection through every external string, query amplification, and accidental writes.
 
-## Phase 5 — OData adapter
+## Milestone 3 — JSON API and operational baseline
 
-- [ ] Select hosting and OData implementation technology after the common query contract is stable.
-- [ ] Expose approved entities, metadata, filtering, sorting, and paging through an intentionally limited OData surface.
-- [ ] Verify interoperability with the target Power BI usage scenarios.
-- [ ] Apply the same authorization, limits, auditing, and error model as the MCP path.
+- [ ] Build the ASP.NET Core host, configuration validation, forwarded-header ordering, and safe secret sources.
+- [ ] Implement versioned catalog/entity endpoints.
+- [ ] Implement shared HTTP `QUERY` and `POST` execution plus `POST /query/validate`.
+- [ ] Implement the versioned vendor media type, `Accept-Query`, strict JSON parsing, and Problem Details codes/paths.
+- [ ] Implement liveness/readiness, source-down behavior, correlation IDs, safe structured logs, and metrics baseline.
+- [ ] Add sample SQL database/seed/catalog and Docker Compose development setup.
+- [ ] Add JSON protocol and end-to-end integration tests.
 
-## Phase 6 — ATP JSON-query adapter
+## Milestone 4 — OData and MCP adapters
 
-- [ ] Define ATP's exact meaning, API boundary, JSON request schema, response schema, versioning, and authorization model.
-- [ ] Map only approved portions of ATP JSON queries to the common query contract.
-- [ ] Add compatibility, validation, security, and performance tests.
+### OData v1
 
-## Delivery and documentation
+- [ ] Publish the read-only OData capability matrix.
+- [ ] Implement service document and runtime XML CSDL metadata.
+- [ ] Expose tables and keyed views; exclude keyless views unless YAML provides a logical key.
+- [ ] Map GET by key/collection, `$select`, `$filter`, `$orderby`, `$top`, `$skip`, `$count`, null handling, core functions, and server paging to CQM.
+- [ ] Add real-client and Power BI compatibility tests where practical.
 
-- [ ] Remove already tracked `bin/` and `obj/` test artifacts from Git while preserving local build output.
-- [ ] Establish CI for formatting, build, unit tests, integration tests, security regression tests, and dependency review.
-- [ ] Keep architecture, changelog, threat model, API contract, and deployment guidance aligned with each implementation milestone.
-- [ ] Define release criteria: reviewed threat model, end-to-end MCP test, SQL least privilege verification, documented OAuth/transport behavior, and successful target-client validation.
+### MCP v1
+
+- [ ] Host MCP over Streamable HTTP using the validated current SDK.
+- [ ] Implement `get_reporting_guide`, `search_catalog`, `describe_entities`, and `get_query_capabilities`.
+- [ ] Implement `query_data`, `aggregate_data`, and `validate_query` as CQM façades.
+- [ ] Publish strict input/output schemas and conforming structured content.
+- [ ] Ensure semantic Markdown is returned as data, not injected into tool descriptions or server instructions.
+- [ ] Add MCP initialize/list/call/error tests, MCP Inspector coverage, and a real-client E2E.
+- [ ] Add cross-adapter equivalence tests across JSON, OData, and MCP.
+
+## Milestone 5 — OAuth, persistence, and backoffice
+
+- [ ] Implement standalone OpenIddict OAuth discovery/metadata and authorization code + PKCE.
+- [ ] Implement capped/rate-limited dynamic public-client registration and required resource indicators.
+- [ ] Implement reference access tokens, refresh tokens, client revocation, and administrative token/grant/client/session revocation.
+- [ ] Implement hashed, one-time-displayed approval tokens that never grant direct data access.
+- [ ] Persist OpenIddict state and cryptographic/data-protection material safely in the control store.
+- [ ] Implement separate bootstrap admin authentication and the protected minimal backoffice.
+- [ ] Support connection status/test, OAuth administration, approval tokens, catalog validation/activation/rollback/refresh/export, and minimal audit.
+- [ ] Apply secure cookies, antiforgery, same-site rules, short sessions, rate limits, constant-time comparisons, and upload limits.
+- [ ] Prove anonymous denial, PKCE, refresh, revocation, restart persistence, CSRF protection, and log/error redaction in tests.
+
+## Milestone 6 — v1 hardening and public release
+
+- [ ] Complete and review the threat model against implementation and tests.
+- [ ] Verify source-database least privilege and inability to write independently of application validation.
+- [ ] Validate default limits under query-amplification and concurrency pressure.
+- [ ] Produce Docker, Docker Compose, and self-contained Windows/Linux artifacts.
+- [ ] Write deployment, OAuth, configuration, catalog-authoring, backup/restore, and troubleshooting guides.
+- [ ] Add security policy, contribution guide, issue templates, OData matrix, samples, automated releases, and upgrade notes.
+- [ ] Execute MCP Inspector, real MCP client, real OData client, Power BI where practical, Docker, persistence, and clean-install E2E scenarios.
+- [ ] Demonstrate every item in the handoff v1 definition of done before tagging v1.
+
+## Post-v1
+
+Post-v1 scope follows the six-release roadmap in the authoritative handoff. Do not pull v2+ features into v1 unless they remove a proven blocker or the project owner explicitly changes scope.

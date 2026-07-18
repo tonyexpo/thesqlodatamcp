@@ -18,3 +18,10 @@ packages/
 *.nupkg
 *.nuget.props
 *.nuget.targets
+
+# Local agent state
+.goose/
+
+# Local application secrets and overrides
+appsettings.Local.json
+appsettings.*.local.json
