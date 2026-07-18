@@ -1,5 +1,7 @@
 # Architecture
 
+> **Status — 2026-07-18:** This file describes the intended architecture, not the delivered security posture. The current implementation is an incomplete proof of concept. Before implementation resumes, read [Project Status & Handoff](./project-status-handoff.md) and follow the recovery-first [Backlog](./backlog.md). In particular, static bearer configuration is not OAuth, and a blacklist parser is not an adequate read-only security boundary.
+
 The SQL OData MCP Connector is designed as a lightweight, secure bridge between AI agents (using the Model Context Protocol) and relational databases, specifically targeting MS SQL Server via direct ADO.NET `SqlClient`. 
 
 Key components:

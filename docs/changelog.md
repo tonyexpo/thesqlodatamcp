@@ -5,14 +5,26 @@
 ### Added
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
+- Public project handoff documenting the transition from Qwen 3.6 35B to Codex 5.6 Terra.
+- A verified project-status document and a recovery-first backlog for the future MCP, OData, and ATP JSON work.
 
-## [v0.6.0 - Phase 5 Complete: MCP Server Transport & Tool Registration]
+### Changed
+- Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
+- Reclassified the current implementation as an incomplete proof of concept, not a deployable read-only SQL connector.
+
+### Known limitations
+- Current stdout diagnostics are incompatible with MCP stdio and expose secrets.
+- Current bearer-token configuration is not real client authentication or OAuth.
+- The current DQL blacklist and free-form `WHERE` input do not constitute a safe read-only boundary.
+- OData and ATP JSON support are future work only.
+
+## [v0.6.0 - MCP Server Hosting Attempt]
 
 ### MCP Server & Tools Integration
-- Completed Phase 5: Wired up the real ModelContextProtocol server transport and tool registration in `Program.cs`.
+- Added a compiling attempt to wire up the ModelContextProtocol server transport and tool registration in `Program.cs`.
 - Used Microsoft.Extensions.Hosting's generic host pattern (`Host.CreateApplicationBuilder`) to initialize the application.
-- Registered `McpTools`' three methods (`list_tables`, `get_table_schema`, `execute_dql_query`) as MCP tools using `[McpToolAttribute]` and the confirmed SDK APIs: `AddMcpServer`, `WithStdioServerTransport`, and `WithToolsFromAssembly`.
-- Removed placeholder text in `Program.cs` and ensured the project compiles successfully with zero errors.
+- Applied `[McpToolAttribute]` to three methods and used `AddMcpServer`, `WithStdioServerTransport`, and `WithToolsFromAssembly`.
+- The project compiles successfully with zero errors, but the class-level `[McpToolType]` marker and a protocol-level verification were omitted; this version must not be described as completed MCP tool registration.
 
 ## [v0.5.1 - Phase 5 Structure & Authentication (Transport/Tools Placeholder)]
 

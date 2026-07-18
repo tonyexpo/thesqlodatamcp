@@ -23,6 +23,7 @@ The connector exposes the following MCP tools:
 
 ## Documentation
 
+- [Project Status & Handoff](./docs/project-status-handoff.md) — current verified status, agent transition, and prerequisites for restarting development.
 - [Architecture](./docs/architecture.md)
 - [Changelog](./docs/changelog.md)
 - [Backlog](./docs/backlog.md)
