@@ -1,0 +1,20 @@
+# Bin and obj directories
+bin/
+obj/
+
+# Debug builds
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio files
+.vs/
+.vscode/
+
+# Test results
+TestResults/
+
+# NuGet packages
+packages/
+*.nupkg
+*.nuget.props
+*.nuget.targets
