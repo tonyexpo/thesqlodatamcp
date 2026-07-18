@@ -6,6 +6,13 @@
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 
+## [v0.5.0 - Phase 5 Completion: MCP Server Initialization & Authentication]
+
+### MCP Server & Authentication
+- Completed Phase 5: Initialized the MCP server using `ModelContextProtocol.Server` and `StdioServerTransport`.
+- Registered MCP tools: `list_tables`, `get_table_schema`, `execute_dql_query`.
+- Implemented Bearer token authentication validation using the token from `settings.json`.
+
 ## [v0.4.0 - Phase 3 & 4 Completion: SqlClient Connector & MCP Tools Execution]
 
 ### Database Connector & MCP Tools
