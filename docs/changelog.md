@@ -6,20 +6,17 @@
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 
-## [v0.5.0 - Phase 5 Completion: MCP Server Initialization & Authentication]
-
-### MCP Server & Authentication
-- Completed Phase 5: Initialized the MCP server using `ModelContextProtocol.Server` and `StdioServerTransport`.
-- Registered MCP tools: `list_tables`, `get_table_schema`, `execute_dql_query`.
-- Implemented Bearer token authentication validation using the token from `settings.json`.
-
-## [v0.4.0 - Phase 3 & 4 Completion: SqlClient Connector & MCP Tools Execution]
+## [v0.5.0 - Phase 3, 4 & 5 Completion: SqlClient Connector, MCP Tools Execution & Server Initialization Structure]
 
 ### Database Connector & MCP Tools
 - Completed Phase 3: Implemented `DatabaseConnector` with `ListTables()` and `GetTableSchema(tableName)` using `SqlConnection` and `SqlCommand`.
 - Completed Phase 4: Implemented `McpTools.ExecuteDqlQueryAsync` to execute validated DQL queries via `SqlClient` with parameterized conditions.
 - JSON condition processing is now supported in `execute_dql_query`, converting JSON filters to parameterized SQL WHERE clauses.
 - Security enforcement ensures all values are passed as pure parameters via `SqlCommand.Parameters`.
+
+### MCP Server & Authentication
+- Completed Phase 5 structure: Bearer token authentication validation implemented using the token from `settings.json`.
+- MCP server initialization structure prepared using `ModelContextProtocol.Server`, with tools registration placeholders (`list_tables`, `get_table_schema`, `execute_dql_query`) pending full SDK API alignment for transport initialization (stdio).
 
 ## [v0.2.0 - Architectural Decisions & v1 Scope]
 
