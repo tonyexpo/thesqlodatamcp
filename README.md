@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project is now being rebaselined from the authoritative AI Data Gateway handoff. The target architecture is a new .NET 10 / ASP.NET Core solution rather than an incremental extension of the stdio/raw-DQL prototype.
 
-Implementation has not restarted yet. The next work is the remainder of Milestone 0: validate implementation-time library choices, select .NET identifier casing, and scaffold the new solution and CI baseline.
+Implementation has restarted with isolated Milestone 0 research spikes. .NET identifier casing and the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema library baselines are now recorded; the disposable SQL Server test candidate still requires a real Docker run. The production solution and CI baseline have not been scaffolded yet.
 
 ## Product boundaries
 
@@ -37,11 +37,13 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 
 - [Authoritative project handoff](./docs/AI_DATA_GATEWAY_HANDOFF.md) — settled product boundaries, contracts, security model, release sequence, and v1 definition of done.
 - [ADR 0001: project identity](./docs/decisions/0001-project-identity.md) — definitive name, repository continuity, historical tag, and license.
-- [Project status and agent handoff](./docs/project-status-handoff.md) — legacy assessment and transition from Qwen 3.6 35B to Codex 5.6 Terra.
+- [ADR 0002: .NET identifiers](./docs/decisions/0002-dotnet-identifiers.md) — solution, project, assembly, and namespace casing.
+- [ADR 0003: initial library baseline](./docs/decisions/0003-protocol-identity-catalog-libraries.md) — validated MCP, OData, OpenIddict, and catalog parsing choices.
+- [ADR 0004: SQL Server test infrastructure](./docs/decisions/0004-sqlserver-test-infrastructure.md) — proposed Testcontainers baseline and its remaining acceptance gate.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.
-- [Claude QA analysis](./docs/qa-analysis-claude.md) — historical QA of the legacy proof of concept.
+- [Development state](./docs/development-state.md) — verified restart checkpoint, open gates, and next dependency-ordered work.
 - [Changelog](./docs/changelog.md)
 
 ## Current implementation

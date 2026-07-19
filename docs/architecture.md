@@ -73,20 +73,20 @@ Protocol syntax never reaches the provider directly. Every request becomes a ver
 
 ```text
 src/
-  Gateway.Core/          Catalog, CQM, validation, abstractions
-  Gateway.SqlServer/     Introspection, compilation, type mapping
-  Gateway.Persistence/   SQLite, OpenIddict, migrations
-  Gateway.Protocols/     MCP, OData, JSON adapters
-  Gateway.Web/           Hosting, OAuth, admin, health
+  TheSqlODataMcp.Core/          Catalog, CQM, validation, abstractions
+  TheSqlODataMcp.SqlServer/     Introspection, compilation, type mapping
+  TheSqlODataMcp.Persistence/   SQLite, OpenIddict, migrations
+  TheSqlODataMcp.Protocols/     MCP, OData, JSON adapters
+  TheSqlODataMcp.Web/           Hosting, OAuth, admin, health
 
 tests/
-  Gateway.Core.Tests/
-  Gateway.SqlServer.Tests/
-  Gateway.IntegrationTests/
-  Gateway.ProtocolTests/
+  TheSqlODataMcp.Core.Tests/
+  TheSqlODataMcp.SqlServer.Tests/
+  TheSqlODataMcp.IntegrationTests/
+  TheSqlODataMcp.ProtocolTests/
 ```
 
-The public product name is final. Project labels in this sketch are structural placeholders until the .NET identifier casing is selected; avoid additional projects until a dependency boundary justifies them.
+The public product name is final. [ADR 0002](./decisions/0002-dotnet-identifiers.md) defines the corresponding .NET identifier casing; avoid additional projects until a dependency boundary justifies them.
 
 ## Legacy proof-of-concept disposition
 
@@ -104,8 +104,7 @@ The project owner chose to keep this public repository, preserve the final PoC s
 
 The following choices are intentionally not frozen by the handoff:
 
-- exact .NET solution, project, assembly, and namespace casing for the final public name `thesqlodatamcp`;
-- exact supported package versions;
+- production pinning and CI validation of the spike-selected package baseline in [ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md);
 - ASP.NET Core OData runtime-EDM approach on .NET 10;
 - JSON Schema and YAML libraries;
 - SQL Server disposable integration-test infrastructure.

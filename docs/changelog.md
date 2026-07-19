@@ -11,6 +11,11 @@
 - Added a milestone-based v1 roadmap with explicit outcomes and exit gates.
 - Added the annotated historical tag `legacy-poc-final-2026-07-18` at the final committed PoC state.
 - Added ADR 0001, recording `thesqlodatamcp` as the definitive product/repository name and closing repository/licensing decisions.
+- Added ADR 0002, selecting `TheSqlODataMcp` for .NET projects, assemblies, and namespaces and `thesqlodatamcp.slnx` for the solution file.
+- Added executable .NET 10 spikes for MCP Streamable HTTP and structured content, runtime OData EDM without EF, OpenIddict APIs, strict Markdown/YAML/JSON Schema validation, and disposable SQL Server testing.
+- Added ADR 0003 for the accepted MCP, OData, OpenIddict, and catalog-library baseline.
+- Added proposed ADR 0004 for Testcontainers-based SQL Server integration testing, pending a successful real Docker and CI run.
+- Added a version-controlled technical-lead skill, root `AGENTS.md`, and development-state checkpoint so architecture, QA evidence, open gates, and next work survive conversational resets.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
@@ -22,6 +27,7 @@
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
+- Removed the obsolete PoC agent-handoff and QA documents from `main` to keep the active documentation focused on the clean implementation. Their history remains available in Git.
 
 ### Known limitations
 - Current stdout diagnostics are incompatible with MCP stdio and expose secrets.

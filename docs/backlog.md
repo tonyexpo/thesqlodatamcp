@@ -10,9 +10,9 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 
 - [x] Import the complete original AI Data Gateway handoff into `docs/` without modification.
 - [x] Reconcile README, architecture, roadmap, backlog, project status, and changelog with the handoff.
-- [x] Preserve the Qwen 3.6 35B → Codex 5.6 Terra transition and the legacy QA record.
+- [x] Preserve the obsolete PoC handoff and QA record in Git history and the historical tag; remove them from `main`.
 - [x] Set `thesqlodatamcp` as the definitive public product and repository name.
-- [ ] Select the corresponding .NET solution/project/assembly/namespace casing during scaffolding.
+- [x] Select the corresponding .NET solution/project/assembly/namespace casing during scaffolding.
 - [x] Confirm Apache License 2.0 as the final license.
 - [x] Retain and rebaseline this existing public Git repository.
 - [x] Preserve the final PoC as `legacy-poc-final-2026-07-18` and remove obsolete source/tests from `main`.
@@ -21,10 +21,10 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 
 ### Implementation-time research spikes
 
-- [ ] Verify the current supported official .NET MCP SDK with Streamable HTTP and structured tool output.
-- [ ] Verify ASP.NET Core OData compatibility with .NET 10 and runtime EDM generation without a reporting-source EF model.
-- [ ] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation.
-- [ ] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
+- [x] Verify the current supported official .NET MCP SDK with Streamable HTTP and structured tool output.
+- [x] Verify ASP.NET Core OData compatibility with .NET 10 and runtime EDM generation without a reporting-source EF model.
+- [x] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation; record that RFC 7591 registration requires application-owned implementation or another validated component.
+- [x] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
 - [ ] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
 
 ### Solution baseline

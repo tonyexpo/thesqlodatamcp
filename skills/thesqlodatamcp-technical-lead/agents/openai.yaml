@@ -1,0 +1,4 @@
+interface:
+  display_name: "thesqlodatamcp Technical Lead"
+  short_description: "Architecture, delegation, QA, and documentation"
+  default_prompt: "Use $thesqlodatamcp-technical-lead to lead and validate development work."

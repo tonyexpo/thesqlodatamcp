@@ -10,7 +10,7 @@ Milestones are dependency-ordered. A milestone is complete only when its exit ga
 
 **Outcome:** a clean, named, licensed solution baseline whose critical library choices have been proven with small executable spikes.
 
-Product naming, repository continuity, licensing, and legacy-code disposition are settled. Remaining work includes selecting .NET identifier casing, solution scaffolding, CI, further architecture decision records, and research into the current MCP SDK, ASP.NET Core OData on .NET 10 with runtime EDM, OpenIddict, schema/YAML libraries, and disposable SQL Server tests.
+Product naming, repository continuity, licensing, legacy-code disposition, .NET identifier casing, and the initial MCP, OData, OpenIddict, schema/YAML library baselines are settled. Remaining work includes completing the real disposable SQL Server test gate, solution scaffolding, CI, configuration conventions, and any further architecture decision records required by those activities.
 
 **Exit gate:** the target solution builds in CI; the selected packages have minimal working spikes; no production feature depends on an obsolete preview or an assumed API; legacy code is clearly isolated or scheduled for removal.
 
