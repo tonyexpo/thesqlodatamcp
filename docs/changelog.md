@@ -16,6 +16,10 @@
 - Added ADR 0003 for the accepted MCP, OData, OpenIddict, and catalog-library baseline.
 - Added proposed ADR 0004 for Testcontainers-based SQL Server integration testing, pending a successful real Docker and CI run.
 - Added a version-controlled technical-lead skill, root `AGENTS.md`, and development-state checkpoint so architecture, QA evidence, open gates, and next work survive conversational resets.
+- Added the production `thesqlodatamcp.slnx` baseline with five source projects and four test projects, preserving the approved dependency directions and keeping research spikes outside the solution.
+- Added central package management, shared .NET 10/C# 14 build policy, nullable analysis, warnings-as-errors, analyzers, formatting rules, deterministic compilation, and SDK pinning.
+- Added safe handoff-shaped example configuration, local-secret ignore conventions, six deterministic scaffold tests, an offline Markdown link verifier, and a CI workflow for restore, build, tests, formatting, and documentation links.
+- Added ADR 0005 recording the accepted solution, dependency, package-placement, build, configuration, and CI baseline.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.

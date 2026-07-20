@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project is now being rebaselined from the authoritative AI Data Gateway handoff. The target architecture is a new .NET 10 / ASP.NET Core solution rather than an incremental extension of the stdio/raw-DQL prototype.
 
-Implementation has restarted with isolated Milestone 0 research spikes. .NET identifier casing and the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema library baselines are now recorded; the disposable SQL Server test candidate still requires a real Docker run. The production solution and CI baseline have not been scaffolded yet.
+Implementation has restarted with isolated Milestone 0 research spikes and a production solution baseline. The nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, and CI workflow are now present and locally validated. The first run on the intended GitHub Actions runner and the disposable SQL Server Docker gate are still required before Milestone 0 can close.
 
 ## Product boundaries
 
@@ -40,6 +40,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0002: .NET identifiers](./docs/decisions/0002-dotnet-identifiers.md) — solution, project, assembly, and namespace casing.
 - [ADR 0003: initial library baseline](./docs/decisions/0003-protocol-identity-catalog-libraries.md) — validated MCP, OData, OpenIddict, and catalog parsing choices.
 - [ADR 0004: SQL Server test infrastructure](./docs/decisions/0004-sqlserver-test-infrastructure.md) — proposed Testcontainers baseline and its remaining acceptance gate.
+- [ADR 0005: solution, build, and CI baseline](./docs/decisions/0005-solution-build-and-ci-baseline.md) — production project graph, package placement, shared build policy, configuration, tests, and CI.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.

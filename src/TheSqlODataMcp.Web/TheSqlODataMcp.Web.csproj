@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>TheSqlODataMcp.Web</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenIddict.Server.AspNetCore" />
+    <ProjectReference Include="../TheSqlODataMcp.Core/TheSqlODataMcp.Core.csproj" />
+    <ProjectReference Include="../TheSqlODataMcp.Persistence/TheSqlODataMcp.Persistence.csproj" />
+    <ProjectReference Include="../TheSqlODataMcp.Protocols/TheSqlODataMcp.Protocols.csproj" />
+    <ProjectReference Include="../TheSqlODataMcp.SqlServer/TheSqlODataMcp.SqlServer.csproj" />
+  </ItemGroup>
+</Project>

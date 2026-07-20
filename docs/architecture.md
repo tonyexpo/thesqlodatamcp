@@ -100,15 +100,10 @@ The former `Program.cs`, `McpTools.cs`, `DqlValidator.cs`, `DatabaseConnector.cs
 
 The project owner chose to keep this public repository, preserve the final PoC state in `legacy-poc-final-2026-07-18`, and remove the obsolete implementation from `main`. Historical code remains recoverable through the tag and Git history; the QA and handoff documents remain on `main`.
 
-## Decisions still open at implementation time
+## Implementation baselines and remaining decision
 
-The following choices are intentionally not frozen by the handoff:
+[ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md) fixes the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema choices validated by executable spikes. [ADR 0005](./decisions/0005-solution-build-and-ci-baseline.md) records their production package placement, the dependency graph, and the shared build and CI policy.
 
-- production pinning and CI validation of the spike-selected package baseline in [ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md);
-- ASP.NET Core OData runtime-EDM approach on .NET 10;
-- JSON Schema and YAML libraries;
-- SQL Server disposable integration-test infrastructure.
-
-These choices may change implementation detail, but not the settled product boundaries.
+The SQL Server disposable integration-test infrastructure remains proposed in [ADR 0004](./decisions/0004-sqlserver-test-infrastructure.md) until a real pinned container, connection, typed parameterized query, cleanup path, and intended CI runner all pass. Implementation details may change to satisfy that gate, but not the settled product boundaries.
 
 The definitive product/repository name and Apache License 2.0 are recorded in [ADR 0001](./decisions/0001-project-identity.md).

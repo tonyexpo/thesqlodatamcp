@@ -29,11 +29,11 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 
 ### Solution baseline
 
-- [ ] Scaffold the five target source projects and four test projects without further fragmentation.
-- [ ] Add central package/version management, nullable analysis, formatting, analyzers, and deterministic builds.
+- [x] Scaffold the five target source projects and four test projects without further fragmentation.
+- [x] Add central package/version management, nullable analysis, formatting, analyzers, and deterministic builds.
 - [ ] Establish CI for restore, build, unit tests, and documentation/link checks.
 - [x] Remove legacy tracked `bin/`/`obj/` artifacts and ignore local agent state.
-- [ ] Establish the new example-configuration and local-secret ignore convention when the solution is scaffolded.
+- [x] Establish the new example-configuration and local-secret ignore convention when the solution is scaffolded.
 
 ## Milestone 1 — Catalog foundation
 

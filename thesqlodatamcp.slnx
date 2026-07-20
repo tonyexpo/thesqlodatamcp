@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TheSqlODataMcp.Core/TheSqlODataMcp.Core.csproj" />
+    <Project Path="src/TheSqlODataMcp.Persistence/TheSqlODataMcp.Persistence.csproj" />
+    <Project Path="src/TheSqlODataMcp.Protocols/TheSqlODataMcp.Protocols.csproj" />
+    <Project Path="src/TheSqlODataMcp.SqlServer/TheSqlODataMcp.SqlServer.csproj" />
+    <Project Path="src/TheSqlODataMcp.Web/TheSqlODataMcp.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TheSqlODataMcp.Core.Tests/TheSqlODataMcp.Core.Tests.csproj" />
+    <Project Path="tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj" />
+    <Project Path="tests/TheSqlODataMcp.ProtocolTests/TheSqlODataMcp.ProtocolTests.csproj" />
+    <Project Path="tests/TheSqlODataMcp.SqlServer.Tests/TheSqlODataMcp.SqlServer.Tests.csproj" />
+  </Folder>
+</Solution>

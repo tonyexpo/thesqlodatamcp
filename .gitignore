@@ -1,14 +1,14 @@
-# Bin and obj directories
-bin/
-obj/
-
-# Debug builds
+# Build output
+[Bb]in/
+[Oo]bj/
 [Dd]ebug/
 [Rr]elease/
 
-# Visual Studio files
+# IDE and user state
 .vs/
 .vscode/
+*.user
+*.suo
 
 # Test results
 TestResults/
@@ -22,6 +22,10 @@ packages/
 # Local agent state
 .goose/
 
-# Local application secrets and overrides
-appsettings.Local.json
-appsettings.*.local.json
+# Local configuration and secret overrides
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/secrets.json

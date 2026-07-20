@@ -1,6 +1,6 @@
 # Development state
 
-**Checkpoint date:** 2026-07-19
+**Checkpoint date:** 2026-07-20
 
 **Branch:** `main`
 
@@ -34,6 +34,17 @@ This file is the restart point when conversational context is unavailable. Read 
 
 Accepted choices are recorded in ADR 0002 and ADR 0003. The spikes are executable evidence, not production architecture, and must remain outside the production solution.
 
+### Phase 0.3 — production solution baseline
+
+- `thesqlodatamcp.slnx` contains exactly the five source and four test projects from ADR 0002; spike projects remain outside it.
+- Dependency direction is fixed and tested: Core has no product dependency; SqlServer, Persistence, and Protocols depend on Core; Web composes all four boundaries.
+- `global.json`, central package management, shared nullable/warnings/analyzer/formatting policy, and deterministic build settings are active.
+- ADR 0003 packages are pinned centrally and placed by architectural boundary. `Microsoft.Data.SqlClient` 6.1.1 uses the compiled spike baseline; no unselected EF Core/control-store package was introduced.
+- The tracked application configuration follows the handoff sections with blank sensitive values; local overrides and secret files are ignored.
+- CI is defined for restore, build, all four test projects, formatting, and offline local Markdown-link validation.
+
+The accepted baseline is recorded in ADR 0005. The first successful execution on the intended GitHub Actions runner remains a Milestone 0 gate.
+
 ## QA evidence at this checkpoint
 
 - MCP restore/build: passed, zero warnings; `spikes/mcp-sdk/verify.sh`: passed end-to-end.
@@ -43,10 +54,22 @@ Accepted choices are recorded in ADR 0002 and ADR 0003. The spikes are executabl
 - SQL Server Testcontainers project: restore/build passed, zero warnings.
 - `dotnet format --verify-no-changes`: passed for all five spike projects.
 - `git diff --check`: passed before checkpoint finalization.
+- Production solution restore: passed.
+- Production solution build: passed, zero warnings and zero errors.
+- Production baseline tests: 6 passed, 0 failed, 0 skipped across all four test projects.
+- Production `dotnet format --verify-no-changes`: passed.
+- Offline repository-local Markdown link validation: passed.
+- Production solution inventory and dependency/package placement checks: passed.
 
 The sandbox blocks local sockets by default, so VSTest, formatter, and MCP loopback verification required authorized execution. That is an environment constraint, not a product failure.
 
+The Phase 0.3 build, VSTest, and formatter checks were therefore independently rerun with authorized execution. The ordinary sandbox failure was caused by denied MSBuild/VSTest named-pipe sockets, not by compilation or test failures.
+
 ## Open gates and risks
+
+### First CI runner execution
+
+The GitHub Actions workflow is present and its commands pass locally, but it has not yet run on the intended remote runner. Keep the CI backlog item open until restore, warning-free build, six baseline tests, formatting, and the offline Markdown link check all pass there.
 
 ### Disposable SQL Server test
 
@@ -66,22 +89,20 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-Start Phase 0.3, delegated to `gpt-5.6-terra` and reviewed by the primary agent:
+Close the remaining Milestone 0 gates in this order:
 
-1. scaffold `thesqlodatamcp.slnx` with the five source and four test projects from ADR 0002;
-2. establish only the dependency directions justified by `docs/architecture.md`;
-3. add central package/version management using ADR 0003 baselines;
-4. add nullable analysis, warnings-as-errors, analyzers, formatting, deterministic builds, and shared build properties;
-5. establish example configuration and local-secret ignore conventions;
-6. add CI for restore, build, unit tests, formatting, and documentation links;
-7. run the SQL Server Docker test on a capable local/CI environment and accept or revise ADR 0004.
+1. run the new workflow on the intended GitHub Actions runner and record the successful evidence;
+2. run the SQL Server Docker spike on a capable local or CI environment;
+3. verify container startup, a real SQL connection, the typed parameterized `SELECT`, failure/cleanup behavior, and the intended CI path;
+4. accept or revise ADR 0004 from that evidence;
+5. confirm every Milestone 0 exit criterion before planning the bounded first slice of Milestone 1.
 
 Do not start Milestone 1 catalog production implementation until the remaining Milestone 0 exit criteria are demonstrated.
 
 ## Restart checklist
 
 1. Run `git status --short` and `git log -1 --oneline`.
-2. Read `AGENTS.md`, the project skill, this file, ADR 0002–0004, architecture, roadmap, and backlog.
+2. Read `AGENTS.md`, the project skill, this file, ADR 0002–0005, architecture, roadmap, and backlog.
 3. Confirm whether Docker access is now available before retrying the SQL Server gate.
 4. Re-run affected spike tests if SDK/runtime/package state changed.
-5. Create a bounded Phase 0.3 delegation plan and retain final QA ownership.
+5. Inspect the first GitHub Actions run and the SQL Server Docker gate before declaring Milestone 0 complete.

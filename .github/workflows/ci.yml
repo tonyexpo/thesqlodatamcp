@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: dotnet restore thesqlodatamcp.slnx
+      - run: dotnet build thesqlodatamcp.slnx --no-restore
+      - run: dotnet test thesqlodatamcp.slnx --no-build --no-restore
+      - run: dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore
+      - run: bash eng/verify-markdown-links.sh

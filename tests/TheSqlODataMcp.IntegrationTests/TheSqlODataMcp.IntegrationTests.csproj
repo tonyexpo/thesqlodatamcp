@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>TheSqlODataMcp.IntegrationTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <ProjectReference Include="../../src/TheSqlODataMcp.Core/TheSqlODataMcp.Core.csproj" />
+    <ProjectReference Include="../../src/TheSqlODataMcp.Persistence/TheSqlODataMcp.Persistence.csproj" />
+    <ProjectReference Include="../../src/TheSqlODataMcp.Protocols/TheSqlODataMcp.Protocols.csproj" />
+    <ProjectReference Include="../../src/TheSqlODataMcp.SqlServer/TheSqlODataMcp.SqlServer.csproj" />
+    <ProjectReference Include="../../src/TheSqlODataMcp.Web/TheSqlODataMcp.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../Directory.Packages.props" Link="scaffold/Directory.Packages.props" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.Core/TheSqlODataMcp.Core.csproj" Link="scaffold/TheSqlODataMcp.Core.csproj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.Persistence/TheSqlODataMcp.Persistence.csproj" Link="scaffold/TheSqlODataMcp.Persistence.csproj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.Protocols/TheSqlODataMcp.Protocols.csproj" Link="scaffold/TheSqlODataMcp.Protocols.csproj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.SqlServer/TheSqlODataMcp.SqlServer.csproj" Link="scaffold/TheSqlODataMcp.SqlServer.csproj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.Web/TheSqlODataMcp.Web.csproj" Link="scaffold/TheSqlODataMcp.Web.csproj" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/TheSqlODataMcp.Web/appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
