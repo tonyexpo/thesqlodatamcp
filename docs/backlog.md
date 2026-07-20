@@ -25,6 +25,7 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Verify ASP.NET Core OData compatibility with .NET 10 and runtime EDM generation without a reporting-source EF model.
 - [x] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation; record that RFC 7591 registration requires application-owned implementation or another validated component.
 - [x] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
+- [x] Define a provider-neutral deterministic reporting-catalog fixture and SQL Server bootstrap/teardown harness.
 - [ ] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
 
 ### Solution baseline

@@ -20,6 +20,10 @@
 - Added central package management, shared .NET 10/C# 14 build policy, nullable analysis, warnings-as-errors, analyzers, formatting rules, deterministic compilation, and SDK pinning.
 - Added safe handoff-shaped example configuration, local-secret ignore conventions, six deterministic scaffold tests, an offline Markdown link verifier, and a CI workflow for restore, build, tests, formatting, and documentation links.
 - Added ADR 0005 recording the accepted solution, dependency, package-placement, build, configuration, and CI baseline.
+- Added a versioned provider-neutral reporting-catalog contract with 8,128 deterministic rows across twelve tables, portable relationship/feature expectations, and explicit SQL Server extensions.
+- Added SQL Server reset/bootstrap and teardown scripts covering multiple schemas, composite and ambiguous relationships, computed and temporal columns, broad type metadata, keyless views, descriptions, and programmable objects that future introspection must exclude.
+- Extended the SQL Server spike with external-server and owned-Testcontainers modes, static contract/`GO` parser tests, metadata/data assertions, guaranteed fixed-database cleanup, and a dedicated Docker-capable CI job.
+- Isolated spike package pins from production Central Package Management so every research spike remains independently restorable.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.

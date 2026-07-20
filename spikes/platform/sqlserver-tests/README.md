@@ -1,28 +1,53 @@
-# Disposable SQL Server integration-test spike
+# SQL Server reporting-catalog fixture spike
 
-## Selection and result
+This project proves the deterministic fixture contract under
+[`tests/fixtures/reporting-catalog`](../../../tests/fixtures/reporting-catalog/README.md).
+The provider-neutral contract declares the fixed catalog name and row counts; only
+the SQL Server DDL, `GO` batch execution, and Testcontainers harness live here.
 
-Pinned packages: `Testcontainers.MsSql` **4.8.1** and `Microsoft.Data.SqlClient` **6.1.1**.
+The catalog is always `TheSqlODataMcp_TestCatalog`. Bootstrap connects to `master`,
+drops that exact stale catalog if it exists, creates and seeds it, and teardown
+force-disconnects and drops only that exact name. It never interpolates a database
+name from configuration. Seeds are set-based and use fixed values; no time, random,
+network, or external-file source is used.
 
-The test pins the Microsoft Container Registry image `mcr.microsoft.com/mssql/server:2022-CU25-ubuntu-22.04`, corresponding to SQL Server 2022 CU 25 (build 16.0.4262.2, July 2026). It intentionally does not use a moving `latest` tag. The registry manifest was verified on 2026-07-19 with digest `sha256:e07b9699a2b749969f19d86563ceeea22bd3a69f7f1db85a8d1ac4bdaf0c6f56`; the container itself was not started because Docker's socket is unavailable.
+## Modes
 
-An authorized test run was attempted on 2026-07-19 and failed in Testcontainers' Docker availability check with `permission denied` for `/var/run/docker.sock`. The project restores and builds with zero warnings or errors, but ADR 0004 remains Proposed until the real container test passes locally and in CI.
+Without configuration, the integration test starts the pinned
+`mcr.microsoft.com/mssql/server:2022-CU25-ubuntu-22.04` Testcontainers image using
+`Testcontainers.MsSql` 4.8.1, `Microsoft.Data.SqlClient` 6.1.1, and a random
+in-memory container password that is never logged. With
+`THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING` set, it uses that existing SQL
+Server instead. In either mode the supplied connection string is redirected to
+`master`; it must have permission to create and drop the fixed fixture database.
+The test never logs the connection string. Use a local secret/environment setting,
+not a checked-in value, for example:
 
-The test uses `MsSqlBuilder` to provision a real Microsoft SQL Server container, opens a `SqlConnection`, and executes a parameterized `SELECT` with an explicitly typed `SqlParameter` (`SqlDbType.Int`). It is deliberately a real integration test, tagged `DockerIntegration`; no mocked SQL Server is substituted.
+```bash
+export THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING='Server=localhost,1433;User ID=sa;Password=<local-secret>;Encrypt=True;TrustServerCertificate=True'
+```
 
 ## Commands
 
 ```bash
 dotnet restore spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj
-dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore
+dotnet build spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore
+dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=FixtureStatic'
+dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=SqlServerIntegration'
 ```
 
-Docker is required for the second command. On a CI runner, enable Docker (or its supported daemon equivalent) and do not filter out `DockerIntegration`. If Docker is unavailable, restore/build remains valid but the integration run is correctly unavailable rather than skipped or simulated.
+The static tests require no Docker or SQL Server. The integration test needs either
+Docker access or the explicitly configured external server. It bootstraps before
+assertions and tears down in `finally`; a failed process may still need this safe,
+fixed-name cleanup run from a `master` connection:
 
-## Primary sources
+```bash
+sqlcmd -S <server> -U <user> -P '<local-secret>' -d master -i tests/fixtures/reporting-catalog/sqlserver/teardown.sql
+```
 
-- https://dotnet.testcontainers.org/modules/mssql/
-- https://github.com/testcontainers/testcontainers-dotnet
-- https://learn.microsoft.com/sql/linux/quickstart-install-connect-docker
-- https://learn.microsoft.com/sql/linux/sql-server-linux-release-notes-2022
-- https://learn.microsoft.com/dotnet/api/microsoft.data.sqlclient.sqlconnection
+The fixture covers identities, simple/composite keys and foreign keys, ambiguous
+customer paths, a self hierarchy, nullable values, filtered unique indexes, checks,
+defaults, persisted computed columns, rowversion, a temporal table, keyless detail
+and aggregate views, descriptions, broad scalar types, and inert unsupported SQL
+Server objects. It is infrastructure evidence only; it does not change the
+production catalog boundary.

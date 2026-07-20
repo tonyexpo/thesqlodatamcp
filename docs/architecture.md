@@ -106,4 +106,6 @@ The project owner chose to keep this public repository, preserve the final PoC s
 
 The SQL Server disposable integration-test infrastructure remains proposed in [ADR 0004](./decisions/0004-sqlserver-test-infrastructure.md) until a real pinned container, connection, typed parameterized query, cleanup path, and intended CI runner all pass. Implementation details may change to satisfy that gate, but not the settled product boundaries.
 
+The reusable test catalog begins with a provider-neutral contract under `tests/fixtures/reporting-catalog/`. Provider directories implement the same logical schemas, relationships, views, and deterministic row counts while keeping engine-specific capabilities separate. The SQL Server implementation resets and seeds a fixed test database, exercises supported and deliberately excluded metadata, and drops only that database after the integration run.
+
 The definitive product/repository name and Apache License 2.0 are recorded in [ADR 0001](./decisions/0001-project-identity.md).

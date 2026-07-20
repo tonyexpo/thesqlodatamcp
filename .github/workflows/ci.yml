@@ -20,3 +20,17 @@ jobs:
       - run: dotnet test thesqlodatamcp.slnx --no-build --no-restore
       - run: dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore
       - run: bash eng/verify-markdown-links.sh
+
+  sqlserver-integration:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+      - run: docker info
+      - run: dotnet restore spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj
+      - run: dotnet build spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore
+      - run: dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --no-restore

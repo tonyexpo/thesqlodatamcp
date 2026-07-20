@@ -1,0 +1,30 @@
+{
+  "contractVersion": "1.0",
+  "databaseName": "TheSqlODataMcp_TestCatalog",
+  "schemas": ["crm", "sales", "inventory", "reporting", "operations", "archive", "unsupported"],
+  "logicalViews": ["reporting.InvoiceDetail", "reporting.InvoiceMonthlySummary"],
+  "portableRelationships": {
+    "simplePrimaryKey": "crm.Customers.CustomerId",
+    "compositePrimaryKey": "inventory.StockBalances(ProductId,WarehouseId)",
+    "compositeForeignKey": "sales.Invoices(BillToCustomerId,BillToAddressKind)->crm.CustomerAddresses(CustomerId,AddressKind)",
+    "ambiguousCustomerForeignKeys": ["sales.Invoices.BillToCustomerId", "sales.Invoices.ShipToCustomerId"],
+    "legacyCodeCompatibleWithoutForeignKey": "sales.Invoices.LegacyCustomerCode",
+    "selfHierarchy": "crm.Customers.ParentCustomerId"
+  },
+  "portableFeatures": ["generatedIdentity", "nullableValues", "uniqueConstraint", "checks", "defaults", "computedColumn", "keylessDetailView", "keylessAggregateView", "descriptions"],
+  "sqlServerExtensions": ["filteredUniqueIndex", "persistedComputedColumn", "rowversion", "systemVersionedTemporalTable", "hierarchyid", "sql_variant", "unsupportedProgrammableObjects"],
+  "rowCounts": {
+    "crm.Customers": 256,
+    "crm.CustomerAddresses": 512,
+    "inventory.Categories": 12,
+    "inventory.Products": 128,
+    "inventory.Warehouses": 4,
+    "inventory.StockBalances": 512,
+    "sales.Invoices": 1024,
+    "sales.InvoiceLines": 4096,
+    "sales.Payments": 512,
+    "sales.InvoiceStatuses": 1024,
+    "operations.TypeCoverage": 16,
+    "archive.Invoices": 32
+  }
+}

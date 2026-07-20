@@ -1,0 +1,9 @@
+USE [master]
+GO
+
+IF DB_ID(N'TheSqlODataMcp_TestCatalog') IS NOT NULL
+BEGIN
+    ALTER DATABASE [TheSqlODataMcp_TestCatalog] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [TheSqlODataMcp_TestCatalog];
+END;
+GO

@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project is now being rebaselined from the authoritative AI Data Gateway handoff. The target architecture is a new .NET 10 / ASP.NET Core solution rather than an incremental extension of the stdio/raw-DQL prototype.
 
-Implementation has restarted with isolated Milestone 0 research spikes and a production solution baseline. The nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, and CI workflow are now present and locally validated. The first run on the intended GitHub Actions runner and the disposable SQL Server Docker gate are still required before Milestone 0 can close.
+Implementation has restarted with isolated Milestone 0 research spikes and a production solution baseline. The nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, and CI workflow are now present and locally validated. A provider-neutral reporting-catalog contract and deterministic SQL Server bootstrap/teardown fixture are also prepared. The first run on the intended GitHub Actions runner and the real SQL Server Docker/external-server gate are still required before Milestone 0 can close.
 
 ## Product boundaries
 
@@ -45,6 +45,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.
 - [Development state](./docs/development-state.md) — verified restart checkpoint, open gates, and next dependency-ordered work.
+- [Deterministic reporting-catalog fixture](./tests/fixtures/reporting-catalog/README.md) — portable logical contract plus SQL Server bootstrap and teardown assets.
 - [Changelog](./docs/changelog.md)
 
 ## Current implementation
