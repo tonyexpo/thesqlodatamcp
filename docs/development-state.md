@@ -16,6 +16,39 @@ This file is the restart point when conversational context is unavailable. Read 
 - The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
 - The current runtime mounts repository-local `.codex` and `.agents` as read-only tmpfs directories. `AGENTS.md` therefore points to the version-controlled skill under `skills/`; a personal installed copy may also exist for automatic discovery.
 
+## Session handoff — 2026-07-20
+
+The last completed work session prepared two **local-only** commits. At the time
+of this handoff they are intentionally not pushed because the project owner will
+push from VS Code:
+
+```text
+bd8f575 test: add deterministic SQL Server catalog fixture
+320440a build: scaffold phase 0.3 solution baseline
+```
+
+`main` was two commits ahead of `origin/main` (`main...origin/main [ahead 2]`)
+and otherwise clean before this checkpoint update. Do not push automatically.
+After the owner pushes, GitHub Actions starts automatically for the push; there
+is no separate manual CI invocation. Its `validate` job must pass before
+`sqlserver-integration` starts.
+
+The fixture has two deliberately explicit execution modes:
+
+- Local development without `THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING`
+  uses the owned, pinned Testcontainers SQL Server image. Docker must be
+  accessible to the invoking user.
+- Setting that variable uses the owner's existing SQL Server/container instead.
+  The harness redirects it to `master`, requires create/drop permission for
+  `TheSqlODataMcp_TestCatalog`, never logs the value, and does not own the
+  server lifecycle.
+
+Both modes reset the fixed test catalog before assertions and, in `finally`,
+force-disconnect and drop only that catalog. The CI job intentionally exercises
+the owned-Testcontainers mode; it has no external connection-string setting.
+The SQL Server fixture README is the operational command reference:
+[`spikes/platform/sqlserver-tests/README.md`](../spikes/platform/sqlserver-tests/README.md).
+
 ## Completed and accepted
 
 ### Phase 0.1 — .NET identity
@@ -63,7 +96,11 @@ The fixture design, scripts, static tests, and harness are accepted repository i
 - OData tests: 3 passed, 0 failed.
 - OpenIddict tests: 2 passed, 0 failed.
 - Catalog validation tests: 4 passed, 0 failed.
-- Enhanced SQL Server fixture spike: restore/build passed with zero warnings; 3 static contract and batch-parser tests passed.
+- Enhanced SQL Server fixture spike:
+  - `dotnet restore spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`: passed.
+  - `dotnet build spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore`: passed with zero warnings and errors.
+  - `dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=FixtureStatic'`: 3 passed, 0 failed.
+  - `dotnet format spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --verify-no-changes --no-restore`: passed.
 - All other spike projects restore successfully with the spike-local package-management override.
 - `dotnet format --verify-no-changes`: passed for all five spike projects.
 - `git diff --check`: passed before checkpoint finalization.
@@ -96,6 +133,12 @@ Do not mark the backlog item complete until the same test:
 4. drops the fixture database and proves it is absent;
 5. passes through the owned-container path on the intended CI runner.
 
+The local real-integration attempt is blocked by the environment, not by a
+test result: access to `/var/run/docker.sock` is denied and no
+`THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING` was configured. This is why
+the fixture design and static tests are accepted infrastructure, whereas the
+real SQL Server path and ADR 0004 are still Proposed/unaccepted.
+
 ### Dynamic Client Registration
 
 OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before Milestone 5, design and security-test a bounded registration endpoint backed by OpenIddict's application manager, or validate a dedicated component. Do not disable redirect-URI, client-type, registration-rate, or resource validation as a shortcut.
@@ -104,18 +147,50 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 Close the remaining Milestone 0 gates in this order:
 
-1. run the full fixture integration test against the SQL Server container supplied by the project owner through `THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING`;
-2. verify deterministic bootstrap, metadata/data assertions, typed parameterized execution, and database removal;
-3. push the pending commits and run both jobs on the intended GitHub Actions runner, including the owned-Testcontainers path;
-4. accept or revise ADR 0004 from that evidence;
-5. confirm every Milestone 0 exit criterion before planning the bounded first slice of Milestone 1.
+1. inspect the local state and pending commits, then push them from VS Code;
+2. inspect the first GitHub Actions run: `validate`, then the dependent
+   `sqlserver-integration` owned-Testcontainers job;
+3. if CI is unavailable or needs diagnosis, run the full fixture integration
+   test locally either with Docker access or with the owner-provided external
+   SQL Server variable;
+4. verify deterministic bootstrap, metadata/data assertions, the typed
+   parameterized execution, and database removal from the integration result;
+5. accept or revise ADR 0004 from that evidence, then close the matching CI and
+   disposable-SQL backlog items only if both runner gates passed;
+6. confirm every Milestone 0 exit criterion before planning the bounded first
+   slice of Milestone 1.
 
 Do not start Milestone 1 catalog production implementation until the remaining Milestone 0 exit criteria are demonstrated.
 
 ## Restart checklist
 
-1. Run `git status --short` and `git log -1 --oneline`.
+1. Run the following state checks. Before the owner push, confirm that
+   `bd8f575` and `320440a` are present and that no unintended changes exist;
+   account for the documentation checkpoint commit if it has been made after
+   this edit.
+
+   ```bash
+   git status --short --branch
+   git log -3 --oneline
+   ```
+
 2. Read `AGENTS.md`, the project skill, this file, ADR 0002–0005, architecture, roadmap, and backlog.
-3. Confirm whether Docker access is now available before retrying the SQL Server gate.
-4. Re-run affected spike tests if SDK/runtime/package state changed.
-5. Inspect the first GitHub Actions run and the SQL Server Docker gate before declaring Milestone 0 complete.
+3. Push from VS Code if still pending, then inspect the first GitHub Actions
+   run; do not start Milestone 1 based on workflow presence alone.
+4. For a local external-server run, set the secret only in the shell/session
+   and execute the exact integration command below. Otherwise verify Docker
+   access and let Testcontainers own the pinned image.
+
+   ```bash
+   export THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING='Server=localhost,1433;User ID=sa;Password=<local-secret>;Encrypt=True;TrustServerCertificate=True'
+   dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=SqlServerIntegration'
+   ```
+
+5. Re-run the static fixture command if SDK/runtime/package state changed:
+
+   ```bash
+   dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=FixtureStatic'
+   ```
+
+6. Inspect CI and the SQL Server cleanup assertion before changing ADR 0004 or
+   declaring Milestone 0 complete.
