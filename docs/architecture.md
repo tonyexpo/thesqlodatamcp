@@ -54,6 +54,7 @@ Protocol syntax never reaches the provider directly. Every request becomes a ver
 - Invalid refreshes never replace the last valid revision.
 - Foreign keys are relationship hints. Explicit valid join conditions take priority.
 - The technical catalog is provider-neutral, preserves physical identifier casing and provider type details, supports keyless views, and has deterministic canonical JSON and a structural SHA-256 hash.
+- SQL Server catalog types are normalized and validated in the provider boundary before entering Core. Supported scalar families preserve meaningful provider details; unsupported or user-defined names remain explicit `unknown` values without inferred metadata.
 
 ### Persistence
 
@@ -103,7 +104,7 @@ The project owner chose to keep this public repository, preserve the final PoC s
 
 ## Implementation baselines
 
-[ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md) fixes the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema choices validated by executable spikes. [ADR 0005](./decisions/0005-solution-build-and-ci-baseline.md) records their production package placement, the dependency graph, and the shared build and CI policy. [ADR 0006](./decisions/0006-technical-catalog-core-model.md) fixes the initial provider-neutral technical catalog representation and deterministic structural hash.
+[ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md) fixes the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema choices validated by executable spikes. [ADR 0005](./decisions/0005-solution-build-and-ci-baseline.md) records their production package placement, the dependency graph, and the shared build and CI policy. [ADR 0006](./decisions/0006-technical-catalog-core-model.md) fixes the initial provider-neutral technical catalog representation and deterministic structural hash. [ADR 0007](./decisions/0007-sqlserver-type-mapping.md) fixes the SQL Server catalog type-mapping and explicit-unknown policy.
 
 The SQL Server disposable integration-test infrastructure is accepted in [ADR 0004](./decisions/0004-sqlserver-test-infrastructure.md). Its pinned owned-Testcontainers path, real connection, typed parameterized query, cleanup assertion, and intended GitHub Actions runner have all passed. Future dependency or image upgrades must repeat that evidence without changing the settled product boundaries.
 

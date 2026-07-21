@@ -26,7 +26,9 @@ Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `o
 
 ADR 0004 is therefore Accepted, and the Milestone 0 CI and disposable SQL Server backlog items are closed. Local agent sandboxes can still deny `/var/run/docker.sock`; this no longer blocks the accepted CI infrastructure.
 
-The first bounded Milestone 1 slice is implemented and validated as a local snapshot. Production implementation was delegated to `gpt-5.6-terra`; the primary agent reviewed it, required corrections, added independent QA tests, and ran the final validation. Keep this snapshot local until the project owner chooses to push it.
+The first bounded Milestone 1 slice is saved in local commit `cd29eeb` (`feat: establish technical catalog core baseline`). Local `main` is one commit ahead of `origin/main`; nothing has been pushed.
+
+The second bounded slice, SQL Server catalog type mapping, is implemented, independently reviewed, documented, fully validated, and saved in local Git history. Neither Milestone 1 slice has been pushed. Production implementation for both slices was delegated to `gpt-5.6-terra`; the primary agent retained architecture and acceptance ownership, required corrections, added independent QA tests, and ran the final validation.
 
 ## Completed and accepted
 
@@ -54,6 +56,20 @@ ADR 0006 records the accepted initial technical-catalog contract:
 
 The slice deliberately does not implement SQL Server introspection, semantic overlays, capabilities, revision persistence/lifecycle, search, CQM, or protocol behavior.
 
+### Milestone 1 slice 2 — SQL Server catalog type mapping
+
+ADR 0007 records the accepted provider-boundary mapping contract:
+
+- catalog inputs contain only provider type name, maximum length, precision, and scale; the public mapping API exposes no SQL client types;
+- invariant normalization produces deterministic lowercase provider names and store representations;
+- supported integral, decimal, floating-point, character, binary, GUID, date/time, and rowversion families map into the ADR 0006 canonical vocabulary;
+- Unicode byte lengths, `max` sentinels, decimal storage bands, float storage bands, and all temporal scale/storage bands are handled explicitly;
+- meaningful provider length, precision, and scale are retained without introducing provider behavior into Core;
+- impossible metadata for known types fails explicitly;
+- unsupported, spatial, hierarchical, variant, and user-defined names remain conservative `unknown` values without invented metadata.
+
+This slice contains no catalog SQL, connection handling, discovery, or entity construction. Real SQL Server introspection remains the next production slice.
+
 ## QA evidence at this checkpoint
 
 ### Remote Milestone 0 evidence
@@ -71,13 +87,24 @@ The slice deliberately does not implement SQL Server introspection, semantic ove
 - `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed.
 - Independent QA covers ordinal/case-preserving identity, provider-detail hash sensitivity, lowercase SHA-256 shape, invalid enums, duplicate ordinals, and multiple primary keys in addition to the delegated positive and negative cases.
 
+### Local SQL Server type-mapping evidence
+
+- `dotnet restore thesqlodatamcp.slnx`: passed; all projects up to date.
+- `dotnet build thesqlodatamcp.slnx --no-restore`: passed with zero warnings and zero errors.
+- `dotnet test tests/TheSqlODataMcp.SqlServer.Tests/TheSqlODataMcp.SqlServer.Tests.csproj --no-build --no-restore`: 76 passed, 0 failed, 0 skipped.
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore`: 92 passed, 0 failed, 0 skipped across all four production test projects.
+- `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed.
+- `bash eng/verify-markdown-links.sh`: passed.
+- `git diff --check`: passed.
+- Independent QA covers all temporal scales, every decimal storage boundary, both float storage bands, common invalid metadata for unknown types, null input, unknown-name normalization, and absence of SQL client types from the public mapping API.
+
 The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those commands were independently rerun with authorized execution and passed. This remains an environment constraint rather than a product defect.
 
 ## Open work and risks
 
 ### SQL Server catalog type mapping and introspection
 
-No production SQL Server introspector exists yet. The next slice must map the fixture's provider types into the accepted canonical vocabulary, query SQL Server metadata through `Microsoft.Data.SqlClient`, construct the Core catalog, and exclude system/programmable objects by construction.
+No production SQL Server introspector exists yet. The accepted mapper can translate the fixture's provider types, but the next slice must query SQL Server metadata through `Microsoft.Data.SqlClient`, construct the Core catalog, and exclude system/programmable objects by construction.
 
 The real integration test must cover the accepted fixture, including tables/views, simple/composite keys, useful indexes, ambiguous/composite/self foreign keys, identity/computed/temporal/rowversion metadata, extended descriptions, keyless views, broad scalar types, and exclusions.
 
@@ -91,18 +118,17 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Keep the validated Catalog Core snapshot local until the project owner chooses to push it.
-2. Define the bounded SQL Server type-mapping and introspection contract against ADR 0006 and the deterministic reporting fixture.
-3. Implement canonical mapping for the fixture's supported SQL Server scalar types, with explicit `unknown` behavior and unit tests.
-4. Implement metadata discovery for user schemas, tables/views, columns, keys, useful indexes, foreign keys, computed/temporal flags, and descriptions.
-5. Exclude system schemas and unsupported procedures, functions, triggers, sequences, synonyms, table types, and internal objects by construction.
-6. Run the production introspector against the real disposable SQL Server fixture in CI and compare the resulting catalog to deterministic expectations.
-7. Only after introspection is accepted, proceed to semantic Markdown/YAML merge and strict validation; capability and revision lifecycle models should be introduced with their first production consumers.
+1. Keep the two validated local Milestone 1 commits unpushed until the project owner chooses otherwise.
+2. Define the bounded SQL Server introspector contract against ADRs 0006–0007 and the deterministic reporting fixture.
+3. Implement metadata discovery for user schemas, tables/views, columns, keys, useful indexes, foreign keys, computed/temporal flags, and descriptions.
+4. Exclude system schemas and unsupported procedures, functions, triggers, sequences, synonyms, table types, and internal objects by construction.
+5. Run the production introspector against the real disposable SQL Server fixture in CI and compare the resulting catalog to deterministic expectations.
+6. Only after introspection is accepted, proceed to semantic Markdown/YAML merge and strict validation; capability and revision lifecycle models should be introduced with their first production consumers.
 
 ## Restart checklist
 
-1. Run `git status --short --branch` and inspect the local commits and complete diff; Codex does not push automatically.
-2. Read ADR 0006 and the Catalog Core implementation/tests before extending the model.
+1. Run `git status --short --branch` and inspect the two local Milestone 1 commits; Codex does not push automatically.
+2. Read ADRs 0006–0007 and the Catalog Core/type-mapper implementation and tests before extending the provider.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, semantic rules, or protocol concerns into the technical catalog domain.

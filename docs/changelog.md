@@ -27,6 +27,8 @@
 - Verified the first GitHub Actions run on the intended Ubuntu runner: production validation and the dependent disposable SQL Server integration job both passed, closing Milestone 0.
 - Added the provider-neutral technical Catalog Core with stable physical identities, canonical/provider types, fields, keys, indexes, relationships, keyless views, temporal metadata, construction-time invariants, canonical JSON, and deterministic SHA-256 structural hashes.
 - Added ADR 0006 recording the accepted technical-catalog representation and the boundaries left for later Milestone 1 slices.
+- Added a deterministic SQL Server catalog type mapper with strict metadata validation, preserved provider details, conservative `unknown` behavior, and unit coverage across supported scalar and storage boundaries.
+- Added ADR 0007 recording the accepted SQL Server type-mapping boundary and explicit-unknown policy.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
@@ -42,7 +44,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- Production SQL Server introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented.
+- Production SQL Server introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented; the accepted type mapper is ready for the introspector to consume.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
