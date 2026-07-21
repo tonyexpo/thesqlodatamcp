@@ -27,4 +27,8 @@ OpenIddict does not provide OAuth Dynamic Client Registration. Before Milestone 
 - Pin these versions centrally when the production projects are scaffolded; upgrades require rerunning the relevant spike and regression tests.
 - Keep the spikes outside the production solution and do not copy their sample architecture blindly.
 - Track Dynamic Client Registration as application-owned security work rather than an assumed OpenIddict feature.
-- Select SQL Server disposable-test infrastructure separately because its real container gate has not yet run successfully.
+- Select SQL Server disposable-test infrastructure separately because its real container gate had not yet run successfully when this decision was accepted.
+
+## Subsequent evidence
+
+[ADR 0004](./0004-sqlserver-test-infrastructure.md) later accepted the pinned Testcontainers infrastructure after the owned-container path passed on the intended GitHub Actions runner.

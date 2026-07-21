@@ -53,6 +53,7 @@ Protocol syntax never reaches the provider directly. Every request becomes a ver
 - Files are bootstrap/import/export artifacts; the active runtime revision lives in the control store.
 - Invalid refreshes never replace the last valid revision.
 - Foreign keys are relationship hints. Explicit valid join conditions take priority.
+- The technical catalog is provider-neutral, preserves physical identifier casing and provider type details, supports keyless views, and has deterministic canonical JSON and a structural SHA-256 hash.
 
 ### Persistence
 
@@ -100,11 +101,11 @@ The former `Program.cs`, `McpTools.cs`, `DqlValidator.cs`, `DatabaseConnector.cs
 
 The project owner chose to keep this public repository, preserve the final PoC state in `legacy-poc-final-2026-07-18`, and remove the obsolete implementation from `main`. Historical code remains recoverable through the tag and Git history; the QA and handoff documents remain on `main`.
 
-## Implementation baselines and remaining decision
+## Implementation baselines
 
-[ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md) fixes the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema choices validated by executable spikes. [ADR 0005](./decisions/0005-solution-build-and-ci-baseline.md) records their production package placement, the dependency graph, and the shared build and CI policy.
+[ADR 0003](./decisions/0003-protocol-identity-catalog-libraries.md) fixes the initial MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema choices validated by executable spikes. [ADR 0005](./decisions/0005-solution-build-and-ci-baseline.md) records their production package placement, the dependency graph, and the shared build and CI policy. [ADR 0006](./decisions/0006-technical-catalog-core-model.md) fixes the initial provider-neutral technical catalog representation and deterministic structural hash.
 
-The SQL Server disposable integration-test infrastructure remains proposed in [ADR 0004](./decisions/0004-sqlserver-test-infrastructure.md) until a real pinned container, connection, typed parameterized query, cleanup path, and intended CI runner all pass. Implementation details may change to satisfy that gate, but not the settled product boundaries.
+The SQL Server disposable integration-test infrastructure is accepted in [ADR 0004](./decisions/0004-sqlserver-test-infrastructure.md). Its pinned owned-Testcontainers path, real connection, typed parameterized query, cleanup assertion, and intended GitHub Actions runner have all passed. Future dependency or image upgrades must repeat that evidence without changing the settled product boundaries.
 
 The reusable test catalog begins with a provider-neutral contract under `tests/fixtures/reporting-catalog/`. Provider directories implement the same logical schemas, relationships, views, and deterministic row counts while keeping engine-specific capabilities separate. The SQL Server implementation resets and seeds a fixed test database, exercises supported and deliberately excluded metadata, and drops only that database after the integration run.
 

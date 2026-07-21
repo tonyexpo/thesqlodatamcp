@@ -17,9 +17,9 @@ All protocol adapters translate into one typed Canonical Query Model (CQM). Call
 
 This repository previously contained a legacy proof of concept named `thesqlodatamcp`. That implementation was not a secure or interoperable foundation and has been removed from `main`. Its final committed state is preserved by the annotated tag `legacy-poc-final-2026-07-18` and by Git history.
 
-The project is now being rebaselined from the authoritative AI Data Gateway handoff. The target architecture is a new .NET 10 / ASP.NET Core solution rather than an incremental extension of the stdio/raw-DQL prototype.
+The project has been rebaselined from the authoritative AI Data Gateway handoff. Implementation now proceeds in the new .NET 10 / ASP.NET Core solution rather than as an incremental extension of the stdio/raw-DQL prototype.
 
-Implementation has restarted with isolated Milestone 0 research spikes and a production solution baseline. The nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, and CI workflow are now present and locally validated. A provider-neutral reporting-catalog contract and deterministic SQL Server bootstrap/teardown fixture are also prepared. The first run on the intended GitHub Actions runner and the real SQL Server Docker/external-server gate are still required before Milestone 0 can close.
+Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the first accepted slice provides the provider-neutral technical Catalog Core and deterministic structural hashing, while production SQL Server introspection and the remaining catalog lifecycle are still pending.
 
 ## Product boundaries
 
@@ -39,8 +39,9 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0001: project identity](./docs/decisions/0001-project-identity.md) — definitive name, repository continuity, historical tag, and license.
 - [ADR 0002: .NET identifiers](./docs/decisions/0002-dotnet-identifiers.md) — solution, project, assembly, and namespace casing.
 - [ADR 0003: initial library baseline](./docs/decisions/0003-protocol-identity-catalog-libraries.md) — validated MCP, OData, OpenIddict, and catalog parsing choices.
-- [ADR 0004: SQL Server test infrastructure](./docs/decisions/0004-sqlserver-test-infrastructure.md) — proposed Testcontainers baseline and its remaining acceptance gate.
+- [ADR 0004: SQL Server test infrastructure](./docs/decisions/0004-sqlserver-test-infrastructure.md) — accepted pinned Testcontainers baseline and real-runner evidence.
 - [ADR 0005: solution, build, and CI baseline](./docs/decisions/0005-solution-build-and-ci-baseline.md) — production project graph, package placement, shared build policy, configuration, tests, and CI.
+- [ADR 0006: technical Catalog Core](./docs/decisions/0006-technical-catalog-core-model.md) — provider-neutral catalog representation, invariants, canonical JSON, and structural hashing.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.

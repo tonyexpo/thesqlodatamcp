@@ -1,10 +1,10 @@
 # Development state
 
-**Checkpoint date:** 2026-07-20
+**Checkpoint date:** 2026-07-21
 
 **Branch:** `main`
 
-**Milestone:** 0 — Rebaseline and de-risk
+**Milestone:** 1 — Catalog foundation (in progress)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
@@ -14,183 +14,95 @@ This file is the restart point when conversational context is unavailable. Read 
 - Production implementation is delegated to a `gpt-5.6-terra` sub-agent with bounded scope and acceptance criteria.
 - The primary agent owns architecture, review, automated-test adequacy, final validation, ADRs, backlog, changelog, and this checkpoint.
 - The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
-- The current runtime mounts repository-local `.codex` and `.agents` as read-only tmpfs directories. `AGENTS.md` therefore points to the version-controlled skill under `skills/`; a personal installed copy may also exist for automatic discovery.
+- Repository-local `.codex` and `.agents` may be mounted read-only; the version-controlled project skill remains canonical.
 
-## Session handoff — 2026-07-20
+## Session checkpoint — 2026-07-21
 
-The last completed work session prepared two **local-only** commits. At the time
-of this handoff they are intentionally not pushed because the project owner will
-push from VS Code:
+Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `origin/main`. GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) passed on the intended Ubuntu runner:
 
-```text
-bd8f575 test: add deterministic SQL Server catalog fixture
-320440a build: scaffold phase 0.3 solution baseline
-```
+- `validate` passed restore, warning-free build, all production tests, formatting, and offline Markdown-link validation;
+- the dependent `sqlserver-integration` job passed Docker discovery, restore, warning-free spike build, static fixture tests, and the real owned-Testcontainers SQL Server test;
+- the real test bootstrapped and validated the deterministic database, executed an explicitly typed parameterized query, dropped the fixed database, and proved it absent.
 
-`main` was two commits ahead of `origin/main` (`main...origin/main [ahead 2]`)
-and otherwise clean before this checkpoint update. Do not push automatically.
-After the owner pushes, GitHub Actions starts automatically for the push; there
-is no separate manual CI invocation. Its `validate` job must pass before
-`sqlserver-integration` starts.
+ADR 0004 is therefore Accepted, and the Milestone 0 CI and disposable SQL Server backlog items are closed. Local agent sandboxes can still deny `/var/run/docker.sock`; this no longer blocks the accepted CI infrastructure.
 
-The fixture has two deliberately explicit execution modes:
-
-- Local development without `THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING`
-  uses the owned, pinned Testcontainers SQL Server image. Docker must be
-  accessible to the invoking user.
-- Setting that variable uses the owner's existing SQL Server/container instead.
-  The harness redirects it to `master`, requires create/drop permission for
-  `TheSqlODataMcp_TestCatalog`, never logs the value, and does not own the
-  server lifecycle.
-
-Both modes reset the fixed test catalog before assertions and, in `finally`,
-force-disconnect and drop only that catalog. The CI job intentionally exercises
-the owned-Testcontainers mode; it has no external connection-string setting.
-The SQL Server fixture README is the operational command reference:
-[`spikes/platform/sqlserver-tests/README.md`](../spikes/platform/sqlserver-tests/README.md).
+The first bounded Milestone 1 slice is implemented and validated as a local snapshot. Production implementation was delegated to `gpt-5.6-terra`; the primary agent reviewed it, required corrections, added independent QA tests, and ran the final validation. Keep this snapshot local until the project owner chooses to push it.
 
 ## Completed and accepted
 
-### Phase 0.1 — .NET identity
+### Milestone 0 — Rebaseline and de-risk
 
-- Root .NET identifier and namespace: `TheSqlODataMcp`.
-- Solution filename: `thesqlodatamcp.slnx`.
-- Five source-project and four test-project names are fixed by ADR 0002.
+- Project identity, Apache License 2.0, repository continuity, and legacy-PoC preservation are fixed by ADR 0001.
+- .NET solution/project/namespace naming is fixed by ADR 0002.
+- MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema library seams are fixed by ADR 0003 and their executable spikes.
+- Testcontainers SQL Server infrastructure is fixed by ADR 0004 and its successful intended-runner evidence.
+- The production solution, dependency graph, package placement, shared build policy, configuration conventions, and CI baseline are fixed by ADR 0005.
+- `thesqlodatamcp.slnx` contains exactly five source projects and four test projects; spikes remain outside it.
 
-### Phase 0.2 — validated library seams
+### Milestone 1 slice 1 — provider-neutral technical Catalog Core
 
-- MCP: `ModelContextProtocol.AspNetCore` 1.4.1 on .NET 10. The spike proves Streamable HTTP initialization, version negotiation, `tools/list`, generated output schema, `tools/call`, and structured content.
-- OData: `Microsoft.AspNetCore.OData` 9.5.0. The spike proves one controller pipeline bound to a manual runtime EDM, service document, XML metadata, CLR type annotation, and `$orderby`, without an EF reporting-source model.
-- OAuth: `OpenIddict.Server.AspNetCore` 7.6.0. The API proof covers authorization code, PKCE, refresh, revocation, reference tokens, registered resource indicators, and per-client resource permissions.
-- Catalog input: `Markdig` 0.42.0, `YamlDotNet` 16.3.0 with camel-case naming, and `JsonSchema.Net` 7.3.0. Positive and negative tests prove real Markdown front-matter extraction and strict unknown-property rejection.
-- Obsolete PoC source and historical PoC QA/agent-handoff documents are absent from `main` and remain recoverable from Git history and `legacy-poc-final-2026-07-18`.
+ADR 0006 records the accepted initial technical-catalog contract:
 
-Accepted choices are recorded in ADR 0002 and ADR 0003. The spikes are executable evidence, not production architecture, and must remain outside the production solution.
+- stable physical identities preserve schema/object casing and use ordinal comparison;
+- tables, keyed views, and keyless views are representable without synthetic keys;
+- the exact v1 canonical scalar vocabulary is retained alongside inert provider type name, store representation, length, precision, and scale;
+- fields, primary/alternate keys, useful indexes including filtered indexes, relationships, and ordered relationship field pairs are modeled;
+- identity, computed, persisted-computed, temporal-period, rowversion, and temporal-entity metadata have construction-time invariants;
+- input collections are defensively copied and duplicate or missing local field references are rejected;
+- canonical camel-case JSON sorts unordered entity/named metadata with ordinal semantics while preserving meaningful key/index/pair order;
+- lowercase SHA-256 structural hashes exclude timestamps and environment-dependent values.
 
-### Phase 0.3 — production solution baseline
-
-- `thesqlodatamcp.slnx` contains exactly the five source and four test projects from ADR 0002; spike projects remain outside it.
-- Dependency direction is fixed and tested: Core has no product dependency; SqlServer, Persistence, and Protocols depend on Core; Web composes all four boundaries.
-- `global.json`, central package management, shared nullable/warnings/analyzer/formatting policy, and deterministic build settings are active.
-- ADR 0003 packages are pinned centrally and placed by architectural boundary. `Microsoft.Data.SqlClient` 6.1.1 uses the compiled spike baseline; no unselected EF Core/control-store package was introduced.
-- The tracked application configuration follows the handoff sections with blank sensitive values; local overrides and secret files are ignored.
-- CI is defined for restore, build, all four test projects, formatting, and offline local Markdown-link validation.
-
-The accepted baseline is recorded in ADR 0005. The first successful execution on the intended GitHub Actions runner remains a Milestone 0 gate.
-
-### Phase 0.4 — deterministic SQL Server fixture candidate
-
-- `tests/fixtures/reporting-catalog/contract.json` defines a versioned provider-neutral catalog contract for future provider equivalence.
-- The initial SQL Server implementation recreates the fixed `TheSqlODataMcp_TestCatalog` database and deterministically seeds 8,128 rows across twelve tables.
-- Fixture complexity covers seven schemas, simple/composite keys, composite and ambiguous foreign-key paths, a compatible legacy-code join without an FK, hierarchy, nullable values, unique/filtered indexes, constraints, persisted computed columns, rowversion, temporal metadata, broad scalar/provider types, keyless views, and extended descriptions.
-- Inert procedure, function, trigger, sequence, synonym, and table-type objects exist so future introspection tests can prove their exclusion.
-- The spike uses either an externally supplied SQL Server connection or an owned pinned Testcontainers instance, executes scripts through `Microsoft.Data.SqlClient`, and always drops only the fixed fixture database in `finally`.
-- A separate CI job is prepared to run the complete spike on an Ubuntu runner with Docker.
-- `spikes/Directory.Packages.props` keeps explicit research-spike package pins independent from production Central Package Management and resolves the Phase 0.3 `NU1008` restore regression.
-
-The fixture design, scripts, static tests, and harness are accepted repository infrastructure. The real SQL Server path and ADR 0004 remain unaccepted until the local/external and intended CI evidence passes.
+The slice deliberately does not implement SQL Server introspection, semantic overlays, capabilities, revision persistence/lifecycle, search, CQM, or protocol behavior.
 
 ## QA evidence at this checkpoint
 
-- MCP restore/build: passed, zero warnings; `spikes/mcp-sdk/verify.sh`: passed end-to-end.
-- OData tests: 3 passed, 0 failed.
-- OpenIddict tests: 2 passed, 0 failed.
-- Catalog validation tests: 4 passed, 0 failed.
-- Enhanced SQL Server fixture spike:
-  - `dotnet restore spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`: passed.
-  - `dotnet build spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore`: passed with zero warnings and errors.
-  - `dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=FixtureStatic'`: 3 passed, 0 failed.
-  - `dotnet format spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --verify-no-changes --no-restore`: passed.
-- All other spike projects restore successfully with the spike-local package-management override.
-- `dotnet format --verify-no-changes`: passed for all five spike projects.
-- `git diff --check`: passed before checkpoint finalization.
-- Production solution restore: passed.
-- Production solution build: passed, zero warnings and zero errors.
-- Production baseline tests: 6 passed, 0 failed, 0 skipped across all four test projects.
-- Production `dotnet format --verify-no-changes`: passed.
-- Offline repository-local Markdown link validation: passed.
-- Production solution inventory and dependency/package placement checks: passed.
+### Remote Milestone 0 evidence
 
-The sandbox blocks local sockets by default, so VSTest, formatter, and MCP loopback verification required authorized execution. That is an environment constraint, not a product failure.
+- GitHub Actions run `29778536859`: success.
+- `validate`: success.
+- `sqlserver-integration`: success through the owned pinned Testcontainers path.
 
-The Phase 0.3 build, VSTest, and formatter checks were therefore independently rerun with authorized execution. The ordinary sandbox failure was caused by denied MSBuild/VSTest named-pipe sockets, not by compilation or test failures.
+### Local Catalog Core evidence
 
-## Open gates and risks
+- `dotnet restore thesqlodatamcp.slnx`: passed; all projects up to date.
+- `dotnet build thesqlodatamcp.slnx --no-restore`: passed with zero warnings and zero errors.
+- `dotnet test tests/TheSqlODataMcp.Core.Tests/TheSqlODataMcp.Core.Tests.csproj --no-build --no-restore`: 12 passed, 0 failed, 0 skipped.
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore`: 17 passed, 0 failed, 0 skipped across all four production test projects.
+- `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed.
+- Independent QA covers ordinal/case-preserving identity, provider-detail hash sensitivity, lowercase SHA-256 shape, invalid enums, duplicate ordinals, and multiple primary keys in addition to the delegated positive and negative cases.
 
-### First CI runner execution
+The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those commands were independently rerun with authorized execution and passed. This remains an environment constraint rather than a product defect.
 
-The GitHub Actions workflow is present and its commands pass locally, but it has not yet run on the intended remote runner. Keep the CI backlog item open until the baseline job and the new SQL Server integration job both pass there.
+## Open work and risks
 
-### Disposable SQL Server test
+### SQL Server catalog type mapping and introspection
 
-ADR 0004 remains Proposed. `Testcontainers.MsSql` 4.8.1 and `Microsoft.Data.SqlClient` 6.1.1 compile, and the test pins `mcr.microsoft.com/mssql/server:2022-CU25-ubuntu-22.04`, but the real test cannot start here because `/var/run/docker.sock` returns `permission denied`. No `THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING` is currently configured.
+No production SQL Server introspector exists yet. The next slice must map the fixture's provider types into the accepted canonical vocabulary, query SQL Server metadata through `Microsoft.Data.SqlClient`, construct the Core catalog, and exclude system/programmable objects by construction.
 
-Do not mark the backlog item complete until the same test:
+The real integration test must cover the accepted fixture, including tables/views, simple/composite keys, useful indexes, ambiguous/composite/self foreign keys, identity/computed/temporal/rowversion metadata, extended descriptions, keyless views, broad scalar types, and exclusions.
 
-1. starts the pinned container or reaches the explicitly configured external test server;
-2. recreates and validates the deterministic fixture contract;
-3. opens a real SQL connection and executes the typed parameterized `SELECT`;
-4. drops the fixture database and proves it is absent;
-5. passes through the owned-container path on the intended CI runner.
+### Catalog lifecycle remains pending
 
-The local real-integration attempt is blocked by the environment, not by a
-test result: access to `/var/run/docker.sock` is denied and no
-`THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING` was configured. This is why
-the fixture design and static tests are accepted infrastructure, whereas the
-real SQL Server path and ADR 0004 are still Proposed/unaccepted.
+Semantic Markdown/YAML merge, strict structural validation, capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
 
 ### Dynamic Client Registration
 
-OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before Milestone 5, design and security-test a bounded registration endpoint backed by OpenIddict's application manager, or validate a dedicated component. Do not disable redirect-URI, client-type, registration-rate, or resource validation as a shortcut.
+OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before Milestone 5, design and security-test a bounded registration endpoint backed by OpenIddict's application manager, or validate a dedicated component. Do not weaken redirect-URI, client-type, registration-rate, or resource validation.
 
 ## Next dependency-ordered work
 
-Close the remaining Milestone 0 gates in this order:
-
-1. inspect the local state and pending commits, then push them from VS Code;
-2. inspect the first GitHub Actions run: `validate`, then the dependent
-   `sqlserver-integration` owned-Testcontainers job;
-3. if CI is unavailable or needs diagnosis, run the full fixture integration
-   test locally either with Docker access or with the owner-provided external
-   SQL Server variable;
-4. verify deterministic bootstrap, metadata/data assertions, the typed
-   parameterized execution, and database removal from the integration result;
-5. accept or revise ADR 0004 from that evidence, then close the matching CI and
-   disposable-SQL backlog items only if both runner gates passed;
-6. confirm every Milestone 0 exit criterion before planning the bounded first
-   slice of Milestone 1.
-
-Do not start Milestone 1 catalog production implementation until the remaining Milestone 0 exit criteria are demonstrated.
+1. Keep the validated Catalog Core snapshot local until the project owner chooses to push it.
+2. Define the bounded SQL Server type-mapping and introspection contract against ADR 0006 and the deterministic reporting fixture.
+3. Implement canonical mapping for the fixture's supported SQL Server scalar types, with explicit `unknown` behavior and unit tests.
+4. Implement metadata discovery for user schemas, tables/views, columns, keys, useful indexes, foreign keys, computed/temporal flags, and descriptions.
+5. Exclude system schemas and unsupported procedures, functions, triggers, sequences, synonyms, table types, and internal objects by construction.
+6. Run the production introspector against the real disposable SQL Server fixture in CI and compare the resulting catalog to deterministic expectations.
+7. Only after introspection is accepted, proceed to semantic Markdown/YAML merge and strict validation; capability and revision lifecycle models should be introduced with their first production consumers.
 
 ## Restart checklist
 
-1. Run the following state checks. Before the owner push, confirm that
-   `bd8f575` and `320440a` are present and that no unintended changes exist;
-   account for the documentation checkpoint commit if it has been made after
-   this edit.
-
-   ```bash
-   git status --short --branch
-   git log -3 --oneline
-   ```
-
-2. Read `AGENTS.md`, the project skill, this file, ADR 0002–0005, architecture, roadmap, and backlog.
-3. Push from VS Code if still pending, then inspect the first GitHub Actions
-   run; do not start Milestone 1 based on workflow presence alone.
-4. For a local external-server run, set the secret only in the shell/session
-   and execute the exact integration command below. Otherwise verify Docker
-   access and let Testcontainers own the pinned image.
-
-   ```bash
-   export THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING='Server=localhost,1433;User ID=sa;Password=<local-secret>;Encrypt=True;TrustServerCertificate=True'
-   dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=SqlServerIntegration'
-   ```
-
-5. Re-run the static fixture command if SDK/runtime/package state changed:
-
-   ```bash
-   dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --filter 'Category=FixtureStatic'
-   ```
-
-6. Inspect CI and the SQL Server cleanup assertion before changing ADR 0004 or
-   declaring Milestone 0 complete.
+1. Run `git status --short --branch` and inspect the local commits and complete diff; Codex does not push automatically.
+2. Read ADR 0006 and the Catalog Core implementation/tests before extending the model.
+3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
+4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
+5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, semantic rules, or protocol concerns into the technical catalog domain.

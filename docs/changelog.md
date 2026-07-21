@@ -14,7 +14,7 @@
 - Added ADR 0002, selecting `TheSqlODataMcp` for .NET projects, assemblies, and namespaces and `thesqlodatamcp.slnx` for the solution file.
 - Added executable .NET 10 spikes for MCP Streamable HTTP and structured content, runtime OData EDM without EF, OpenIddict APIs, strict Markdown/YAML/JSON Schema validation, and disposable SQL Server testing.
 - Added ADR 0003 for the accepted MCP, OData, OpenIddict, and catalog-library baseline.
-- Added proposed ADR 0004 for Testcontainers-based SQL Server integration testing, pending a successful real Docker and CI run.
+- Added ADR 0004 for Testcontainers-based SQL Server integration testing; it is now accepted after the real owned-container path passed on GitHub Actions.
 - Added a version-controlled technical-lead skill, root `AGENTS.md`, and development-state checkpoint so architecture, QA evidence, open gates, and next work survive conversational resets.
 - Added the production `thesqlodatamcp.slnx` baseline with five source projects and four test projects, preserving the approved dependency directions and keeping research spikes outside the solution.
 - Added central package management, shared .NET 10/C# 14 build policy, nullable analysis, warnings-as-errors, analyzers, formatting rules, deterministic compilation, and SDK pinning.
@@ -24,6 +24,9 @@
 - Added SQL Server reset/bootstrap and teardown scripts covering multiple schemas, composite and ambiguous relationships, computed and temporal columns, broad type metadata, keyless views, descriptions, and programmable objects that future introspection must exclude.
 - Extended the SQL Server spike with external-server and owned-Testcontainers modes, static contract/`GO` parser tests, metadata/data assertions, guaranteed fixed-database cleanup, and a dedicated Docker-capable CI job.
 - Isolated spike package pins from production Central Package Management so every research spike remains independently restorable.
+- Verified the first GitHub Actions run on the intended Ubuntu runner: production validation and the dependent disposable SQL Server integration job both passed, closing Milestone 0.
+- Added the provider-neutral technical Catalog Core with stable physical identities, canonical/provider types, fields, keys, indexes, relationships, keyless views, temporal metadata, construction-time invariants, canonical JSON, and deterministic SHA-256 structural hashes.
+- Added ADR 0006 recording the accepted technical-catalog representation and the boundaries left for later Milestone 1 slices.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
@@ -38,10 +41,9 @@
 - Removed the obsolete PoC agent-handoff and QA documents from `main` to keep the active documentation focused on the clean implementation. Their history remains available in Git.
 
 ### Known limitations
-- Current stdout diagnostics are incompatible with MCP stdio and expose secrets.
-- Current bearer-token configuration is not real client authentication or OAuth.
-- The current DQL blacklist and free-form `WHERE` input do not constitute a safe read-only boundary.
-- OData and the JSON query API are not implemented by the legacy proof of concept; both are now defined as v1 adapters over the shared CQM.
+- There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
+- Production SQL Server introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented.
+- CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
 

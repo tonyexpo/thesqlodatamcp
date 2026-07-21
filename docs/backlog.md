@@ -26,19 +26,20 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation; record that RFC 7591 registration requires application-owned implementation or another validated component.
 - [x] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
 - [x] Define a provider-neutral deterministic reporting-catalog fixture and SQL Server bootstrap/teardown harness.
-- [ ] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
+- [x] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
 
 ### Solution baseline
 
 - [x] Scaffold the five target source projects and four test projects without further fragmentation.
 - [x] Add central package/version management, nullable analysis, formatting, analyzers, and deterministic builds.
-- [ ] Establish CI for restore, build, unit tests, and documentation/link checks.
+- [x] Establish CI for restore, build, unit tests, and documentation/link checks.
 - [x] Remove legacy tracked `bin/`/`obj/` artifacts and ignore local agent state.
 - [x] Establish the new example-configuration and local-secret ignore convention when the solution is scaffolded.
 
 ## Milestone 1 — Catalog foundation
 
-- [ ] Define technical catalog, entity, field, key, relationship, type, capability, and revision models.
+- [x] Define the provider-neutral technical catalog, entity, field, key, index, relationship, canonical/provider type models, and deterministic structural hash.
+- [ ] Define catalog capability and revision/lifecycle models alongside their first production consumers.
 - [ ] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection.
 - [ ] Exclude system and unsupported programmable objects by construction.
 - [ ] Implement canonical SQL type mapping with preserved provider details.

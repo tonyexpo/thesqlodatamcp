@@ -1,7 +1,7 @@
 # ADR 0004 — Disposable SQL Server test infrastructure
 
-- **Status:** Proposed
-- **Date:** 2026-07-19
+- **Status:** Accepted
+- **Date:** 2026-07-21
 
 ## Context
 
@@ -9,21 +9,26 @@ The SQL Server provider requires integration tests against a real disposable dat
 
 The candidate now includes a provider-neutral fixture contract and a SQL Server implementation that recreates `TheSqlODataMcp_TestCatalog`, seeds 8,128 deterministic rows, verifies representative schema/data complexity, and drops that exact database in cleanup. The harness can either start the pinned Testcontainers image or use an administrator-supplied external SQL Server connection string redirected to `master`; it never logs that string.
 
-The current environment still denies access to `/var/run/docker.sock`, and no external SQL Server connection is configured. Restore, warning-free build, and three non-Docker contract/parser tests pass, but build and static-test success alone are insufficient to accept the infrastructure choice.
+The local agent environment still denies access to `/var/run/docker.sock`, and no external SQL Server connection is configured. This is a local environment limitation rather than a product or CI limitation.
 
-## Proposed decision
+## Decision
 
 Use `Testcontainers.MsSql` with an explicitly pinned Microsoft SQL Server image on supported local and CI environments. Reuse the same fixed fixture scripts against an explicitly configured external SQL Server when a caller already owns the container or server lifecycle.
 
-## Acceptance gate
+## Acceptance evidence
 
-Change this ADR to Accepted only after:
+GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) completed successfully on the intended Ubuntu runner for commit `54a31dd` on 2026-07-20. Its dependent `sqlserver-integration` job:
 
-1. the spike starts the pinned SQL Server image;
-2. the deterministic fixture bootstraps with its exact schema and row-count contract;
-3. `Microsoft.Data.SqlClient` opens a real connection and the metadata/data assertions pass;
-4. an explicitly typed, parameterized `SELECT` succeeds;
-5. teardown leaves the fixed fixture database absent;
-6. the same owned-container test path is demonstrated on the intended CI runner.
+1. confirmed Docker availability;
+2. started the pinned SQL Server image through the owned-Testcontainers path;
+3. bootstrapped the deterministic fixture and passed its schema and row-count assertions;
+4. opened a real `Microsoft.Data.SqlClient` connection and executed the explicitly typed, parameterized `SELECT`;
+5. ran teardown and proved that the fixed fixture database was absent;
+6. passed the complete static and real-integration test project after the dependent production `validate` job succeeded.
 
-No mock or build-only result can satisfy this gate.
+## Consequences
+
+- The pinned Testcontainers path is the default disposable SQL Server integration-test infrastructure.
+- The external-server mode remains supported for owner-managed local infrastructure and uses the same fixture and assertions.
+- Lack of Docker access in an individual agent sandbox does not invalidate the accepted infrastructure when the intended CI runner remains green.
+- Future image, Testcontainers, or `Microsoft.Data.SqlClient` upgrades must rerun the real integration gate before acceptance.

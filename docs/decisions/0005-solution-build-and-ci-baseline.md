@@ -28,5 +28,9 @@ Milestone 0 requires a production solution whose boundaries match the target arc
 - New production projects or reverse dependencies require an explicit architectural justification.
 - Protocol and provider packages cannot create a path around Core and the future CQM boundary.
 - Package upgrades require central changes and the corresponding spike or regression evidence.
-- The workflow is locally validated, but Milestone 0 still requires its first successful run on the intended GitHub Actions runner.
-- SQL Server Testcontainers acceptance remains governed by proposed ADR 0004 and is not implied by this solution baseline.
+- At the time of this decision, the workflow was locally validated but still required its first successful run on the intended GitHub Actions runner.
+- SQL Server Testcontainers acceptance was governed separately by proposed ADR 0004 and was not implied by this solution baseline.
+
+## Subsequent evidence
+
+GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) later passed both the production `validate` job and the dependent owned-Testcontainers integration job. ADR 0004 is now Accepted and Milestone 0 is complete.

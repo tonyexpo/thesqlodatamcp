@@ -10,13 +10,17 @@ Milestones are dependency-ordered. A milestone is complete only when its exit ga
 
 **Outcome:** a clean, named, licensed solution baseline whose critical library choices have been proven with small executable spikes.
 
-Product naming, repository continuity, licensing, legacy-code disposition, .NET identifier casing, the initial library baselines, production solution scaffolding, configuration conventions, build policy, baseline tests, and CI workflow are settled. Remaining work is to demonstrate the workflow on the intended GitHub Actions runner and complete the real disposable SQL Server test gate.
+**Status:** Completed on 2026-07-21.
+
+Product naming, repository continuity, licensing, legacy-code disposition, .NET identifier casing, the initial library baselines, production solution scaffolding, configuration conventions, build policy, baseline tests, and CI workflow are settled. GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) demonstrated both the production validation job and the dependent owned-Testcontainers SQL Server integration job on the intended runner.
 
 **Exit gate:** the target solution builds in CI; the selected packages have minimal working spikes; no production feature depends on an obsolete preview or an assumed API; legacy code is clearly isolated or scheduled for removal.
 
 ## Milestone 1 — Catalog foundation
 
 **Outcome:** SQL Server can be introspected into a stable technical catalog and safely merged with validated semantic documentation.
+
+**Status:** In progress. The provider-neutral technical catalog model and deterministic structural hash are accepted; SQL Server introspection and the remaining catalog lifecycle are pending.
 
 Work includes catalog domain types, canonical/provider type mapping, SQL Server introspection, Markdown/YAML parsing and validation, relationship resolution, SQLite control-store migrations, revision activation/rollback, and in-memory search indexes.
 
