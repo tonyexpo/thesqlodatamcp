@@ -29,6 +29,9 @@
 - Added ADR 0006 recording the accepted technical-catalog representation and the boundaries left for later Milestone 1 slices.
 - Added a deterministic SQL Server catalog type mapper with strict metadata validation, preserved provider details, conservative `unknown` behavior, and unit coverage across supported scalar and storage boundaries.
 - Added ADR 0007 recording the accepted SQL Server type-mapping boundary and explicit-unknown policy.
+- Added the proposed first SQL Server introspection slice for user tables, views, columns, provider types, descriptions, identity/computed/temporal/rowversion flags, deterministic projection, and structural exclusions.
+- Added a production integration test that runs the introspector twice against the deterministic SQL Server fixture and verifies catalog shape, exclusions, metadata, stable canonical JSON/hash, and teardown.
+- Added ADR 0008 as Proposed pending the real Docker-capable CI acceptance gate.
 
 ### Changed
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
@@ -37,6 +40,7 @@
 - Replaced the earlier incremental MCP → OData → “ATP JSON” assumption with the settled architecture: MCP Streamable HTTP, OData 4.01, JSON/HTTP `QUERY`, and one shared Canonical Query Model.
 - Confirmed Apache License 2.0 and retention of this existing public repository for the clean implementation.
 - Replaced the “AI Data Gateway” working title in current project documentation with the definitive public name `thesqlodatamcp`; the original imported handoff remains unchanged.
+- Moved the recurring SQL Server CI gate from the real API spike path to the production introspector path while retaining the spike's static fixture checks.
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
@@ -44,7 +48,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- Production SQL Server introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented; the accepted type mapper is ready for the introspector to consume.
+- SQL Server key/index/foreign-key introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented. The column-introspection foundation still requires its real CI acceptance run.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]

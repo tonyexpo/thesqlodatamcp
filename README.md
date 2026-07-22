@@ -43,6 +43,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0005: solution, build, and CI baseline](./docs/decisions/0005-solution-build-and-ci-baseline.md) — production project graph, package placement, shared build policy, configuration, tests, and CI.
 - [ADR 0006: technical Catalog Core](./docs/decisions/0006-technical-catalog-core-model.md) — provider-neutral catalog representation, invariants, canonical JSON, and structural hashing.
 - [ADR 0007: SQL Server type mapping](./docs/decisions/0007-sqlserver-type-mapping.md) — provider-boundary scalar mapping, metadata validation, and explicit unknown behavior.
+- [ADR 0008: SQL Server introspection foundation](./docs/decisions/0008-sqlserver-introspection-foundation.md) — proposed table/view/column discovery boundary and real-fixture acceptance gate.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.

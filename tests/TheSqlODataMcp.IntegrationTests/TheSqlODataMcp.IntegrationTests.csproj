@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Testcontainers.MsSql" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
@@ -27,5 +29,9 @@
     <None Include="../../src/TheSqlODataMcp.SqlServer/TheSqlODataMcp.SqlServer.csproj" Link="scaffold/TheSqlODataMcp.SqlServer.csproj" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../src/TheSqlODataMcp.Web/TheSqlODataMcp.Web.csproj" Link="scaffold/TheSqlODataMcp.Web.csproj" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../src/TheSqlODataMcp.Web/appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../fixtures/reporting-catalog/**/*">
+      <Link>fixtures/reporting-catalog/%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

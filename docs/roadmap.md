@@ -20,7 +20,7 @@ Product naming, repository continuity, licensing, legacy-code disposition, .NET 
 
 **Outcome:** SQL Server can be introspected into a stable technical catalog and safely merged with validated semantic documentation.
 
-**Status:** In progress. The provider-neutral technical catalog model, deterministic structural hash, and SQL Server catalog type mapper are accepted; SQL Server introspection and the remaining catalog lifecycle are pending.
+**Status:** In progress. The provider-neutral technical catalog model, deterministic structural hash, and SQL Server catalog type mapper are accepted. The first SQL Server introspection slice is implemented locally and awaiting its real disposable-database CI gate; relational metadata and the remaining catalog lifecycle are pending.
 
 Work includes catalog domain types, canonical/provider type mapping, SQL Server introspection, Markdown/YAML parsing and validation, relationship resolution, SQLite control-store migrations, revision activation/rollback, and in-memory search indexes.
 

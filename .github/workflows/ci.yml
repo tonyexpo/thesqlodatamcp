@@ -17,7 +17,7 @@ jobs:
           global-json-file: global.json
       - run: dotnet restore thesqlodatamcp.slnx
       - run: dotnet build thesqlodatamcp.slnx --no-restore
-      - run: dotnet test thesqlodatamcp.slnx --no-build --no-restore
+      - run: dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"
       - run: dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore
       - run: bash eng/verify-markdown-links.sh
 
@@ -33,4 +33,7 @@ jobs:
       - run: docker info
       - run: dotnet restore spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj
       - run: dotnet build spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-restore
-      - run: dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --no-restore
+      - run: dotnet test spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj --no-build --no-restore --filter "Category=FixtureStatic"
+      - run: dotnet restore tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj
+      - run: dotnet build tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj --no-restore
+      - run: dotnet test tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj --no-build --no-restore --filter "Category=SqlServerIntegration"
