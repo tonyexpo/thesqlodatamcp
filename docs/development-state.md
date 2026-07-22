@@ -26,7 +26,7 @@ Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `o
 
 ADR 0004 is therefore Accepted, and the Milestone 0 CI and disposable SQL Server backlog items are closed. Local agent sandboxes can still deny `/var/run/docker.sock`; this no longer blocks the accepted CI infrastructure.
 
-The first two bounded Milestone 1 slices are saved in commits `cd29eeb` (technical Catalog Core) and `3d0cc50` (SQL Server catalog type mapping), both present on `origin/main`. The third local commit contains the SQL Server introspection candidate and remains unpushed.
+The first two bounded Milestone 1 slices are saved in commits `cd29eeb` (technical Catalog Core) and `3d0cc50` (SQL Server catalog type mapping), both present on `origin/main`. Commit `c3ea644` contains the SQL Server introspection candidate and is also present on `origin/main`.
 
 Production implementation for every slice was delegated to `gpt-5.6-terra`; the primary agent retained architecture and acceptance ownership, reviewed the complete diff, added independent QA, and ran the available validation.
 
@@ -74,7 +74,7 @@ This accepted slice contains no catalog SQL, connection handling, discovery, or 
 
 ### Milestone 1 slice 3A — SQL Server table/view/column introspection
 
-ADR 0008 is Proposed. The locally committed candidate:
+ADR 0008 is Proposed. The committed candidate:
 
 - exposes a connection-string/timeout/cancellation contract without public SQL client types;
 - executes one fixed read-only `SELECT` over `sys.objects`, schemas, columns, types, tables, computed columns, and extended properties;
@@ -83,15 +83,18 @@ ADR 0008 is Proposed. The locally committed candidate:
 - deliberately leaves keys, indexes, and relationships empty for the next slice;
 - includes a production Testcontainers integration test and a dedicated CI route against the fixed SQL Server fixture.
 
+GitHub Actions run [29951320005](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29951320005) passed the complete `validate` job and reached the real production Testcontainers test. That test exposed a provider-boundary defect: `sys.objects.type` is fixed-width `char(2)`, while the strict projection accepts canonical `U`/`V` values. The local follow-up normalizes that catalog value to `varchar(1)` in the fixed query and adds a static regression assertion. A fresh Docker-capable CI run remains required.
+
 The local environment denies `/var/run/docker.sock` even with authorized execution. Therefore the real production introspector test has not run here and ADR 0008 must remain Proposed until the Docker-capable CI job passes.
 
 ## QA evidence at this checkpoint
 
-### Remote Milestone 0 evidence
+### Remote CI evidence
 
 - GitHub Actions run `29778536859`: success.
 - `validate`: success.
 - `sqlserver-integration`: success through the owned pinned Testcontainers path.
+- GitHub Actions run `29951320005`: `validate` passed; the production SQL Server integration job passed Docker, fixture, restore, and build steps but failed its final introspector test because the fixed-width object type reached strict projection with padding.
 
 ### Local Catalog Core evidence
 
@@ -130,7 +133,7 @@ The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those comma
 
 ### SQL Server catalog introspection
 
-The table/view/column introspection candidate exists but is not accepted until its real CI gate passes. Keys, unique constraints/indexes, filtered indexes, foreign keys, and relationship field pairs are not implemented yet.
+The table/view/column introspection candidate exists but is not accepted until its corrected real CI gate passes. The first real run exposed fixed-width object-type padding; the local query-boundary correction still requires intended-runner evidence. Keys, unique constraints/indexes, filtered indexes, foreign keys, and relationship field pairs are not implemented yet.
 
 The real integration test must cover the accepted fixture, including tables/views, simple/composite keys, useful indexes, ambiguous/composite/self foreign keys, identity/computed/temporal/rowversion metadata, extended descriptions, keyless views, broad scalar types, and exclusions.
 
@@ -144,15 +147,15 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Push the local slice 3A candidate when the project owner chooses, then inspect the dedicated production SQL Server integration job.
-2. If the real fixture gate passes, change ADR 0008 to Accepted and record the remote run evidence; otherwise correct the candidate without weakening expectations.
+1. Push the local object-type normalization follow-up when the project owner chooses, then inspect the dedicated production SQL Server integration job.
+2. If the corrected real fixture gate passes, change ADR 0008 to Accepted and record the remote run evidence; otherwise correct the candidate without weakening expectations.
 3. Implement the bounded keys, useful indexes, foreign keys, and ordered relationship-pair slice.
 4. Re-run the full production introspector against the real fixture and close the introspection/exclusion backlog items only when the complete metadata surface is demonstrated.
 5. Only after introspection is accepted, proceed to semantic Markdown/YAML merge and strict validation; capability and revision lifecycle models should be introduced with their first production consumers.
 
 ## Restart checklist
 
-1. Run `git status --short --branch` and inspect the local slice 3A commit; Codex does not push automatically.
+1. Run `git status --short --branch` and inspect the local object-type normalization follow-up; Codex does not push automatically.
 2. Read ADRs 0006–0008 and the Catalog Core/type-mapper/introspector implementation and tests before extending the provider.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.

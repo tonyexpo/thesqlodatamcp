@@ -30,6 +30,7 @@ public sealed class SqlServerCatalogIntrospectorQaTests
         Assert.Contains("[sys].[columns]", query, StringComparison.Ordinal);
         Assert.Contains("[sys].[types]", query, StringComparison.Ordinal);
         Assert.Contains("[ty].[user_type_id] = [c].[user_type_id]", query, StringComparison.Ordinal);
+        Assert.Contains("CONVERT(varchar(1), [o].[type]) AS [ObjectType]", query, StringComparison.Ordinal);
         Assert.Contains("[o].[type] IN ('U', 'V')", query, StringComparison.Ordinal);
         Assert.Contains("[o].[is_ms_shipped] = 0", query, StringComparison.Ordinal);
         Assert.Contains("N'INFORMATION_SCHEMA'", query, StringComparison.Ordinal);

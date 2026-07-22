@@ -14,6 +14,7 @@ The complete introspector will eventually discover columns, keys, useful indexes
 - Add a sealed SQL Server introspector whose public inputs are a connection string, positive command timeout, and cancellation token, and whose output is a provider-neutral `TechnicalCatalog`.
 - Execute exactly one fixed, read-only `SELECT` over SQL Server `sys.*` catalog views. Do not accept SQL, identifiers, filters, or projections from callers and do not expose `Microsoft.Data.SqlClient` types in the public contract.
 - Discover only non-shipped user tables and views outside `sys` and `INFORMATION_SCHEMA`. Exclude temporal history tables and exclude procedures, functions, triggers, sequences, synonyms, table types, and other object kinds by selecting only `U` and `V` objects.
+- Normalize the fixed-width `sys.objects.type` value to one variable-width character in the catalog query before strict projection validation, so provider padding cannot alter the provider-neutral object kind.
 - Preserve physical identifier casing and `sys.columns.column_id`; sort entities with ordinal schema/object comparison and fields by ordinal in memory so database collation does not define canonical ordering.
 - Project nullability, identity, computed/persisted-computed, temporal period, rowversion, object/column `MS_Description`, and the ADR 0007 provider/canonical type mapping.
 - Preserve declared user-type names through the `user_type_id` join. Unknown types remain explicit `unknown` values without inferred Core metadata.

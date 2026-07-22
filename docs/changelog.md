@@ -34,6 +34,7 @@
 - Added ADR 0008 as Proposed pending the real Docker-capable CI acceptance gate.
 
 ### Changed
+- Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
 - Reclassified the current implementation as an incomplete proof of concept, not a deployable read-only SQL connector.
 - Reworked README, architecture, backlog, and project status around the authoritative AI Data Gateway baseline.

@@ -14,7 +14,7 @@ public sealed class SqlServerCatalogIntrospector
             [o].[object_id] AS [ObjectId],
             [s].[name] AS [SchemaName],
             [o].[name] AS [ObjectName],
-            [o].[type] AS [ObjectType],
+            CONVERT(varchar(1), [o].[type]) AS [ObjectType],
             COALESCE([t].[temporal_type], 0) AS [TemporalType],
             [c].[name] AS [ColumnName],
             [c].[column_id] AS [ColumnId],
