@@ -1,6 +1,6 @@
 # ADR 0008 — SQL Server introspection foundation
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-22
 
 ## Context
@@ -9,7 +9,7 @@ ADRs 0006 and 0007 define the provider-neutral technical catalog and SQL Server 
 
 The complete introspector will eventually discover columns, keys, useful indexes, and foreign-key relationships. A smaller first vertical slice can establish and integration-test the connection, metadata-query, filtering, column projection, and deterministic entity-construction boundary before adding the more relational metadata.
 
-## Proposed decision
+## Decision
 
 - Add a sealed SQL Server introspector whose public inputs are a connection string, positive command timeout, and cancellation token, and whose output is a provider-neutral `TechnicalCatalog`.
 - Execute exactly one fixed, read-only `SELECT` over SQL Server `sys.*` catalog views. Do not accept SQL, identifiers, filters, or projections from callers and do not expose `Microsoft.Data.SqlClient` types in the public contract.
@@ -21,9 +21,9 @@ The complete introspector will eventually discover columns, keys, useful indexes
 - Return empty key, index, and relationship collections in this first slice. Do not synthesize incomplete relational metadata.
 - Keep the disposable SQL Server test in the production integration-test project. Ordinary validation excludes only the Docker category; the dedicated SQL Server CI job must execute it against the pinned fixture.
 
-## Acceptance gate
+## Acceptance evidence
 
-This ADR remains Proposed until the intended Docker-capable runner proves that the production introspector:
+GitHub Actions run [29953151060](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29953151060) passed on commit `deb5b33` after an earlier real-provider run exposed and led to correction of fixed-width `sys.objects.type` padding. The intended Docker-capable runner proved that the production introspector:
 
 1. discovers the deterministic fixture's twelve user tables and two views;
 2. excludes the temporal history table and all deliberately unsupported objects;
@@ -34,5 +34,5 @@ This ADR remains Proposed until the intended Docker-capable runner proves that t
 ## Consequences
 
 - Unit and static QA can validate query immutability, projection invariants, and dependency direction without a database.
-- Real SQL Server execution remains mandatory before this decision becomes Accepted or any introspection backlog item is closed.
-- Keys, indexes, foreign keys, and relationship construction remain the next bounded provider slice after this foundation passes its real integration gate.
+- Real SQL Server execution remains a required regression gate for future introspection changes; the accepted run exercised the production Testcontainers path and deterministic fixture teardown.
+- Keys, indexes, foreign keys, and relationship construction remain the next bounded provider slice after this accepted foundation.

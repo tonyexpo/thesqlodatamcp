@@ -29,12 +29,13 @@
 - Added ADR 0006 recording the accepted technical-catalog representation and the boundaries left for later Milestone 1 slices.
 - Added a deterministic SQL Server catalog type mapper with strict metadata validation, preserved provider details, conservative `unknown` behavior, and unit coverage across supported scalar and storage boundaries.
 - Added ADR 0007 recording the accepted SQL Server type-mapping boundary and explicit-unknown policy.
-- Added the proposed first SQL Server introspection slice for user tables, views, columns, provider types, descriptions, identity/computed/temporal/rowversion flags, deterministic projection, and structural exclusions.
+- Added the first SQL Server introspection slice for user tables, views, columns, provider types, descriptions, identity/computed/temporal/rowversion flags, deterministic projection, and structural exclusions.
 - Added a production integration test that runs the introspector twice against the deterministic SQL Server fixture and verifies catalog shape, exclusions, metadata, stable canonical JSON/hash, and teardown.
-- Added ADR 0008 as Proposed pending the real Docker-capable CI acceptance gate.
+- Added ADR 0008, accepted after the production introspector and deterministic fixture passed on the Docker-capable GitHub Actions runner.
 
 ### Changed
 - Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
+- Verified the table/view/column introspection foundation end to end in GitHub Actions, including deterministic repeat discovery, metadata/exclusion assertions, and fixture teardown.
 - Corrected the interpretation of v0.6.0: the project compiles, but MCP tool discovery and end-to-end interoperability were not verified. The current `McpTools` class is not marked with the SDK-required `McpToolType` attribute.
 - Reclassified the current implementation as an incomplete proof of concept, not a deployable read-only SQL connector.
 - Reworked README, architecture, backlog, and project status around the authoritative AI Data Gateway baseline.
@@ -49,7 +50,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- SQL Server key/index/foreign-key introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented. The column-introspection foundation still requires its real CI acceptance run.
+- SQL Server key/index/foreign-key introspection, semantic catalog merge, revision persistence/lifecycle, and search are not implemented. The table/view/column introspection foundation is accepted.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
