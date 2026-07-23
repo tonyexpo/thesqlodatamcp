@@ -1,6 +1,6 @@
 # Development state
 
-**Checkpoint date:** 2026-07-22
+**Checkpoint date:** 2026-07-23
 
 **Branch:** `main`
 
@@ -16,7 +16,7 @@ This file is the restart point when conversational context is unavailable. Read 
 - The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
 - Repository-local `.codex` and `.agents` may be mounted read-only; the version-controlled project skill remains canonical.
 
-## Session checkpoint — 2026-07-22
+## Session checkpoint — 2026-07-23
 
 Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `origin/main`. GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) passed on the intended Ubuntu runner:
 
@@ -29,6 +29,8 @@ ADR 0004 is therefore Accepted, and the Milestone 0 CI and disposable SQL Server
 The first three bounded Milestone 1 slices are present on `origin/main`: `cd29eeb` establishes the technical Catalog Core, `3d0cc50` adds SQL Server catalog type mapping, and `c3ea644` plus corrective follow-up `deb5b33` establish the accepted SQL Server table/view/column introspection foundation.
 
 Production implementation for every slice was delegated to `gpt-5.6-terra`; the primary agent retained architecture and acceptance ownership, reviewed the complete diff, added independent QA, and ran the available validation.
+
+The next relational-metadata slice is implemented on local `main` and recorded by proposed ADR 0009. It extends the production introspector with primary/alternate keys, useful standalone rowstore indexes, and ordered foreign-key relationships through one fixed read-only command with three result sets. Local validation is complete; the slice is not accepted and its backlog item remains open until the dedicated GitHub Actions job passes against the real SQL Server fixture.
 
 ## Completed and accepted
 
@@ -85,6 +87,24 @@ GitHub Actions run [29951320005](https://github.com/tonyexpo/thesqlodatamcp/acti
 
 GitHub Actions run [29953151060](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29953151060) then passed both `validate` and the dependent `sqlserver-integration` job on commit `deb5b33`. The production introspector discovered the expected twelve user tables and two views, excluded the temporal history table and unsupported objects, projected representative metadata, produced identical canonical JSON and hashes across repeated discovery, and tore down the fixed database. ADR 0008 is therefore Accepted. The local environment's denial of `/var/run/docker.sock` no longer blocks this slice because the intended runner supplied the required real-provider evidence.
 
+## Implemented, pending real-provider acceptance
+
+### Milestone 1 slice 3B — SQL Server relational metadata introspection
+
+Proposed ADR 0009 records the locally validated design:
+
+- one fixed read-only command now returns separate ordered result sets for columns, keys/indexes, and foreign keys without N+1 access or caller-controlled SQL;
+- `PK` and `UQ` constraints become primary/alternate `CatalogKey` values with composite order preserved;
+- enabled, non-hypothetical rowstore indexes become `CatalogIndex` values while heaps, included columns, non-rowstore indexes, and PK/UQ backing indexes are excluded;
+- simple, multiple-to-one, composite, and self foreign keys become named `CatalogRelationship` values with ordered source/target field pairs;
+- projection rejects unsupported metadata kinds, inconsistent grouped flags or targets, ordinal gaps, orphan sources, missing targets, target-identity mismatches, and missing target fields;
+- canonical JSON and structural hashes remain independent of input row order and database collation;
+- the real fixture now includes a standalone composite index with an included column, and production integration assertions cover filtered/standalone indexes, constraint-index exclusion, primary/alternate/composite keys, and both ambiguous composite address relationships.
+
+The primary review caught four defects or evidence gaps before acceptance: `sys.index_columns.key_ordinal` required an explicit `int` conversion for `SqlDataReader.GetInt32`; orphan source metadata was silently ignored; ordinal gaps were accepted; and the integration assertions did not fully prove backing-index exclusion and both composite address relationships. The delegated implementer corrected all four, and the primary agent added an independent row-order determinism regression test.
+
+ADR 0009 remains Proposed because this environment cannot access Docker. After the local commits are pushed, require a green `validate` job and dependent `sqlserver-integration` job before changing the ADR to Accepted or closing the complete SQL Server introspection backlog item.
+
 ## QA evidence at this checkpoint
 
 ### Remote CI evidence
@@ -128,13 +148,25 @@ GitHub Actions run [29953151060](https://github.com/tonyexpo/thesqlodatamcp/acti
 
 The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those commands were independently rerun with authorized execution and passed. This remains an environment constraint rather than a product defect.
 
+### Local relational-metadata evidence
+
+- `dotnet restore thesqlodatamcp.slnx`: passed; all projects up to date.
+- `dotnet build thesqlodatamcp.slnx --no-restore`: passed with zero warnings and zero errors.
+- `dotnet test tests/TheSqlODataMcp.SqlServer.Tests/TheSqlODataMcp.SqlServer.Tests.csproj --no-restore`: 94 passed, 0 failed, 0 skipped after the independent determinism regression was added.
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: 111 passed, 0 failed, 0 skipped across all four production test projects.
+- `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed.
+- `bash eng/verify-markdown-links.sh`: passed.
+- `git diff --check`: passed.
+- Independent QA covers the fixed three-result-set/read-only command, provider integer conversion, relational grouping and ordering, orphan/target rejection, constraint-backing index exclusion, exact composite relationship pairs, and canonical row-order independence.
+- Real `Category=SqlServerIntegration` execution remains pending on the intended Docker-capable GitHub Actions runner.
+
 ## Open work and risks
 
 ### SQL Server catalog introspection
 
-The table/view/column introspection foundation is accepted. Keys, unique constraints/indexes, filtered indexes, foreign keys, and relationship field pairs are not implemented yet.
+The table/view/column introspection foundation is accepted. Relational metadata is implemented and locally validated, but real-provider acceptance is pending.
 
-The next relational-metadata slice must extend the real integration assertions over the accepted fixture's simple/composite keys, useful indexes, and ambiguous/composite/self foreign keys without weakening the existing table/view/column, metadata, keyless-view, type, and exclusion coverage.
+Do not mark ADR 0009 Accepted or close the full introspection backlog item until GitHub Actions proves the production code against the disposable SQL Server fixture without weakening the existing table/view/column, metadata, keyless-view, type, exclusion, determinism, and teardown coverage.
 
 ### Catalog lifecycle remains pending
 
@@ -146,14 +178,14 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Implement the bounded keys, useful indexes, foreign keys, and ordered relationship-pair slice.
-2. Re-run the full production introspector against the real fixture and close the remaining introspection backlog item only when the complete metadata surface is demonstrated.
+1. Push the local relational-metadata implementation and documentation commits.
+2. Require green `validate` and `sqlserver-integration` jobs, then record the run in ADR 0009 and this checkpoint, mark the ADR Accepted, and close the complete introspection backlog item.
 3. Proceed to semantic Markdown/YAML merge and strict validation after complete introspection; capability and revision lifecycle models should be introduced with their first production consumers.
 
 ## Restart checklist
 
 1. Run `git status --short --branch`; Codex does not push automatically.
-2. Read ADRs 0006–0008 and the Catalog Core/type-mapper/introspector implementation and tests before extending the provider.
+2. Read ADRs 0006–0009 and the Catalog Core/type-mapper/introspector implementation and tests before extending the provider.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, semantic rules, or protocol concerns into the technical catalog domain.

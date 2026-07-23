@@ -40,7 +40,7 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 
 - [x] Define the provider-neutral technical catalog, entity, field, key, index, relationship, canonical/provider type models, and deterministic structural hash.
 - [ ] Define catalog capability and revision/lifecycle models alongside their first production consumers.
-- [ ] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection.
+- [ ] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection. Relational metadata is implemented and locally validated; real-provider CI acceptance is pending.
 - [x] Exclude system and unsupported programmable objects by construction.
 - [x] Implement canonical SQL type mapping with preserved provider details.
 - [ ] Implement Markdown plus YAML/front-matter import and the v1 structured schema.

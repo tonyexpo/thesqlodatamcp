@@ -165,6 +165,8 @@ CREATE TABLE sales.InvoiceStatuses
     CONSTRAINT CK_InvoiceStatuses_Code CHECK (StatusCode IN ('Draft', 'Open', 'Paid', 'Overdue'))
 ) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = sales.InvoiceStatusesHistory));
 
+CREATE INDEX IX_InvoiceLines_Product_Quantity ON sales.InvoiceLines(ProductId, Quantity) INCLUDE (UnitPrice);
+
 CREATE TABLE operations.TypeCoverage
 (
     TypeCoverageId int NOT NULL CONSTRAINT PK_TypeCoverage PRIMARY KEY,

@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project has been rebaselined from the authoritative AI Data Gateway handoff. Implementation now proceeds in the new .NET 10 / ASP.NET Core solution rather than as an incremental extension of the stdio/raw-DQL prototype.
 
-Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and table/view/column introspection. Relational metadata and the remaining catalog lifecycle are still pending.
+Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and table/view/column introspection. Relational metadata is implemented and locally validated, with real SQL Server CI acceptance still pending; the remaining catalog lifecycle is not implemented.
 
 ## Product boundaries
 
@@ -44,6 +44,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0006: technical Catalog Core](./docs/decisions/0006-technical-catalog-core-model.md) — provider-neutral catalog representation, invariants, canonical JSON, and structural hashing.
 - [ADR 0007: SQL Server type mapping](./docs/decisions/0007-sqlserver-type-mapping.md) — provider-boundary scalar mapping, metadata validation, and explicit unknown behavior.
 - [ADR 0008: SQL Server introspection foundation](./docs/decisions/0008-sqlserver-introspection-foundation.md) — accepted table/view/column discovery boundary and real-fixture regression gate.
+- [ADR 0009: SQL Server relational metadata introspection](./docs/decisions/0009-sqlserver-relational-metadata-introspection.md) — proposed key/index/foreign-key discovery boundary pending the real-provider CI gate.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.

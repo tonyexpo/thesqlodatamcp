@@ -88,9 +88,6 @@ public sealed class SqlServerCatalogIntrospectorIntegrationTests
         Assert.DoesNotContain(catalog.Entities, entity => entity.Identity.ToString() == "sales.InvoiceStatusesHistory");
         Assert.All(catalog.Entities, entity =>
         {
-            Assert.Empty(entity.Keys);
-            Assert.Empty(entity.Indexes);
-            Assert.Empty(entity.Relationships);
             Assert.Equal(entity.Fields.OrderBy(field => field.Ordinal).Select(field => field.Name), entity.Fields.Select(field => field.Name));
         });
 
@@ -100,6 +97,12 @@ public sealed class SqlServerCatalogIntrospectorIntegrationTests
         Assert.Equal(1, customerId.Ordinal);
         Assert.Equal(CanonicalScalarType.Int32, customerId.CanonicalType);
         Assert.True(customerId.IsIdentity);
+        AssertKey(customers, "PK_Customers", isPrimary: true, "CustomerId");
+        AssertKey(customers, "UQ_Customers_CustomerCode", isPrimary: false, "CustomerCode");
+        Assert.Equal(["UX_Customers_Email_WhenPresent"], customers.Indexes.Select(index => index.Name));
+        var selfRelationship = Assert.Single(customers.Relationships, relationship => relationship.Name == "FK_Customers_Parent");
+        Assert.Equal("crm.Customers", selfRelationship.Target.ToString());
+        AssertPair(selfRelationship, "ParentCustomerId", "CustomerId");
 
         var invoices = Entity(catalog, "sales", "Invoices");
         Assert.Equal("Deterministic sales invoice fixture.", invoices.Description);
@@ -112,6 +115,19 @@ public sealed class SqlServerCatalogIntrospectorIntegrationTests
         Assert.Equal(4, totalDue.ProviderType.Scale);
         var rowVersion = Field(invoices, "RowVersion");
         Assert.True(rowVersion.IsRowVersion);
+        AssertKey(invoices, "PK_Invoices", isPrimary: true, "InvoiceId");
+        Assert.Empty(invoices.Indexes);
+        Assert.Equal(4, invoices.Relationships.Count);
+        AssertPair(Relationship(invoices, "FK_Invoices_BillToCustomer"), "BillToCustomerId", "CustomerId");
+        AssertPair(Relationship(invoices, "FK_Invoices_ShipToCustomer"), "ShipToCustomerId", "CustomerId");
+        var billAddress = Relationship(invoices, "FK_Invoices_BillToAddress");
+        Assert.Equal("crm.CustomerAddresses", billAddress.Target.ToString());
+        Assert.Equal(["BillToCustomerId", "BillToAddressKind"], billAddress.FieldPairs.Select(pair => pair.SourceField));
+        Assert.Equal(["CustomerId", "AddressKind"], billAddress.FieldPairs.Select(pair => pair.TargetField));
+        var shipAddress = Relationship(invoices, "FK_Invoices_ShipToAddress");
+        Assert.Equal("crm.CustomerAddresses", shipAddress.Target.ToString());
+        Assert.Equal(["ShipToCustomerId", "ShipToAddressKind"], shipAddress.FieldPairs.Select(pair => pair.SourceField));
+        Assert.Equal(["CustomerId", "AddressKind"], shipAddress.FieldPairs.Select(pair => pair.TargetField));
         Assert.Equal(CanonicalScalarType.Binary, rowVersion.CanonicalType);
 
         var invoiceStatuses = Entity(catalog, "sales", "InvoiceStatuses");
@@ -126,10 +142,27 @@ public sealed class SqlServerCatalogIntrospectorIntegrationTests
         Assert.Equal(CanonicalScalarType.String, Field(typeCoverage, "JsonText").CanonicalType);
         Assert.True(Field(typeCoverage, "VersionValue").IsRowVersion);
 
+        var stockBalances = Entity(catalog, "inventory", "StockBalances");
+        AssertKey(stockBalances, "PK_StockBalances", isPrimary: true, "ProductId", "WarehouseId");
+
+        var invoiceLines = Entity(catalog, "sales", "InvoiceLines");
+        var standaloneIndex = Assert.Single(invoiceLines.Indexes, index => index.Name == "IX_InvoiceLines_Product_Quantity");
+        Assert.False(standaloneIndex.IsUnique);
+        Assert.False(standaloneIndex.IsFiltered);
+        Assert.Equal(["ProductId", "Quantity"], standaloneIndex.Fields);
+        Assert.Equal(["IX_InvoiceLines_Product_Quantity"], invoiceLines.Indexes.Select(index => index.Name));
+
+        var filteredIndex = Assert.Single(customers.Indexes, index => index.Name == "UX_Customers_Email_WhenPresent");
+        Assert.True(filteredIndex.IsUnique);
+        Assert.True(filteredIndex.IsFiltered);
+        Assert.Equal(["Email"], filteredIndex.Fields);
+
         var detailView = Entity(catalog, "reporting", "InvoiceDetail");
         Assert.Equal(CatalogObjectKind.View, detailView.Kind);
         Assert.Equal("Keyless invoice-line reporting view.", detailView.Description);
         Assert.Equal(CatalogObjectKind.View, Entity(catalog, "reporting", "InvoiceMonthlySummary").Kind);
+        Assert.Empty(detailView.Keys);
+        Assert.Empty(detailView.Relationships);
     }
 
     private static TechnicalEntity Entity(TechnicalCatalog catalog, string schema, string objectName) =>
@@ -139,4 +172,21 @@ public sealed class SqlServerCatalogIntrospectorIntegrationTests
 
     private static TechnicalField Field(TechnicalEntity entity, string name) =>
         Assert.Single(entity.Fields, field => string.Equals(field.Name, name, StringComparison.Ordinal));
+
+    private static CatalogRelationship Relationship(TechnicalEntity entity, string name) =>
+        Assert.Single(entity.Relationships, relationship => string.Equals(relationship.Name, name, StringComparison.Ordinal));
+
+    private static void AssertKey(TechnicalEntity entity, string name, bool isPrimary, params string[] fields)
+    {
+        var key = Assert.Single(entity.Keys, candidate => string.Equals(candidate.Name, name, StringComparison.Ordinal));
+        Assert.Equal(isPrimary, key.IsPrimary);
+        Assert.Equal(fields, key.Fields);
+    }
+
+    private static void AssertPair(CatalogRelationship relationship, string source, string target)
+    {
+        var pair = Assert.Single(relationship.FieldPairs);
+        Assert.Equal(source, pair.SourceField);
+        Assert.Equal(target, pair.TargetField);
+    }
 }
