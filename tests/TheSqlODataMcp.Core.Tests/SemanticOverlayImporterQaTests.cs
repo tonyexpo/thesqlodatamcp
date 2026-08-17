@@ -13,6 +13,42 @@ namespace TheSqlODataMcp.Core.Tests;
 /// </summary>
 public sealed class SemanticOverlayImporterQaTests
 {
+    /// <summary>
+    /// Regression guard for a thread-safety defect found while reviewing an unrelated later slice: the
+    /// shared static <c>JsonSchema</c> instance's <c>Evaluate</c> call was not safe to invoke concurrently
+    /// for this $ref-heavy schema -- a stress probe measured roughly 40% of concurrent imports silently
+    /// missing an expected <see cref="SemanticOverlayValidationErrorCodes.SchemaViolation"/>, a genuine
+    /// validation bypass under real concurrent load (e.g. an ASP.NET Core host handling simultaneous
+    /// catalog-overlay uploads), not merely flaky test output. Fixed by serializing schema evaluation with
+    /// a lock. 200 concurrent iterations at ~42% original failure probability makes a silent regression
+    /// here astronomically unlikely to pass by chance.
+    /// </summary>
+    [Fact]
+    public void ConcurrentImportsReliablyDetectTheSameSchemaViolation()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - source: "sales.InvoiceHeader"
+                fields:
+                  InvoiceId:
+                    bogus: true
+            """;
+        var catalog = CreateCatalog();
+
+        var missingSchemaViolation = 0;
+        Parallel.For(0, 200, new ParallelOptions { MaxDegreeOfParallelism = 16 }, _ =>
+        {
+            var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, catalog);
+            if (!result.Errors.Any(e => e.Code == SemanticOverlayValidationErrorCodes.SchemaViolation))
+            {
+                Interlocked.Increment(ref missingSchemaViolation);
+            }
+        });
+
+        Assert.Equal(0, missingSchemaViolation);
+    }
+
     [Fact]
     public void MissingFrontMatterIsRejected()
     {

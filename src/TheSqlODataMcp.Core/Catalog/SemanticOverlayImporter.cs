@@ -35,6 +35,13 @@ public static class SemanticOverlayImporter
 
     private static readonly JsonSchema Schema = LoadSchema();
 
+    // JsonSchema.Net's Evaluate is not safe to call concurrently on a shared JsonSchema instance for this
+    // schema (observed under stress: a $ref-heavy schema evaluated from many threads intermittently
+    // returns IsValid=true / omits Details for an actually-invalid document -- a validation bypass, not
+    // just a flaky test). Serializing evaluation is cheap relative to catalog-overlay import frequency
+    // (an administrative operation, not a query hot path) and eliminates the race by construction.
+    private static readonly object SchemaEvaluationLock = new();
+
     /// <summary>
     /// Imports an overlay expressed as a single Markdown document whose leading YAML front matter
     /// block carries the overlay metadata; the remaining Markdown body is the opaque narrative.
@@ -92,7 +99,12 @@ public static class SemanticOverlayImporter
             return SemanticOverlayImportResult.Failure(errors);
         }
 
-        var evaluation = Schema.Evaluate(jsonNode, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        EvaluationResults evaluation;
+        lock (SchemaEvaluationLock)
+        {
+            evaluation = Schema.Evaluate(jsonNode, new EvaluationOptions { OutputFormat = OutputFormat.List });
+        }
+
         if (!evaluation.IsValid)
         {
             errors.AddRange(ConvertSchemaErrors(evaluation));

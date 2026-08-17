@@ -36,6 +36,10 @@ The same session then delegated Milestone 1 slice 4A — semantic overlay Markdo
 
 The push (commit `05f96e1`) was made and its CI run ([32058513059](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32058513059)) failed — not on anything in the slice itself, but at the very first `validate` step, `dotnet restore thesqlodatamcp.slnx`, on a `NU1903` advisory unrelated to this diff. The fix (commit `9a8caf9`, see ADR 0004's subsequent-evidence note) bumped `Testcontainers.MsSql` to 4.14.0 and updated the now-obsolete `MsSqlBuilder` constructor call it exposed. GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651) then passed both `validate` (55s) and `sqlserver-integration` (67s). ADR 0010 is therefore Accepted, and the semantic overlay import/validation backlog items are closed.
 
+The same session then delegated Milestone 1 slice 4B — merging the semantic overlay into the technical catalog — to a Sonnet-5 dev-senior sub-agent, again bounded to `TheSqlODataMcp.Core` only, with several architectural decisions settled in advance by the primary agent (composition over duplication for `MergedEntity`/`MergedField`, the overlay-`odata.key`-always-wins effective-key rule, relationships as a union tagged by provenance, and a fresh merge-time re-validation pass rather than trusting the overlay's original import-time validation). ADR 0011 records this design.
+
+Independent review found and fixed two defects the delegated tests did not cover: `CatalogMerger` could throw an unhandled exception (instead of a graceful `CatalogMergeResult` failure) on whitespace-only overlay display names/relationship names, since ADR 0010's schema validates property values but not property names. While stress-testing the new test suite's reliability, the primary agent also found and fixed a more severe, unrelated defect in already-accepted ADR 0010 code: `SemanticOverlayImporter`'s shared static `JsonSchema` instance was not safe to evaluate concurrently, measured at ~42% silent validation-bypass under concurrent load. Both fixes and their regression tests are recorded in ADR 0010's and ADR 0011's subsequent-evidence/defect sections. ADR 0011 remains Proposed pending a green `validate` CI run.
+
 ## Completed and accepted
 
 ### Milestone 0 — Rebaseline and de-risk
@@ -122,6 +126,20 @@ This slice does not merge the overlay into a `TechnicalCatalog`, reconcile `cata
 
 This slice requires no real SQL Server access. GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651) passed both `validate` and `sqlserver-integration` on commit `9a8caf9`. ADR 0010 is therefore Accepted, and the complete semantic overlay import/validation backlog item is closed.
 
+### Milestone 1 slice 4B — merging the overlay into the technical catalog
+
+ADR 0011 records the proposed design:
+
+- `MergedCatalog`/`MergedEntity`/`MergedField`/`MergedRelationship` compose the untouched physical `TechnicalCatalog`/`TechnicalEntity`/`TechnicalField` objects with overlay-derived annotations, rather than duplicating physical data — discovered metadata always remains reachable via `.Physical`;
+- `CatalogMerger.Merge(TechnicalCatalog, SemanticOverlay?)` re-validates the overlay's physical references against the *specific* catalog passed to it (never assuming it is the overlay's original catalog), adding two checks ADR 0010 deliberately deferred: `catalogVersion` equality and `odata.key` field existence;
+- effective display name/description layer overlay over physical (overlay wins when present, physical shows through otherwise); effective key is the overlay's `odata.key` when declared — always winning, even over an existing physical primary key — else the physical primary key, else empty (keyless, never synthesized); relationships are a union of FK-discovered and overlay-configured, tagged by `RelationshipProvenance`, never a replacement;
+- `Exposed`/`OData` annotate every entity without filtering `MergedCatalog.Entities` — protocol-level filtering is out of scope for Core;
+- `MergedCatalogCanonicalJson` mirrors `TechnicalCatalogCanonicalJson`'s determinism guarantees for the merged view.
+
+This slice implements no persistence, revision/activation/rollback, capability model, or search index — those remain later Milestone 1 work.
+
+This slice requires no real SQL Server access. ADR 0011 remains Proposed until a green `validate` job is confirmed on `origin/main` for the commit that includes it.
+
 ## QA evidence at this checkpoint
 
 ### Remote CI evidence
@@ -134,6 +152,7 @@ This slice requires no real SQL Server access. GitHub Actions run [32059087651](
 - GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860): success; both `validate` and `sqlserver-integration` passed on commit `f686dff`, proving the production key/index/foreign-key projection against the real disposable SQL Server fixture and closing the introspection backlog item.
 - GitHub Actions run [32058513059](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32058513059): failure; `validate` failed at `dotnet restore thesqlodatamcp.slnx` on commit `05f96e1` because of the `NU1903` `SSH.NET` advisory, unrelated to the pushed slice 4A content. `sqlserver-integration` was skipped as a dependent job.
 - GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651): success; both `validate` (55s) and `sqlserver-integration` (67s) passed on commit `9a8caf9` after the `Testcontainers.MsSql` 4.14.0 fix, accepting ADR 0010 and confirming the dependency upgrade against real Docker.
+- Slice 4B (ADR 0011) CI run: not yet pushed at this checkpoint; see "Next dependency-ordered work."
 
 ### Local Catalog Core evidence
 
@@ -190,6 +209,17 @@ The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those comma
 - Independent QA (`SemanticOverlayImporterQaTests.cs`) covers the previously unreached `overlay.frontMatterMissing` path, ordinal case-sensitivity of entity-source and field-key resolution, an unknown key directly on an entity object, a minimal zero-entity overlay, and direct construction-time invariants of the domain types (join field pairs, non-empty relationship joins, warnings, duplicate entity sources, duplicate field/relationship map keys) independent of the YAML pipeline.
 - Real `sqlserver-integration` execution passed in GitHub Actions run `32059087651` (this slice touches no provider code, but the job runs as a dependent step after `validate` on every push).
 
+### Local merged-catalog evidence
+
+- `dotnet build thesqlodatamcp.slnx --no-restore`: all 9 projects, zero warnings/errors.
+- `dotnet test tests/TheSqlODataMcp.Core.Tests/TheSqlODataMcp.Core.Tests.csproj --no-restore`: 77 passed, 0 failed, 0 skipped (44 pre-existing + 28 delegated merge/canonical-JSON tests + 1 thread-safety regression + 4 whitespace-crash regressions).
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: Core.Tests 77, SqlServer.Tests 94, ProtocolTests 1, IntegrationTests 4, all passed — repeated across five consecutive full-solution runs with no flakes after the thread-safety fix (previously intermittent, see below).
+- A dedicated 2,000-iteration concurrent stress probe (outside the normal test suite) against `SemanticOverlayImporter.ImportYamlAndMarkdown` measured 0/2,000 missed `SchemaViolation` errors after the fix, versus 842/2,000 (~42%) before — confirming the thread-safety defect and its resolution empirically, not just by code inspection.
+- `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: fails only on the same pre-existing local `core.autocrlf` artifact documented in ADR 0009/0010; none of the eight new/touched files for this slice appear in the output.
+- Independent QA (`CatalogMergerQaTests.cs`, 4 tests) proves the two whitespace-crash defects are fixed: a whitespace-only overlay `displayName`/`name` now falls back correctly instead of crashing, and a whitespace-only overlay relationship name is now rejected as `merge.relationshipNameInvalid` instead of crashing.
+- A permanent regression test (`ConcurrentImportsReliablyDetectTheSameSchemaViolation` in `SemanticOverlayImporterQaTests.cs`) guards the thread-safety fix within the normal test suite (200 concurrent iterations; a silent regression passing by chance at the original ~42% failure rate is not a realistic risk).
+- This slice requires no real SQL Server access; there is no `sqlserver-integration` dependency to satisfy for its own content.
+
 ## Open work and risks
 
 ### SQL Server catalog introspection
@@ -204,9 +234,13 @@ Slice 4A (ADR 0010) is accepted, with real CI evidence in GitHub Actions run `32
 
 Resolved and confirmed against real Docker in GitHub Actions run `32059087651` (see ADR 0004's subsequent-evidence note for the full root cause and fix). No further action required unless a future advisory reappears.
 
+### Merging the overlay into the technical catalog
+
+Slice 4B (ADR 0011, Markdown/YAML overlay merge into `MergedCatalog`) is implemented and locally validated. Do not mark its backlog item complete or the ADR Accepted until GitHub Actions proves a green `validate` job on `origin/main` for the commit that includes it.
+
 ### Catalog lifecycle remains pending
 
-Overlay merge into the technical catalog (FK/YAML relationship combination, YAML-wins precedence, keyless-view logical keys, merged structural hashes), capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
+Capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
 
 ### Dynamic Client Registration
 
@@ -214,14 +248,14 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Implement the overlay merge slice (4B): merge precedence into `TechnicalCatalog`, FK/YAML relationship combination, YAML-wins override semantics, keyless-view logical keys, and merged structural hashing.
+1. Push the local merged-catalog commit and require a green `validate` job, then record the run in ADR 0011 and this checkpoint and mark the ADR Accepted.
 2. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
 3. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
 
 ## Restart checklist
 
 1. Run `git status --short --branch`; the primary agent does not push automatically.
-2. Read ADRs 0006–0010 and the Catalog Core/type-mapper/introspector/semantic-overlay implementation and tests before extending the catalog domain.
+2. Read ADRs 0006–0011 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge implementation and tests before extending the catalog domain.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.

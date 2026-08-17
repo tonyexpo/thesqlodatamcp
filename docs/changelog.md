@@ -36,9 +36,14 @@
 - Added ordered projection and validation for composite keys, index key fields, self/multiple/composite relationships, and relationship target integrity.
 - Extended the deterministic SQL Server fixture and production integration assertions with a standalone composite index, filtered-index behavior, constraint-backing index exclusion, and representative relational metadata.
 - Added ADR 0009 for the relational-metadata discovery boundary, accepted after the production introspector's key, index, and foreign-key projection passed on the Docker-capable GitHub Actions runner.
+- Added `MergedCatalog`, `MergedEntity`, `MergedField`, and `MergedRelationship` to `TheSqlODataMcp.Core`, produced by a new `CatalogMerger.Merge(TechnicalCatalog, SemanticOverlay?)`: physical entities annotated with overlay display metadata, an effective key (overlay `odata.key` override, else physical primary key, else keyless), and a discovered/configured relationship union, each entity's physical object always reachable and never lost.
+- Added `MergedCatalogCanonicalJson` for deterministic canonical JSON and a structural SHA-256 hash of the merged view, sensitive to every overlay-attributable change.
+- Added ADR 0011 for the merge-precedence boundary; acceptance is pending the real CI `validate` gate.
 
 ### Fixed
 - Bumped `Testcontainers.MsSql` from 4.8.1 to 4.14.0 (centrally and in the independently pinned SQL Server test spike) after the previous version's transitive `SSH.NET` 2024.2.0 dependency triggered a CI-blocking `NU1903` high-severity advisory during `dotnet restore`. Updated `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs` for `MsSqlBuilder`'s new non-obsolete constructor, which now requires the image explicitly rather than defaulting one. Confirmed by GitHub Actions run 32059087651 (both `validate` and `sqlserver-integration` passed); see ADR 0004's subsequent-evidence note.
+- Fixed `CatalogMerger` throwing an unhandled exception instead of returning a `CatalogMergeResult` failure when overlay content contained whitespace-only entity display names/names or a whitespace-only relationship YAML key; the latter now has its own error code, `merge.relationshipNameInvalid`.
+- Fixed a thread-safety defect in `SemanticOverlayImporter` (ADR 0010): its shared static `JsonSchema` instance was not safe to evaluate concurrently, measured at roughly 42% silent validation-bypass under concurrent load; fixed by serializing schema evaluation. See ADR 0010's subsequent-evidence note.
 
 ### Changed
 - Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
@@ -61,7 +66,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- SQL Server relational-metadata introspection and semantic overlay Markdown/YAML import/validation are both implemented and accepted with real CI evidence. Overlay merge into the technical catalog, capability/revision persistence/lifecycle, and search are not implemented.
+- SQL Server relational-metadata introspection and semantic overlay Markdown/YAML import/validation are both implemented and accepted with real CI evidence. Merging the overlay into the technical catalog is implemented and locally validated, pending CI. Capability/revision persistence/lifecycle, activation/rollback, and search are not implemented.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
