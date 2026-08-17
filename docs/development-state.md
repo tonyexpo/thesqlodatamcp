@@ -32,6 +32,8 @@ Production implementation for every slice was delegated to `gpt-5.6-terra`; the 
 
 This checkpoint corrects a stale restart record: the 2026-07-23 checkpoint recorded the relational-metadata slice as locally validated but pending push and CI. Verification on 2026-08-17 found that `f686dff` was already on `origin/main` and that GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860) had already passed both the `validate` and `sqlserver-integration` jobs against the real deterministic SQL Server fixture. ADR 0009 is accordingly now Accepted, and the complete SQL Server introspection backlog item (tables, views, columns, keys, indexes, foreign keys) is closed. No further push or CI run is outstanding for this slice.
 
+The same session then delegated Milestone 1 slice 4A — semantic overlay Markdown/YAML import and strict validation — to a Sonnet-5 dev-senior sub-agent, bounded to `TheSqlODataMcp.Core` only and explicitly excluding catalog merge. The primary agent independently reviewed the complete diff line by line (including re-deriving why every null-forgiving operator in the importer is safe given the JSON Schema's `required` fields), independently re-ran every claimed verification command rather than accepting the sub-agent's report, byte-level-verified the sub-agent's claim that `dotnet format` ENDOFLINE failures are a pre-existing local `core.autocrlf` artifact unrelated to the new files, and added ten further independent QA tests closing gaps the delegated tests left (an unreached error path, ordinal case-sensitivity of physical-reference resolution, an unknown key directly on an entity object, and the domain model's own construction-time invariants). ADR 0010 records this design. It is Proposed pending a green `validate` CI run; unlike the SQL Server slices, it needs no real database and so does not depend on the `sqlserver-integration` job.
+
 ## Completed and accepted
 
 ### Milestone 0 — Rebaseline and de-risk
@@ -103,6 +105,23 @@ The primary review caught four defects or evidence gaps before acceptance: `sys.
 
 GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860) passed both the `validate` and `sqlserver-integration` jobs on commit `f686dff`, proving the production key/index/foreign-key projection against the real deterministic SQL Server fixture. ADR 0009 is therefore Accepted, and the complete SQL Server introspection backlog item is closed.
 
+## Implemented, pending CI acceptance
+
+### Milestone 1 slice 4A — semantic overlay import and validation
+
+ADR 0010 records the proposed design:
+
+- `SemanticOverlay` and related types in `TheSqlODataMcp.Core`, following `TechnicalCatalog`'s construction-time invariant discipline (defensive copies, ordinal comparison, rejection of null/duplicate/empty-required input);
+- `SemanticOverlayImporter` with two entry points (combined Markdown-with-front-matter, and separate YAML plus Markdown), both validated against a supplied `TechnicalCatalog`;
+- two required, independent strictness stages on every import: strict typed YAML deserialization (unknown-key rejection, including the six forbidden top-level sections) and versioned JSON Schema evaluation (`additionalProperties: false` throughout, catching structural/cross-field rules typed deserialization alone cannot);
+- physical-reference validation: entity `source` and relationship `target` must resolve to a discovered entity, `fields`/join keys must resolve to existing fields, duplicate entity sources are rejected;
+- a collected-errors result type (`SemanticOverlayImportResult`/`SemanticOverlayValidationError`, stable code + path + message) instead of throw-per-violation, so an administrator sees every problem in one pass;
+- the Markdown narrative is opaque administrator-authored text, never parsed into rules.
+
+This slice does not merge the overlay into a `TechnicalCatalog`, reconcile `catalogVersion` against the active catalog, or implement FK/YAML relationship merging, YAML-wins precedence, or keyless-view logical keys — all deferred to the next slice.
+
+This slice requires no real SQL Server access. ADR 0010 remains Proposed until a green `validate` job is confirmed on `origin/main` for the commit that includes it.
+
 ## QA evidence at this checkpoint
 
 ### Remote CI evidence
@@ -159,15 +178,33 @@ The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those comma
 - Independent QA covers the fixed three-result-set/read-only command, provider integer conversion, relational grouping and ordering, orphan/target rejection, constraint-backing index exclusion, exact composite relationship pairs, and canonical row-order independence.
 - Real `Category=SqlServerIntegration` execution passed on the intended Docker-capable GitHub Actions runner in run `30031601860`.
 
+### Local semantic-overlay evidence
+
+- `dotnet restore thesqlodatamcp.slnx`: 8 of 9 projects restore cleanly; `TheSqlODataMcp.IntegrationTests` fails on a pre-existing, unrelated `NU1903` advisory (see "Open work and risks" below) — confirmed via `git diff --stat` that neither that project nor `Directory.Packages.props` is touched by this slice.
+- `dotnet build thesqlodatamcp.slnx --no-restore`: the 8 restorable projects build with zero warnings/errors.
+- `dotnet test tests/TheSqlODataMcp.Core.Tests/TheSqlODataMcp.Core.Tests.csproj --no-restore`: 44 passed, 0 failed, 0 skipped (34 delegated + 10 independent QA).
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: Core.Tests 44, SqlServer.Tests 94, ProtocolTests 1, all passed; `IntegrationTests.dll` not found (never built, same pre-existing blocker, not a test failure).
+- `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: fails only on pre-existing tracked files unrelated to this diff. Byte-level inspection (`od -An -c`) confirmed all six new files are pure LF on disk while flagged pre-existing files are CRLF; this machine's `git config core.autocrlf` is `true` with no repository `.gitattributes` override, so long-checked-out files materialize CRLF locally while newly written files do not. This is a local-checkout artifact, not a product or diff defect, and does not affect the Linux CI runner.
+- Independent QA (`SemanticOverlayImporterQaTests.cs`) covers the previously unreached `overlay.frontMatterMissing` path, ordinal case-sensitivity of entity-source and field-key resolution, an unknown key directly on an entity object, a minimal zero-entity overlay, and direct construction-time invariants of the domain types (join field pairs, non-empty relationship joins, warnings, duplicate entity sources, duplicate field/relationship map keys) independent of the YAML pipeline.
+- This slice requires no real SQL Server access; there is no `sqlserver-integration` dependency to satisfy.
+
 ## Open work and risks
 
 ### SQL Server catalog introspection
 
 The complete table/view/column/key/index/foreign-key introspection is accepted, with real-provider evidence in GitHub Actions run `30031601860`. This backlog item is closed; no further acceptance work remains for it.
 
+### Semantic overlay import and validation
+
+Slice 4A (ADR 0010, Markdown/YAML overlay import and strict validation) is implemented and locally validated. Do not mark its backlog items complete or the ADR Accepted until GitHub Actions proves a green `validate` job on `origin/main` for the commit that includes it.
+
 ### Catalog lifecycle remains pending
 
-Semantic Markdown/YAML merge, strict structural validation, capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
+Overlay merge into the technical catalog (FK/YAML relationship combination, YAML-wins precedence, keyless-view logical keys, merged structural hashes), capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
+
+### Pre-existing `IntegrationTests` restore failure
+
+`tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj` fails `dotnet restore`/`build` on this checkout with `NU1903`: `SSH.NET` 2024.2.0, pulled in transitively via `Testcontainers.MsSql`, has a newly published high-severity advisory ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)). This blocks a full-solution `dotnet restore`/`build`/`dotnet format` and was not caused by any catalog work. Track and resolve it independently (upgrade `Testcontainers.MsSql`/pin a patched `SSH.NET`, or suppress with a documented, time-bounded justification) before it silently masks a real restore failure in a future slice.
 
 ### Dynamic Client Registration
 
@@ -175,14 +212,16 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Proceed to semantic Markdown/YAML merge and strict structural validation now that complete SQL Server introspection is accepted.
-2. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
-3. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
+1. Push the local semantic-overlay import/validation commit and require a green `validate` job, then record the run in ADR 0010 and this checkpoint and mark the ADR Accepted.
+2. Implement the overlay merge slice (4B): merge precedence into `TechnicalCatalog`, FK/YAML relationship combination, YAML-wins override semantics, keyless-view logical keys, and merged structural hashing.
+3. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
+4. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
+5. Separately, resolve the pre-existing `IntegrationTests` `NU1903` restore failure (see "Open work and risks") so full-solution restore/build/format are green again.
 
 ## Restart checklist
 
-1. Run `git status --short --branch`; Codex does not push automatically.
-2. Read ADRs 0006–0009 and the Catalog Core/type-mapper/introspector implementation and tests before extending the provider.
-3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
+1. Run `git status --short --branch`; the primary agent does not push automatically.
+2. Read ADRs 0006–0010 and the Catalog Core/type-mapper/introspector/semantic-overlay implementation and tests before extending the catalog domain.
+3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change. `dotnet restore`/`build` on the full solution currently fails only on the pre-existing `IntegrationTests` `NU1903` advisory; scope other projects explicitly (e.g. `dotnet test tests/TheSqlODataMcp.Core.Tests/...`) until that is resolved.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
-5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, semantic rules, or protocol concerns into the technical catalog domain.
+5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.

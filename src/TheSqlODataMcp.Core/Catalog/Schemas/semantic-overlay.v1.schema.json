@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesqlodatamcp.dev/schemas/catalog/semantic-overlay.v1.schema.json",
+  "title": "TheSqlODataMcp semantic catalog overlay (v1)",
+  "type": "object",
+  "properties": {
+    "catalogVersion": { "type": "string", "minLength": 1 },
+    "name": { "type": "string" },
+    "title": { "type": "string" },
+    "description": { "type": "string" },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/warning" }
+    }
+  },
+  "required": ["catalogVersion"],
+  "additionalProperties": false,
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "exposed": { "type": "boolean" },
+        "odata": { "$ref": "#/$defs/odata" },
+        "fields": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/field" }
+        },
+        "relationships": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/relationship" }
+        }
+      },
+      "required": ["source"],
+      "additionalProperties": false
+    },
+    "odata": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "entitySetName": { "type": "string" },
+        "key": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "relationship": {
+      "type": "object",
+      "properties": {
+        "target": { "type": "string", "minLength": 1 },
+        "cardinality": {
+          "type": "string",
+          "enum": ["one-to-one", "one-to-many", "many-to-one", "many-to-many"]
+        },
+        "description": { "type": "string" },
+        "join": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/joinPair" },
+          "minItems": 1
+        }
+      },
+      "required": ["target", "join"],
+      "additionalProperties": false
+    },
+    "joinPair": {
+      "type": "object",
+      "properties": {
+        "sourceField": { "type": "string", "minLength": 1 },
+        "targetField": { "type": "string", "minLength": 1 }
+      },
+      "required": ["sourceField", "targetField"],
+      "additionalProperties": false
+    },
+    "warning": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["title", "content"],
+      "additionalProperties": false
+    }
+  }
+}

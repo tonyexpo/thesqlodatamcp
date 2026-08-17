@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project has been rebaselined from the authoritative AI Data Gateway handoff. Implementation now proceeds in the new .NET 10 / ASP.NET Core solution rather than as an incremental extension of the stdio/raw-DQL prototype.
 
-Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and complete table/view/column/key/index/foreign-key introspection, all verified against the real deterministic SQL Server fixture in GitHub Actions. The remaining catalog lifecycle — semantic Markdown/YAML merge, capability models, revision persistence, and search — is not implemented.
+Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and complete table/view/column/key/index/foreign-key introspection, all verified against the real deterministic SQL Server fixture in GitHub Actions. Semantic Markdown/YAML overlay import and validation is implemented and locally validated, pending CI acceptance. The remaining catalog lifecycle — overlay merge into the technical catalog, capability models, revision persistence, and search — is not implemented.
 
 ## Product boundaries
 
@@ -44,7 +44,8 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0006: technical Catalog Core](./docs/decisions/0006-technical-catalog-core-model.md) — provider-neutral catalog representation, invariants, canonical JSON, and structural hashing.
 - [ADR 0007: SQL Server type mapping](./docs/decisions/0007-sqlserver-type-mapping.md) — provider-boundary scalar mapping, metadata validation, and explicit unknown behavior.
 - [ADR 0008: SQL Server introspection foundation](./docs/decisions/0008-sqlserver-introspection-foundation.md) — accepted table/view/column discovery boundary and real-fixture regression gate.
-- [ADR 0009: SQL Server relational metadata introspection](./docs/decisions/0009-sqlserver-relational-metadata-introspection.md) — proposed key/index/foreign-key discovery boundary pending the real-provider CI gate.
+- [ADR 0009: SQL Server relational metadata introspection](./docs/decisions/0009-sqlserver-relational-metadata-introspection.md) — accepted key/index/foreign-key discovery boundary, verified against the real SQL Server fixture.
+- [ADR 0010: semantic overlay import and validation](./docs/decisions/0010-semantic-overlay-import-validation.md) — proposed Markdown/YAML overlay import, dual-strictness validation, and physical-reference checking, pending CI.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.

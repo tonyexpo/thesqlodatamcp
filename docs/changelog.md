@@ -49,6 +49,8 @@
 - Moved the recurring SQL Server CI gate from the real API spike path to the production introspector path while retaining the spike's static fixture checks.
 - Replaced the introspector's empty key/index/relationship projection with complete physical relational metadata while preserving the single fixed-command and provider-neutral boundaries.
 - Verified the complete SQL Server introspection foundation (tables, views, columns, keys, indexes, foreign keys) end to end in GitHub Actions on the real deterministic fixture, closing the Milestone 1 introspection backlog item.
+- Added semantic overlay Markdown/YAML front-matter import and strict validation (`SemanticOverlay`, `SemanticOverlayImporter`) to `TheSqlODataMcp.Core`: dual-stage strict-YAML-deserialization plus versioned-JSON-Schema validation, rejection of the six forbidden top-level sections, physical-reference validation against a discovered `TechnicalCatalog`, and a collected-errors result type instead of throw-per-violation. Import/validation only; overlay merge into the technical catalog is a later slice.
+- Added ADR 0010 for the semantic overlay import/validation boundary; acceptance is pending the real CI `validate` gate.
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
@@ -56,7 +58,8 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- SQL Server relational-metadata introspection is implemented and accepted with real-provider CI evidence. Semantic catalog merge, revision persistence/lifecycle, and search are not implemented.
+- SQL Server relational-metadata introspection is implemented and accepted with real-provider CI evidence. Semantic overlay Markdown/YAML import and validation is implemented and locally validated, pending CI. Overlay merge into the technical catalog, capability/revision persistence/lifecycle, and search are not implemented.
+- `TheSqlODataMcp.IntegrationTests` currently fails to restore on this checkout because of a `NU1903` high-severity advisory on the transitive `SSH.NET` 2024.2.0 package (via `Testcontainers.MsSql`); this is unrelated to any catalog work and needs its own tracked fix.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]

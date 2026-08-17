@@ -9,4 +9,11 @@
     <PackageReference Include="Markdig" />
     <PackageReference Include="YamlDotNet" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Catalog/Schemas/semantic-overlay.v1.schema.json" />
+    <EmbeddedResource Include="Catalog/Schemas/semantic-overlay.v1.schema.json">
+      <LogicalName>TheSqlODataMcp.Core.Catalog.Schemas.semantic-overlay.v1.schema.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
