@@ -34,6 +34,8 @@ This checkpoint corrects a stale restart record: the 2026-07-23 checkpoint recor
 
 The same session then delegated Milestone 1 slice 4A — semantic overlay Markdown/YAML import and strict validation — to a Sonnet-5 dev-senior sub-agent, bounded to `TheSqlODataMcp.Core` only and explicitly excluding catalog merge. The primary agent independently reviewed the complete diff line by line (including re-deriving why every null-forgiving operator in the importer is safe given the JSON Schema's `required` fields), independently re-ran every claimed verification command rather than accepting the sub-agent's report, byte-level-verified the sub-agent's claim that `dotnet format` ENDOFLINE failures are a pre-existing local `core.autocrlf` artifact unrelated to the new files, and added ten further independent QA tests closing gaps the delegated tests left (an unreached error path, ordinal case-sensitivity of physical-reference resolution, an unknown key directly on an entity object, and the domain model's own construction-time invariants). ADR 0010 records this design. It is Proposed pending a green `validate` CI run; unlike the SQL Server slices, it needs no real database and so does not depend on the `sqlserver-integration` job.
 
+The push (commit `05f96e1`) was made and its CI run ([32058513059](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32058513059)) failed — not on anything in the slice itself, but at the very first `validate` step, `dotnet restore thesqlodatamcp.slnx`, on a `NU1903` advisory unrelated to this diff (see "Open work and risks" for the full root-cause and fix). That fix is prepared and locally verified in this same session; see "Next dependency-ordered work" for the remaining push-and-confirm step before ADR 0010 can be marked Accepted.
+
 ## Completed and accepted
 
 ### Milestone 0 — Rebaseline and de-risk
@@ -202,9 +204,13 @@ Slice 4A (ADR 0010, Markdown/YAML overlay import and strict validation) is imple
 
 Overlay merge into the technical catalog (FK/YAML relationship combination, YAML-wins precedence, keyless-view logical keys, merged structural hashes), capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
 
-### Pre-existing `IntegrationTests` restore failure
+### `IntegrationTests` NU1903 restore failure — fixed, CI confirmation pending
 
-`tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj` fails `dotnet restore`/`build` on this checkout with `NU1903`: `SSH.NET` 2024.2.0, pulled in transitively via `Testcontainers.MsSql`, has a newly published high-severity advisory ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)). This blocks a full-solution `dotnet restore`/`build`/`dotnet format` and was not caused by any catalog work. Track and resolve it independently (upgrade `Testcontainers.MsSql`/pin a patched `SSH.NET`, or suppress with a documented, time-bounded justification) before it silently masks a real restore failure in a future slice.
+The `validate` job for the slice 4A push (commit `05f96e1`, run `32058513059`) failed at its very first step, `dotnet restore thesqlodatamcp.slnx`: `NU1903` on `SSH.NET` 2024.2.0, pulled in transitively via `Testcontainers.MsSql` 4.8.1's `Testcontainers` base dependency ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)). Because Central Package Management restores the whole graph, this blocked `validate` for the entire solution regardless of which project a change touched — not only local checkouts, as first assessed.
+
+Fixed by bumping `Testcontainers.MsSql` to 4.14.0 (both centrally and in the independently pinned `spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`), which pulls a `Testcontainers` version requiring the patched `SSH.NET >= 2026.0.0`. This surfaced a second, unrelated break: `MsSqlBuilder`'s parameterless constructor is now obsolete (an error under this repo's warnings-as-errors policy), fixed by passing the already-pinned image directly to `new MsSqlBuilder(SqlServerImage)` in `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs`. See ADR 0004's subsequent-evidence note.
+
+Local verification: full-solution `dotnet restore`/`build` now succeed for all 9 projects with zero warnings; `dotnet test thesqlodatamcp.slnx --filter "Category!=SqlServerIntegration"` passes (Core.Tests 44, SqlServer.Tests 94, ProtocolTests 1, IntegrationTests 4); the spike restores, builds, and its `Category=FixtureStatic` tests pass. The real Docker-backed `sqlserver-integration` job — the only way to prove the Testcontainers 4.14.0 upgrade still works against a live container, per ADR 0004's own stated policy — has not yet run; this environment has no Docker access. Do not consider this upgrade verified until that job is green.
 
 ### Dynamic Client Registration
 
@@ -212,11 +218,11 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Push the local semantic-overlay import/validation commit and require a green `validate` job, then record the run in ADR 0010 and this checkpoint and mark the ADR Accepted.
-2. Implement the overlay merge slice (4B): merge precedence into `TechnicalCatalog`, FK/YAML relationship combination, YAML-wins override semantics, keyless-view logical keys, and merged structural hashing.
-3. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
-4. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
-5. Separately, resolve the pre-existing `IntegrationTests` `NU1903` restore failure (see "Open work and risks") so full-solution restore/build/format are green again.
+1. Push the local `Testcontainers.MsSql` 4.14.0 / `NU1903` fix commit (see "Open work and risks") and require a green `validate` job, then require the dependent `sqlserver-integration` job to confirm the upgrade against real Docker.
+2. Once both jobs are green for the commit that includes it, record the run in ADR 0010 and this checkpoint and mark the ADR Accepted.
+3. Implement the overlay merge slice (4B): merge precedence into `TechnicalCatalog`, FK/YAML relationship combination, YAML-wins override semantics, keyless-view logical keys, and merged structural hashing.
+4. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
+5. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
 
 ## Restart checklist
 

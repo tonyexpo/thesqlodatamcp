@@ -34,8 +34,7 @@ internal sealed class SqlServerReportingCatalogFixture : IAsyncDisposable
             return new SqlServerReportingCatalogFixture(ToMasterConnectionString(configuredConnectionString), ownedContainer: null);
         }
 
-        var container = new MsSqlBuilder()
-            .WithImage(SqlServerImage)
+        var container = new MsSqlBuilder(SqlServerImage)
             .WithPassword(CreateContainerPassword())
             .Build();
         await container.StartAsync(cancellationToken);

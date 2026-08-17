@@ -32,3 +32,11 @@ GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/acti
 - The external-server mode remains supported for owner-managed local infrastructure and uses the same fixture and assertions.
 - Lack of Docker access in an individual agent sandbox does not invalidate the accepted infrastructure when the intended CI runner remains green.
 - Future image, Testcontainers, or `Microsoft.Data.SqlClient` upgrades must rerun the real integration gate before acceptance.
+
+## Subsequent evidence
+
+On 2026-08-17, a push unrelated to this ADR's scope (ADR 0010) surfaced a CI-blocking `NU1903` advisory on `SSH.NET` 2024.2.0 ([GHSA-q939-rpr3-3284](https://github.com/advisories/GHSA-q939-rpr3-3284)), pulled in transitively through `Testcontainers.MsSql` 4.8.1's `Testcontainers` base dependency. `dotnet restore thesqlodatamcp.slnx` — the `validate` job's first step — fails solution-wide once this advisory is indexed, regardless of which project a change touches, because CPM restore evaluates the whole graph.
+
+The fix bumps `Testcontainers.MsSql` to 4.14.0 (pulling `Testcontainers` 4.14.0, which requires `SSH.NET >= 2026.0.0`, the patched version) in both `Directory.Packages.props` and the independently pinned `spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`. This surfaced one further breaking change: `MsSqlBuilder`'s parameterless constructor is now obsolete (treated as a build error under this repository's warnings-as-errors policy) because Testcontainers no longer supplies a default image. `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs` now pass the already-pinned `SqlServerImage` constant directly to `new MsSqlBuilder(SqlServerImage)` instead of the removed `new MsSqlBuilder().WithImage(...)` pattern; the pinned image tag itself is unchanged.
+
+This restores a clean `dotnet restore`/`build` for the full solution and the independently pinned spike. Per this ADR's own stated consequence, the real Testcontainers-backed `sqlserver-integration` job must still pass before treating this upgrade as verified; local Docker access remains unavailable in the authoring environment.

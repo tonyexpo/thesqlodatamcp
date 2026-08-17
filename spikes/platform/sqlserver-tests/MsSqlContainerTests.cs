@@ -114,8 +114,7 @@ internal sealed class ReportingCatalogSqlServer : IAsyncDisposable
             return new ReportingCatalogSqlServer(ToMasterConnectionString(configuredConnectionString), ownedContainer: null);
         }
 
-        var container = new MsSqlBuilder()
-            .WithImage(SqlServerImage)
+        var container = new MsSqlBuilder(SqlServerImage)
             .WithPassword(CreateContainerPassword())
             .Build();
         await container.StartAsync(CancellationToken.None);

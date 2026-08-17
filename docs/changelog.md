@@ -37,6 +37,9 @@
 - Extended the deterministic SQL Server fixture and production integration assertions with a standalone composite index, filtered-index behavior, constraint-backing index exclusion, and representative relational metadata.
 - Added ADR 0009 for the relational-metadata discovery boundary, accepted after the production introspector's key, index, and foreign-key projection passed on the Docker-capable GitHub Actions runner.
 
+### Fixed
+- Bumped `Testcontainers.MsSql` from 4.8.1 to 4.14.0 (centrally and in the independently pinned SQL Server test spike) after the previous version's transitive `SSH.NET` 2024.2.0 dependency triggered a CI-blocking `NU1903` high-severity advisory during `dotnet restore`. Updated `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs` for `MsSqlBuilder`'s new non-obsolete constructor, which now requires the image explicitly rather than defaulting one. See ADR 0004's subsequent-evidence note; pending confirmation from the real `sqlserver-integration` CI job.
+
 ### Changed
 - Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
 - Verified the table/view/column introspection foundation end to end in GitHub Actions, including deterministic repeat discovery, metadata/exclusion assertions, and fixture teardown.
@@ -59,7 +62,6 @@
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
 - SQL Server relational-metadata introspection is implemented and accepted with real-provider CI evidence. Semantic overlay Markdown/YAML import and validation is implemented and locally validated, pending CI. Overlay merge into the technical catalog, capability/revision persistence/lifecycle, and search are not implemented.
-- `TheSqlODataMcp.IntegrationTests` currently fails to restore on this checkout because of a `NU1903` high-severity advisory on the transitive `SSH.NET` 2024.2.0 package (via `Testcontainers.MsSql`); this is unrelated to any catalog work and needs its own tracked fix.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
