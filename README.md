@@ -19,7 +19,7 @@ This repository previously contained a legacy proof of concept named `thesqlodat
 
 The project has been rebaselined from the authoritative AI Data Gateway handoff. Implementation now proceeds in the new .NET 10 / ASP.NET Core solution rather than as an incremental extension of the stdio/raw-DQL prototype.
 
-Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and table/view/column introspection. Relational metadata is implemented and locally validated, with real SQL Server CI acceptance still pending; the remaining catalog lifecycle is not implemented.
+Milestone 0 is complete: the nine-project .NET 10 solution, dependency directions, central package versions, strict build policy, safe example configuration, baseline tests, CI workflow, and deterministic SQL Server fixture have passed on the intended GitHub Actions runner. Milestone 1 is in progress; the accepted slices provide the provider-neutral technical Catalog Core, deterministic structural hashing, strict SQL Server catalog type mapping, and complete table/view/column/key/index/foreign-key introspection, all verified against the real deterministic SQL Server fixture in GitHub Actions. The remaining catalog lifecycle — semantic Markdown/YAML merge, capability models, revision persistence, and search — is not implemented.
 
 ## Product boundaries
 

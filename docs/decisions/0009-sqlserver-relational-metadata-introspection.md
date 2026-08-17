@@ -1,6 +1,6 @@
 # ADR 0009 — SQL Server relational metadata introspection
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-23
 
 ## Context
@@ -25,7 +25,7 @@ SQL Server exposes this metadata through several related `sys.*` views. Joining 
 
 Local validation on 2026-07-23 passed restore, a warning-free solution build, 111 non-Docker tests, formatting, offline Markdown-link validation, and `git diff --check`. Independent QA additionally found and corrected a SQL reader type mismatch for `sys.index_columns.key_ordinal`, silent acceptance of orphan source metadata, non-contiguous metadata ordinals, and incomplete integration assertions.
 
-The local agent environment cannot access `/var/run/docker.sock`. This ADR therefore remains Proposed until the implementation passes the dedicated `sqlserver-integration` job against the real deterministic SQL Server fixture on the intended GitHub Actions runner.
+Commit `f686dff` was pushed to `origin/main`. GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860) then passed on the intended Docker-capable runner: both the `validate` job and the dependent `sqlserver-integration` job completed with conclusion `success`, proving the production introspector's key, index, and foreign-key projection against the real deterministic SQL Server fixture, including primary/alternate/composite keys, the filtered and standalone composite indexes, constraint-backing index exclusion, and both ambiguous composite address relationships. ADR 0009 is therefore Accepted.
 
 ## Consequences
 

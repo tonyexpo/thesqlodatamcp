@@ -1,6 +1,6 @@
 # Development state
 
-**Checkpoint date:** 2026-07-23
+**Checkpoint date:** 2026-08-17
 
 **Branch:** `main`
 
@@ -16,7 +16,7 @@ This file is the restart point when conversational context is unavailable. Read 
 - The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
 - Repository-local `.codex` and `.agents` may be mounted read-only; the version-controlled project skill remains canonical.
 
-## Session checkpoint — 2026-07-23
+## Session checkpoint — 2026-08-17
 
 Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `origin/main`. GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) passed on the intended Ubuntu runner:
 
@@ -26,11 +26,11 @@ Milestone 0 is complete. Commit `54a31dd` is present on both local `main` and `o
 
 ADR 0004 is therefore Accepted, and the Milestone 0 CI and disposable SQL Server backlog items are closed. Local agent sandboxes can still deny `/var/run/docker.sock`; this no longer blocks the accepted CI infrastructure.
 
-The first three bounded Milestone 1 slices are present on `origin/main`: `cd29eeb` establishes the technical Catalog Core, `3d0cc50` adds SQL Server catalog type mapping, and `c3ea644` plus corrective follow-up `deb5b33` establish the accepted SQL Server table/view/column introspection foundation.
+All four bounded Milestone 1 introspection slices are present on `origin/main`: `cd29eeb` establishes the technical Catalog Core, `3d0cc50` adds SQL Server catalog type mapping, `c3ea644` plus corrective follow-up `deb5b33` establish the accepted SQL Server table/view/column introspection foundation, and `f686dff` extends the production introspector with primary/alternate keys, useful standalone rowstore indexes, and ordered foreign-key relationships through one fixed read-only command with three result sets.
 
 Production implementation for every slice was delegated to `gpt-5.6-terra`; the primary agent retained architecture and acceptance ownership, reviewed the complete diff, added independent QA, and ran the available validation.
 
-The next relational-metadata slice is implemented on local `main` and recorded by proposed ADR 0009. It extends the production introspector with primary/alternate keys, useful standalone rowstore indexes, and ordered foreign-key relationships through one fixed read-only command with three result sets. Local validation is complete; the slice is not accepted and its backlog item remains open until the dedicated GitHub Actions job passes against the real SQL Server fixture.
+This checkpoint corrects a stale restart record: the 2026-07-23 checkpoint recorded the relational-metadata slice as locally validated but pending push and CI. Verification on 2026-08-17 found that `f686dff` was already on `origin/main` and that GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860) had already passed both the `validate` and `sqlserver-integration` jobs against the real deterministic SQL Server fixture. ADR 0009 is accordingly now Accepted, and the complete SQL Server introspection backlog item (tables, views, columns, keys, indexes, foreign keys) is closed. No further push or CI run is outstanding for this slice.
 
 ## Completed and accepted
 
@@ -87,11 +87,9 @@ GitHub Actions run [29951320005](https://github.com/tonyexpo/thesqlodatamcp/acti
 
 GitHub Actions run [29953151060](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29953151060) then passed both `validate` and the dependent `sqlserver-integration` job on commit `deb5b33`. The production introspector discovered the expected twelve user tables and two views, excluded the temporal history table and unsupported objects, projected representative metadata, produced identical canonical JSON and hashes across repeated discovery, and tore down the fixed database. ADR 0008 is therefore Accepted. The local environment's denial of `/var/run/docker.sock` no longer blocks this slice because the intended runner supplied the required real-provider evidence.
 
-## Implemented, pending real-provider acceptance
-
 ### Milestone 1 slice 3B — SQL Server relational metadata introspection
 
-Proposed ADR 0009 records the locally validated design:
+ADR 0009 records the accepted design:
 
 - one fixed read-only command now returns separate ordered result sets for columns, keys/indexes, and foreign keys without N+1 access or caller-controlled SQL;
 - `PK` and `UQ` constraints become primary/alternate `CatalogKey` values with composite order preserved;
@@ -103,7 +101,7 @@ Proposed ADR 0009 records the locally validated design:
 
 The primary review caught four defects or evidence gaps before acceptance: `sys.index_columns.key_ordinal` required an explicit `int` conversion for `SqlDataReader.GetInt32`; orphan source metadata was silently ignored; ordinal gaps were accepted; and the integration assertions did not fully prove backing-index exclusion and both composite address relationships. The delegated implementer corrected all four, and the primary agent added an independent row-order determinism regression test.
 
-ADR 0009 remains Proposed because this environment cannot access Docker. After the local commits are pushed, require a green `validate` job and dependent `sqlserver-integration` job before changing the ADR to Accepted or closing the complete SQL Server introspection backlog item.
+GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860) passed both the `validate` and `sqlserver-integration` jobs on commit `f686dff`, proving the production key/index/foreign-key projection against the real deterministic SQL Server fixture. ADR 0009 is therefore Accepted, and the complete SQL Server introspection backlog item is closed.
 
 ## QA evidence at this checkpoint
 
@@ -114,6 +112,7 @@ ADR 0009 remains Proposed because this environment cannot access Docker. After t
 - `sqlserver-integration`: success through the owned pinned Testcontainers path.
 - GitHub Actions run `29951320005`: `validate` passed; the production SQL Server integration job passed Docker, fixture, restore, and build steps but failed its final introspector test because the fixed-width object type reached strict projection with padding.
 - GitHub Actions run `29953151060`: success; both `validate` and `sqlserver-integration` passed, including the corrected production introspector against the real disposable SQL Server fixture.
+- GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860): success; both `validate` and `sqlserver-integration` passed on commit `f686dff`, proving the production key/index/foreign-key projection against the real disposable SQL Server fixture and closing the introspection backlog item.
 
 ### Local Catalog Core evidence
 
@@ -158,15 +157,13 @@ The ordinary sandbox denied VSTest sockets and Roslyn/MSBuild pipes. Those comma
 - `bash eng/verify-markdown-links.sh`: passed.
 - `git diff --check`: passed.
 - Independent QA covers the fixed three-result-set/read-only command, provider integer conversion, relational grouping and ordering, orphan/target rejection, constraint-backing index exclusion, exact composite relationship pairs, and canonical row-order independence.
-- Real `Category=SqlServerIntegration` execution remains pending on the intended Docker-capable GitHub Actions runner.
+- Real `Category=SqlServerIntegration` execution passed on the intended Docker-capable GitHub Actions runner in run `30031601860`.
 
 ## Open work and risks
 
 ### SQL Server catalog introspection
 
-The table/view/column introspection foundation is accepted. Relational metadata is implemented and locally validated, but real-provider acceptance is pending.
-
-Do not mark ADR 0009 Accepted or close the full introspection backlog item until GitHub Actions proves the production code against the disposable SQL Server fixture without weakening the existing table/view/column, metadata, keyless-view, type, exclusion, determinism, and teardown coverage.
+The complete table/view/column/key/index/foreign-key introspection is accepted, with real-provider evidence in GitHub Actions run `30031601860`. This backlog item is closed; no further acceptance work remains for it.
 
 ### Catalog lifecycle remains pending
 
@@ -178,9 +175,9 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Push the local relational-metadata implementation and documentation commits.
-2. Require green `validate` and `sqlserver-integration` jobs, then record the run in ADR 0009 and this checkpoint, mark the ADR Accepted, and close the complete introspection backlog item.
-3. Proceed to semantic Markdown/YAML merge and strict validation after complete introspection; capability and revision lifecycle models should be introduced with their first production consumers.
+1. Proceed to semantic Markdown/YAML merge and strict structural validation now that complete SQL Server introspection is accepted.
+2. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
+3. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
 
 ## Restart checklist
 

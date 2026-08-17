@@ -35,7 +35,7 @@
 - Added SQL Server primary/alternate key, useful standalone index, and foreign-key introspection through one fixed read-only multi-result command.
 - Added ordered projection and validation for composite keys, index key fields, self/multiple/composite relationships, and relationship target integrity.
 - Extended the deterministic SQL Server fixture and production integration assertions with a standalone composite index, filtered-index behavior, constraint-backing index exclusion, and representative relational metadata.
-- Added ADR 0009 for the relational-metadata discovery boundary; acceptance remains pending on the real SQL Server CI gate.
+- Added ADR 0009 for the relational-metadata discovery boundary, accepted after the production introspector's key, index, and foreign-key projection passed on the Docker-capable GitHub Actions runner.
 
 ### Changed
 - Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
@@ -48,6 +48,7 @@
 - Replaced the “AI Data Gateway” working title in current project documentation with the definitive public name `thesqlodatamcp`; the original imported handoff remains unchanged.
 - Moved the recurring SQL Server CI gate from the real API spike path to the production introspector path while retaining the spike's static fixture checks.
 - Replaced the introspector's empty key/index/relationship projection with complete physical relational metadata while preserving the single fixed-command and provider-neutral boundaries.
+- Verified the complete SQL Server introspection foundation (tables, views, columns, keys, indexes, foreign keys) end to end in GitHub Actions on the real deterministic fixture, closing the Milestone 1 introspection backlog item.
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
@@ -55,7 +56,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- SQL Server relational-metadata introspection is implemented and locally validated but awaits the real-provider CI acceptance gate. Semantic catalog merge, revision persistence/lifecycle, and search are not implemented.
+- SQL Server relational-metadata introspection is implemented and accepted with real-provider CI evidence. Semantic catalog merge, revision persistence/lifecycle, and search are not implemented.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]
