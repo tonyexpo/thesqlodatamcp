@@ -38,7 +38,7 @@
 - Added ADR 0009 for the relational-metadata discovery boundary, accepted after the production introspector's key, index, and foreign-key projection passed on the Docker-capable GitHub Actions runner.
 
 ### Fixed
-- Bumped `Testcontainers.MsSql` from 4.8.1 to 4.14.0 (centrally and in the independently pinned SQL Server test spike) after the previous version's transitive `SSH.NET` 2024.2.0 dependency triggered a CI-blocking `NU1903` high-severity advisory during `dotnet restore`. Updated `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs` for `MsSqlBuilder`'s new non-obsolete constructor, which now requires the image explicitly rather than defaulting one. See ADR 0004's subsequent-evidence note; pending confirmation from the real `sqlserver-integration` CI job.
+- Bumped `Testcontainers.MsSql` from 4.8.1 to 4.14.0 (centrally and in the independently pinned SQL Server test spike) after the previous version's transitive `SSH.NET` 2024.2.0 dependency triggered a CI-blocking `NU1903` high-severity advisory during `dotnet restore`. Updated `SqlServerReportingCatalogFixture.cs` and the spike's `MsSqlContainerTests.cs` for `MsSqlBuilder`'s new non-obsolete constructor, which now requires the image explicitly rather than defaulting one. Confirmed by GitHub Actions run 32059087651 (both `validate` and `sqlserver-integration` passed); see ADR 0004's subsequent-evidence note.
 
 ### Changed
 - Normalized SQL Server's fixed-width `sys.objects.type` catalog value at the query boundary so user tables and views reach strict projection as deterministic `U`/`V` values.
@@ -53,7 +53,7 @@
 - Replaced the introspector's empty key/index/relationship projection with complete physical relational metadata while preserving the single fixed-command and provider-neutral boundaries.
 - Verified the complete SQL Server introspection foundation (tables, views, columns, keys, indexes, foreign keys) end to end in GitHub Actions on the real deterministic fixture, closing the Milestone 1 introspection backlog item.
 - Added semantic overlay Markdown/YAML front-matter import and strict validation (`SemanticOverlay`, `SemanticOverlayImporter`) to `TheSqlODataMcp.Core`: dual-stage strict-YAML-deserialization plus versioned-JSON-Schema validation, rejection of the six forbidden top-level sections, physical-reference validation against a discovered `TechnicalCatalog`, and a collected-errors result type instead of throw-per-violation. Import/validation only; overlay merge into the technical catalog is a later slice.
-- Added ADR 0010 for the semantic overlay import/validation boundary; acceptance is pending the real CI `validate` gate.
+- Added ADR 0010 for the semantic overlay import/validation boundary, accepted after GitHub Actions run 32059087651 passed both `validate` and `sqlserver-integration`.
 
 ### Removed
 - Removed the obsolete legacy C# project, static settings, unit-test project, and accidentally tracked `bin/`/`obj/` artifacts from `main`. They remain recoverable from `legacy-poc-final-2026-07-18` and Git history.
@@ -61,7 +61,7 @@
 
 ### Known limitations
 - There is no runnable gateway quick start yet; the repository currently contains the verified solution baseline, research evidence, deterministic SQL Server fixture, and initial technical Catalog Core.
-- SQL Server relational-metadata introspection is implemented and accepted with real-provider CI evidence. Semantic overlay Markdown/YAML import and validation is implemented and locally validated, pending CI. Overlay merge into the technical catalog, capability/revision persistence/lifecycle, and search are not implemented.
+- SQL Server relational-metadata introspection and semantic overlay Markdown/YAML import/validation are both implemented and accepted with real CI evidence. Overlay merge into the technical catalog, capability/revision persistence/lifecycle, and search are not implemented.
 - CQM compilation/execution, JSON, OData, MCP, OAuth, administration, packaging, and end-to-end product paths remain pending milestones.
 
 ## [v0.6.0 - MCP Server Hosting Attempt]

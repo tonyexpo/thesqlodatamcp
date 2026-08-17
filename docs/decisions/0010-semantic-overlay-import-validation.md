@@ -1,6 +1,6 @@
 # ADR 0010 — Semantic overlay Markdown/YAML import and validation
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-17
 
 ## Context
@@ -29,7 +29,7 @@ The primary agent then added ten independent QA tests (`SemanticOverlayImporterQ
 
 Local validation on 2026-08-17: `dotnet restore`/`build` succeed for all projects except the pre-existing, unrelated `TheSqlODataMcp.IntegrationTests` `NU1903` advisory on `SSH.NET` (transitive via `Testcontainers.MsSql`, untouched by this diff); `dotnet test tests/TheSqlODataMcp.Core.Tests/...`: 44 passed, 0 failed (34 delegated + 10 independent QA); `dotnet test thesqlodatamcp.slnx --filter "Category!=SqlServerIntegration"`: Core.Tests 44, SqlServer.Tests 94, ProtocolTests 1, all passed.
 
-This slice requires no real SQL Server access — it exercises no provider code — so its only outstanding gate is a green `validate` job on `origin/main`. This ADR remains Proposed until that run is confirmed.
+This slice requires no real SQL Server access — it exercises no provider code — so its only outstanding gate was a green `validate` job on `origin/main`. The first push (commit `05f96e1`) failed `validate` at its very first step, `dotnet restore`, on an unrelated `NU1903` advisory that had newly appeared on a transitive dependency of the SQL Server test infrastructure (see ADR 0004's subsequent-evidence note for the full root cause and fix). After that fix (commit `9a8caf9`), GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651) passed both `validate` (55s) and `sqlserver-integration` (67s). ADR 0010 is therefore Accepted.
 
 ## Consequences
 
