@@ -10,8 +10,8 @@ This file is the restart point when conversational context is unavailable. Read 
 
 ## Operating model
 
-- The primary Codex agent is the software architect and QA lead.
-- Production implementation is delegated to a `gpt-5.6-terra` sub-agent with bounded scope and acceptance criteria.
+- The primary agent (Codex or Claude Code) is the software architect and QA lead.
+- Production implementation is delegated to a dev-senior sub-agent with bounded scope and acceptance criteria: `gpt-5.6-terra` when the primary agent is Codex, `Sonnet-5` when the primary agent is Claude Code.
 - The primary agent owns architecture, review, automated-test adequacy, final validation, ADRs, backlog, changelog, and this checkpoint.
 - The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
 - Repository-local `.codex` and `.agents` may be mounted read-only; the version-controlled project skill remains canonical.

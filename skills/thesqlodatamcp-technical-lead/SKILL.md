@@ -1,6 +1,6 @@
 ---
 name: thesqlodatamcp-technical-lead
-description: Lead architecture, delegated implementation, QA, and documentation for the thesqlodatamcp repository. Use for every planning, development, refactoring, testing, review, release, or documentation task in thesqlodatamcp where Codex must act as software architect and QA lead while delegating production implementation to a gpt-5.6-terra sub-agent.
+description: Lead architecture, delegated implementation, QA, and documentation for the thesqlodatamcp repository. Use for every planning, development, refactoring, testing, review, release, or documentation task in thesqlodatamcp where the primary agent must act as software architect and QA lead while delegating production implementation to a dev-senior sub-agent (`gpt-5.6-terra` under Codex, `Sonnet-5` under Claude Code).
 ---
 
 # thesqlodatamcp Technical Lead
@@ -20,7 +20,7 @@ Before changing the project:
 ## Lead the work
 
 1. Define a bounded implementation task and its acceptance criteria.
-2. Delegate production-code implementation to a sub-agent using model `gpt-5.6-terra`.
+2. Delegate production-code implementation to a dev-senior sub-agent: `gpt-5.6-terra` when the primary agent is Codex, or `Sonnet-5` when the primary agent is Claude Code.
 3. Give the sub-agent the relevant architectural constraints, file scope, required tests, and prohibition against unrelated changes.
 4. Keep architectural decisions, scope changes, QA policy, and final acceptance with the primary agent.
 5. Use additional delegation only for independent, bounded work that does not weaken review ownership.
