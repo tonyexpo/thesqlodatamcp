@@ -38,7 +38,7 @@ The push (commit `05f96e1`) was made and its CI run ([32058513059](https://githu
 
 The same session then delegated Milestone 1 slice 4B — merging the semantic overlay into the technical catalog — to a Sonnet-5 dev-senior sub-agent, again bounded to `TheSqlODataMcp.Core` only, with several architectural decisions settled in advance by the primary agent (composition over duplication for `MergedEntity`/`MergedField`, the overlay-`odata.key`-always-wins effective-key rule, relationships as a union tagged by provenance, and a fresh merge-time re-validation pass rather than trusting the overlay's original import-time validation). ADR 0011 records this design.
 
-Independent review found and fixed two defects the delegated tests did not cover: `CatalogMerger` could throw an unhandled exception (instead of a graceful `CatalogMergeResult` failure) on whitespace-only overlay display names/relationship names, since ADR 0010's schema validates property values but not property names. While stress-testing the new test suite's reliability, the primary agent also found and fixed a more severe, unrelated defect in already-accepted ADR 0010 code: `SemanticOverlayImporter`'s shared static `JsonSchema` instance was not safe to evaluate concurrently, measured at ~42% silent validation-bypass under concurrent load. Both fixes and their regression tests are recorded in ADR 0010's and ADR 0011's subsequent-evidence/defect sections. ADR 0011 remains Proposed pending a green `validate` CI run.
+Independent review found and fixed two defects the delegated tests did not cover: `CatalogMerger` could throw an unhandled exception (instead of a graceful `CatalogMergeResult` failure) on whitespace-only overlay display names/relationship names, since ADR 0010's schema validates property values but not property names. While stress-testing the new test suite's reliability, the primary agent also found and fixed a more severe, unrelated defect in already-accepted ADR 0010 code: `SemanticOverlayImporter`'s shared static `JsonSchema` instance was not safe to evaluate concurrently, measured at ~42% silent validation-bypass under concurrent load. Both fixes and their regression tests are recorded in ADR 0010's and ADR 0011's subsequent-evidence/defect sections. GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285) passed both `validate` and `sqlserver-integration` on commit `08b5214`. ADR 0011 is therefore Accepted, and the merge-precedence backlog item is closed.
 
 ## Completed and accepted
 
@@ -138,7 +138,7 @@ ADR 0011 records the proposed design:
 
 This slice implements no persistence, revision/activation/rollback, capability model, or search index — those remain later Milestone 1 work.
 
-This slice requires no real SQL Server access. ADR 0011 remains Proposed until a green `validate` job is confirmed on `origin/main` for the commit that includes it.
+This slice requires no real SQL Server access. GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285) passed both `validate` and `sqlserver-integration` on commit `08b5214`. ADR 0011 is therefore Accepted, and the complete merge-precedence backlog item is closed.
 
 ## QA evidence at this checkpoint
 
@@ -152,7 +152,7 @@ This slice requires no real SQL Server access. ADR 0011 remains Proposed until a
 - GitHub Actions run [30031601860](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/30031601860): success; both `validate` and `sqlserver-integration` passed on commit `f686dff`, proving the production key/index/foreign-key projection against the real disposable SQL Server fixture and closing the introspection backlog item.
 - GitHub Actions run [32058513059](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32058513059): failure; `validate` failed at `dotnet restore thesqlodatamcp.slnx` on commit `05f96e1` because of the `NU1903` `SSH.NET` advisory, unrelated to the pushed slice 4A content. `sqlserver-integration` was skipped as a dependent job.
 - GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651): success; both `validate` (55s) and `sqlserver-integration` (67s) passed on commit `9a8caf9` after the `Testcontainers.MsSql` 4.14.0 fix, accepting ADR 0010 and confirming the dependency upgrade against real Docker.
-- Slice 4B (ADR 0011) CI run: not yet pushed at this checkpoint; see "Next dependency-ordered work."
+- GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285): success; both `validate` and `sqlserver-integration` passed on commit `08b5214`, accepting ADR 0011 and closing the merge-precedence backlog item.
 
 ### Local Catalog Core evidence
 
@@ -236,7 +236,7 @@ Resolved and confirmed against real Docker in GitHub Actions run `32059087651` (
 
 ### Merging the overlay into the technical catalog
 
-Slice 4B (ADR 0011, Markdown/YAML overlay merge into `MergedCatalog`) is implemented and locally validated. Do not mark its backlog item complete or the ADR Accepted until GitHub Actions proves a green `validate` job on `origin/main` for the commit that includes it.
+Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32064882285`. This backlog item is closed; no further acceptance work remains for it.
 
 ### Catalog lifecycle remains pending
 
@@ -248,9 +248,9 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Push the local merged-catalog commit and require a green `validate` job, then record the run in ADR 0011 and this checkpoint and mark the ADR Accepted.
-2. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
-3. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
+1. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
+2. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
+3. Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
 
 ## Restart checklist
 

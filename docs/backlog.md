@@ -45,7 +45,7 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Implement canonical SQL type mapping with preserved provider details.
 - [x] Implement Markdown plus YAML/front-matter import and the v1 structured schema.
 - [x] Reject forbidden semantic sections and invalid physical references.
-- [ ] Implement merge precedence, FK/configured relationships, keyless-view rules, and deterministic hashes. Implemented and locally validated (ADR 0011); real CI acceptance is pending.
+- [x] Implement merge precedence, FK/configured relationships, keyless-view rules, and deterministic hashes.
 - [ ] Add SQLite control-store migrations and catalog revision persistence.
 - [ ] Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
 - [ ] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.

@@ -1,6 +1,6 @@
 # ADR 0011 — Merging the semantic overlay into the technical catalog
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-17
 
 ## Context
@@ -39,7 +39,7 @@ Independent primary-agent review covered the full diff, traced the composition-o
 
 Local validation on 2026-08-17: `dotnet build thesqlodatamcp.slnx`: 0 warnings, 0 errors, all 9 projects. `dotnet test tests/TheSqlODataMcp.Core.Tests/...`: 77 passed (44 pre-existing + 28 delegated + 1 thread-safety regression + 4 whitespace-crash regressions = 77). `dotnet test thesqlodatamcp.slnx --filter "Category!=SqlServerIntegration"`: Core.Tests 77, SqlServer.Tests 94, ProtocolTests 1, IntegrationTests 4, all passed, repeated across five full-solution runs with no flakes (the thread-safety fix was verified separately with a 2,000-iteration concurrent stress probe outside the normal test suite: 0/2,000 failures after the fix, versus ~42% before). `dotnet format --verify-no-changes`: fails only on the same pre-existing local `core.autocrlf` artifact documented in ADR 0009/0010 (none of the eight new/touched files appear in the output).
 
-This slice requires no real SQL Server access. Its only outstanding gate is a green `validate` job on `origin/main`; this ADR remains Proposed until that run is confirmed.
+This slice requires no real SQL Server access. GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285) passed both `validate` and `sqlserver-integration` on commit `08b5214`. ADR 0011 is therefore Accepted, and the merge-precedence Milestone 1 backlog item is closed.
 
 ## Consequences
 
