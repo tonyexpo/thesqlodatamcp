@@ -21,7 +21,9 @@ The first draft named the static factories `Succeeded`/`Failed`, colliding with 
 
 ## Acceptance evidence
 
-Delegated to no one — implemented directly by the primary agent under Dynamic Workflow, then independently reviewed by a freshly-spawned sub-agent that traced every constructor call's argument order against its target signature, checked nullable-reference-type correctness against `Directory.Build.props`'s `Nullable=enable`/`TreatWarningsAsErrors=true`, and hand-traced every new test's assertions against the exact production code paths. No `dotnet` SDK was available in this environment to build or test locally; the real GitHub Actions `validate` run is the outstanding acceptance gate, per this repository's standing rule that compilation or review alone is never completion.
+Delegated to no one — implemented directly by the primary agent under Dynamic Workflow, then independently reviewed by a freshly-spawned sub-agent that traced every constructor call's argument order against its target signature, checked nullable-reference-type correctness against `Directory.Build.props`'s `Nullable=enable`/`TreatWarningsAsErrors=true`, and hand-traced every new test's assertions against the exact production code paths. No `dotnet` SDK was available in this environment to build or test locally.
+
+GitHub Actions run [32593045333](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32593045333) passed both `validate` and `sqlserver-integration` on commit `582e397`, proving the renamed `Success`/`Failure` factories build cleanly and every new `CatalogRevisionTests`/`CatalogRevisionFactoryTests` case passes for real, not just by manual trace. This slice is therefore accepted.
 
 ## Consequences
 

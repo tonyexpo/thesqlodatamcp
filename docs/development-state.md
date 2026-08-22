@@ -166,7 +166,7 @@ ADR 0012 records the accepted design:
 
 This slice was implemented directly by the primary agent — the first under the Ultracode Dynamic Workflow policy adopted earlier this session — rather than delegated to a static sub-agent. Per that policy, a freshly spawned, independent review sub-agent (no visibility into the implementer's design reasoning) reviewed the diff before acceptance, and found one real, severe defect: the initial draft named the static success/failure factories `Succeeded`/`Failed`, colliding with the class's own instance `bool Succeeded` property of the identical name — a `CS0102` compile error that would have broken the entire `TheSqlODataMcp.Core` assembly. The reviewer also correctly pointed out that the already-accepted sibling types (`CatalogMergeResult`, `SemanticOverlayImportResult`) avoid this exact collision with `Success`/`Failure` naming. Fixed before any commit reached `origin/main`; see ADR 0012's "Defect found and fixed" section.
 
-This slice requires no real SQL Server access. No `dotnet` SDK is available in this environment, so local build/test verification was not possible; the real GitHub Actions `validate` run is the outstanding acceptance gate.
+This slice requires no real SQL Server access. No `dotnet` SDK is available in this environment, so local build/test verification was not possible. GitHub Actions run [32593045333](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32593045333) passed both `validate` and `sqlserver-integration` on commit `582e397`, closing this slice.
 
 ## QA evidence at this checkpoint
 
