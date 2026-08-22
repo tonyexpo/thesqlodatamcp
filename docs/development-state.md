@@ -11,9 +11,10 @@ This file is the restart point when conversational context is unavailable. Read 
 ## Operating model
 
 - The primary agent (Codex or Claude Code) is the software architect and QA lead.
-- Production implementation is delegated to a dev-senior sub-agent with bounded scope and acceptance criteria: `gpt-5.6-terra` when the primary agent is Codex, `Sonnet-5` when the primary agent is Claude Code.
-- The primary agent owns architecture, review, automated-test adequacy, final validation, ADRs, backlog, changelog, and this checkpoint.
-- The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`.
+- **Static assignment** (Codex, or Claude Code without Ultracode's Dynamic Workflow): production implementation is delegated to a dev-senior sub-agent with bounded scope and acceptance criteria — `gpt-5.6-terra` when the primary agent is Codex, `Sonnet-5` when the primary agent is Claude Code.
+- **Dynamic assignment** (Claude Code with Ultracode's Dynamic Workflow; added 2026-08-22): the static assignment above is suspended. The primary agent owns development, independent QA, architecture, and documentation directly, deciding per task whether to implement directly or assign a sub-agent chosen for that task. When the primary agent implements directly, a freshly spawned sub-agent with no visibility into that reasoning performs the independent review before acceptance, instead of the primary reviewing its own work.
+- The primary agent owns architecture, review, automated-test adequacy, final validation, ADRs, backlog, changelog, and this checkpoint under either assignment mode.
+- The canonical project skill is `skills/thesqlodatamcp-technical-lead/SKILL.md`, the authoritative source for the full policy.
 - Repository-local `.codex` and `.agents` may be mounted read-only; the version-controlled project skill remains canonical.
 
 ## Session checkpoint — 2026-08-17
@@ -49,6 +50,8 @@ The audit confirmed as genuinely present (not merely documented) the ADR 0010 `J
 It also found one previously undetected gap: `CatalogMerger` never checked an overlay entity's `odata.key` list for duplicate field names, so `odata: { key: [Id, Id] }` merged successfully into a malformed `MergedEntity.EffectiveKeyFields = ["Id", "Id"]` instead of failing — the JSON Schema's `odata.key` also lacked the `minLength`/`uniqueItems` constraints already present on every sibling identifier field. This was delegated (bounded to `TheSqlODataMcp.Core` only) to a Sonnet-5 dev-senior sub-agent: a new `CatalogMergeErrorCodes.ODataKeyFieldDuplicate` check in `CatalogMerger.Merge`, `minLength`/`uniqueItems` added to the schema as defense-in-depth, and four new tests. The primary agent independently re-traced the modified loop and the new tests' fixtures line by line before accepting; see ADR 0011's subsequent-evidence section for the full defect writeup and design rationale.
 
 This fix has not yet been verified by the real GitHub Actions `validate` job (no local `dotnet` available in this environment to pre-check it) — that run is the outstanding acceptance gate, per this repository's standing rule that compilation or review alone is never completion.
+
+Later the same session, the project owner clarified that this Claude Code session runs with Ultracode's Dynamic Workflow, superseding the static "every implementation goes to a fixed Sonnet-5 sub-agent" rule used for the `odata.key` fix above. `AGENTS.md`, `skills/thesqlodatamcp-technical-lead/SKILL.md`, and this file's "Operating model" section were updated accordingly: under Dynamic Workflow, the primary agent owns development, independent QA, architecture, and documentation directly, dynamically choosing per task whether to implement directly or assign a sub-agent; direct implementation by the primary agent requires review from a freshly spawned, independent sub-agent before acceptance. The static assignment (fixed Sonnet-5/`gpt-5.6-terra` dev-senior sub-agent) remains the rule for Codex, or for Claude Code sessions without Ultracode.
 
 ## Completed and accepted
 
