@@ -29,6 +29,9 @@ public static class CatalogMergeErrorCodes
     /// <summary>An overlay entity's <c>odata.key</c> entry does not resolve to a field on the resolved physical entity.</summary>
     public const string ODataKeyFieldNotFound = "merge.oDataKeyFieldNotFound";
 
+    /// <summary>A field name is repeated more than once within a single overlay entity's <c>odata.key</c> list.</summary>
+    public const string ODataKeyFieldDuplicate = "merge.oDataKeyFieldDuplicate";
+
     /// <summary>
     /// An overlay relationship's YAML key (its name) is empty or whitespace-only. Slice 4A's schema does
     /// not forbid this at import time because relationship map keys are unconstrained property names; it

@@ -1,6 +1,6 @@
 # Development state
 
-**Checkpoint date:** 2026-08-17
+**Checkpoint date:** 2026-08-22
 
 **Branch:** `main`
 
@@ -39,6 +39,16 @@ The push (commit `05f96e1`) was made and its CI run ([32058513059](https://githu
 The same session then delegated Milestone 1 slice 4B — merging the semantic overlay into the technical catalog — to a Sonnet-5 dev-senior sub-agent, again bounded to `TheSqlODataMcp.Core` only, with several architectural decisions settled in advance by the primary agent (composition over duplication for `MergedEntity`/`MergedField`, the overlay-`odata.key`-always-wins effective-key rule, relationships as a union tagged by provenance, and a fresh merge-time re-validation pass rather than trusting the overlay's original import-time validation). ADR 0011 records this design.
 
 Independent review found and fixed two defects the delegated tests did not cover: `CatalogMerger` could throw an unhandled exception (instead of a graceful `CatalogMergeResult` failure) on whitespace-only overlay display names/relationship names, since ADR 0010's schema validates property values but not property names. While stress-testing the new test suite's reliability, the primary agent also found and fixed a more severe, unrelated defect in already-accepted ADR 0010 code: `SemanticOverlayImporter`'s shared static `JsonSchema` instance was not safe to evaluate concurrently, measured at ~42% silent validation-bypass under concurrent load. Both fixes and their regression tests are recorded in ADR 0010's and ADR 0011's subsequent-evidence/defect sections. GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285) passed both `validate` and `sqlserver-integration` on commit `08b5214`. ADR 0011 is therefore Accepted, and the merge-precedence backlog item is closed.
+
+## Session checkpoint — 2026-08-22
+
+At the project owner's request, the primary agent performed an independent QA audit of all Milestone 1 catalog code accepted so far (ADRs 0006–0011) — reading every production file line by line rather than trusting prior CI acceptance as proof of correctness. `dotnet` is not installed in this session's environment (no local build/test/Docker capability, consistent with limitations already recorded below), so the audit was static: full-file code review cross-checked against every ADR's specific claims, plus confirming the embedded schema, package versions (`Testcontainers.MsSql` 4.14.0 in `Directory.Packages.props`), and absence of any skipped test or TODO/FIXME marker across the repository.
+
+The audit confirmed as genuinely present (not merely documented) the ADR 0010 `JsonSchema` thread-safety lock and its 200-iteration concurrent regression test, the ADR 0011 whitespace-crash fixes and their regression tests, the fully caller-input-free fixed SQL Server introspection query, and the real reflection-based Core dependency-boundary test.
+
+It also found one previously undetected gap: `CatalogMerger` never checked an overlay entity's `odata.key` list for duplicate field names, so `odata: { key: [Id, Id] }` merged successfully into a malformed `MergedEntity.EffectiveKeyFields = ["Id", "Id"]` instead of failing — the JSON Schema's `odata.key` also lacked the `minLength`/`uniqueItems` constraints already present on every sibling identifier field. This was delegated (bounded to `TheSqlODataMcp.Core` only) to a Sonnet-5 dev-senior sub-agent: a new `CatalogMergeErrorCodes.ODataKeyFieldDuplicate` check in `CatalogMerger.Merge`, `minLength`/`uniqueItems` added to the schema as defense-in-depth, and four new tests. The primary agent independently re-traced the modified loop and the new tests' fixtures line by line before accepting; see ADR 0011's subsequent-evidence section for the full defect writeup and design rationale.
+
+This fix has not yet been verified by the real GitHub Actions `validate` job (no local `dotnet` available in this environment to pre-check it) — that run is the outstanding acceptance gate, per this repository's standing rule that compilation or review alone is never completion.
 
 ## Completed and accepted
 
@@ -241,6 +251,10 @@ Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32
 ### Catalog lifecycle remains pending
 
 Capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
+
+### Relationship name collisions across provenance
+
+`MergedEntity.Relationships` deduplicates by `(Name, Provenance)`, so an overlay-declared relationship can share its `Name` with a physical FK-discovered relationship without conflict today — both appear side by side, tagged by different `RelationshipProvenance`. This is correct for the current "union, never a replacement" design and is not a defect (found during the 2026-08-22 QA audit), but Milestone 2's named-relationship join resolution (handoff §7: an explicit `relationship` name must resolve unambiguously) will need an explicit rule for this case before it can be relied upon. Address it when Milestone 2 join resolution is designed, not before.
 
 ### Dynamic Client Registration
 

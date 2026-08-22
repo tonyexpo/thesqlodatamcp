@@ -80,14 +80,25 @@ public static class CatalogMerger
 
             if (overlayEntity.OData is not null)
             {
+                var seenKeyFields = new HashSet<string>(StringComparer.Ordinal);
                 for (var keyIndex = 0; keyIndex < overlayEntity.OData.Key.Count; keyIndex++)
                 {
                     var keyField = overlayEntity.OData.Key[keyIndex];
+                    var keyFieldPath = string.Create(CultureInfo.InvariantCulture, $"{entityPath}.odata.key[{keyIndex}]");
+
+                    if (!seenKeyFields.Add(keyField))
+                    {
+                        errors.Add(new SemanticOverlayValidationError(
+                            CatalogMergeErrorCodes.ODataKeyFieldDuplicate,
+                            keyFieldPath,
+                            $"The OData key field '{keyField}' is repeated more than once in the odata.key list for '{overlayEntity.Source}'."));
+                    }
+
                     if (!physicalFieldNames.Contains(keyField))
                     {
                         errors.Add(new SemanticOverlayValidationError(
                             CatalogMergeErrorCodes.ODataKeyFieldNotFound,
-                            string.Create(CultureInfo.InvariantCulture, $"{entityPath}.odata.key[{keyIndex}]"),
+                            keyFieldPath,
                             $"The OData key field '{keyField}' is not present on the physical entity '{overlayEntity.Source}'."));
                     }
                 }
