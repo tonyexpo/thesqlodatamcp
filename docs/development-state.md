@@ -53,6 +53,8 @@ GitHub Actions run [32591453356](https://github.com/tonyexpo/thesqlodatamcp/acti
 
 Later the same session, the project owner clarified that this Claude Code session runs with Ultracode's Dynamic Workflow, superseding the static "every implementation goes to a fixed Sonnet-5 sub-agent" rule used for the `odata.key` fix above. `AGENTS.md`, `skills/thesqlodatamcp-technical-lead/SKILL.md`, and this file's "Operating model" section were updated accordingly: under Dynamic Workflow, the primary agent owns development, independent QA, architecture, and documentation directly, dynamically choosing per task whether to implement directly or assign a sub-agent; direct implementation by the primary agent requires review from a freshly spawned, independent sub-agent before acceptance. The static assignment (fixed Sonnet-5/`gpt-5.6-terra` dev-senior sub-agent) remains the rule for Codex, or for Claude Code sessions without Ultracode.
 
+With that policy in place, the project owner asked to proceed with Milestone 1's next dependency-ordered item: the catalog capability and revision/lifecycle model. The primary agent first settled the design's one genuinely ambiguous point with the project owner (whether "capability" needed a distinct type — it does not, for now; see ADR 0012), then implemented `CatalogRevision`/`CatalogRevisionFactory` directly rather than delegating, as the first real exercise of Dynamic Workflow's direct-implementation path. The mandatory independent review sub-agent found a real, severe defect before any commit was made: a static-factory/instance-property naming collision (`Succeeded`/`Succeeded`) that would not have compiled. This is recorded in full in ADR 0012 and the new "Milestone 1 slice 5" entry below; it is the first concrete evidence that the independent-review requirement in the new policy catches real defects, not just a procedural formality.
+
 ## Completed and accepted
 
 ### Milestone 0 — Rebaseline and de-risk
@@ -152,6 +154,19 @@ ADR 0011 records the proposed design:
 This slice implements no persistence, revision/activation/rollback, capability model, or search index — those remain later Milestone 1 work.
 
 This slice requires no real SQL Server access. GitHub Actions run [32064882285](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32064882285) passed both `validate` and `sqlserver-integration` on commit `08b5214`. ADR 0011 is therefore Accepted, and the complete merge-precedence backlog item is closed.
+
+### Milestone 1 slice 5 — catalog revision lifecycle model
+
+ADR 0012 records the accepted design:
+
+- `CatalogRevision` (`TheSqlODataMcp.Core.Catalog`) is an immutable snapshot of one attempt to build a catalog at a point in time: a `CreatedAt` timestamp, the technical catalog's structural hash (always present), and either a `MergedCatalog` plus its own structural hash when the merge succeeded, or the collected `SemanticOverlayValidationError`s when it failed;
+- it deliberately does not model which revision is active, supersede an earlier one, or persist anything — that is the next, separate Milestone 1 work;
+- `CatalogRevisionFactory.Create(TechnicalCatalog, SemanticOverlay?, DateTimeOffset)` is its first production consumer, running `CatalogMerger.Merge` and computing both existing canonical-JSON structural hashes;
+- no separate `CatalogCapabilities` type was introduced — a deliberate scope decision made explicitly with the project owner, since no Milestone 1 consumer needs one and the handoff's only documented "capability" concept (`get_query_capabilities`) belongs to later CQM/protocol work.
+
+This slice was implemented directly by the primary agent — the first under the Ultracode Dynamic Workflow policy adopted earlier this session — rather than delegated to a static sub-agent. Per that policy, a freshly spawned, independent review sub-agent (no visibility into the implementer's design reasoning) reviewed the diff before acceptance, and found one real, severe defect: the initial draft named the static success/failure factories `Succeeded`/`Failed`, colliding with the class's own instance `bool Succeeded` property of the identical name — a `CS0102` compile error that would have broken the entire `TheSqlODataMcp.Core` assembly. The reviewer also correctly pointed out that the already-accepted sibling types (`CatalogMergeResult`, `SemanticOverlayImportResult`) avoid this exact collision with `Success`/`Failure` naming. Fixed before any commit reached `origin/main`; see ADR 0012's "Defect found and fixed" section.
+
+This slice requires no real SQL Server access. No `dotnet` SDK is available in this environment, so local build/test verification was not possible; the real GitHub Actions `validate` run is the outstanding acceptance gate.
 
 ## QA evidence at this checkpoint
 
@@ -253,7 +268,7 @@ Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32
 
 ### Catalog lifecycle remains pending
 
-Capability models, SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete.
+SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete. (The capability/revision model itself is accepted — ADR 0012 — including a deliberate decision not to introduce a separate capability type; see that ADR before assuming this is unfinished.)
 
 ### Relationship name collisions across provenance
 
@@ -265,14 +280,13 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Introduce capability and revision/lifecycle models with their first production consumers rather than speculatively.
-2. Add SQLite control-store migrations and catalog revision persistence once the merge and validation boundary is settled.
-3. Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
+1. Add SQLite control-store migrations and catalog revision persistence, mapping `CatalogRevision` (ADR 0012) into durable storage.
+2. Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes on top of the persisted revision history.
 
 ## Restart checklist
 
 1. Run `git status --short --branch`; the primary agent does not push automatically.
-2. Read ADRs 0006–0011 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge implementation and tests before extending the catalog domain.
+2. Read ADRs 0006–0012 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision implementation and tests before extending the catalog domain.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
 4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.
