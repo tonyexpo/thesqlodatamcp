@@ -215,6 +215,48 @@ public sealed class CatalogMergerTests
     }
 
     [Fact]
+    public void ODataKeyFieldDuplicateIsRejected()
+    {
+        var catalog = CreateCatalog();
+        var overlay = new SemanticOverlay(
+            "1.0",
+            [
+                new SemanticOverlayEntity(
+                    new PhysicalObjectIdentity("sales", "InvoiceHeader"),
+                    odata: new SemanticOverlayODataSettings(key: ["InvoiceId", "InvoiceId"])),
+            ]);
+
+        var result = CatalogMerger.Merge(catalog, overlay);
+
+        Assert.False(result.Succeeded);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CatalogMergeErrorCodes.ODataKeyFieldDuplicate, error.Code);
+        Assert.Equal("$.entities[0].odata.key[1]", error.Path);
+    }
+
+    [Fact]
+    public void ODataKeyFieldDuplicateAndNotFoundCanBothFireInOnePass()
+    {
+        var catalog = CreateCatalog();
+        var overlay = new SemanticOverlay(
+            "1.0",
+            [
+                new SemanticOverlayEntity(
+                    new PhysicalObjectIdentity("sales", "InvoiceHeader"),
+                    odata: new SemanticOverlayODataSettings(key: ["InvoiceId", "InvoiceId", "Bogus"])),
+            ]);
+
+        var result = CatalogMerger.Merge(catalog, overlay);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(2, result.Errors.Count);
+        var duplicateError = Assert.Single(result.Errors, e => e.Code == CatalogMergeErrorCodes.ODataKeyFieldDuplicate);
+        Assert.Equal("$.entities[0].odata.key[1]", duplicateError.Path);
+        var notFoundError = Assert.Single(result.Errors, e => e.Code == CatalogMergeErrorCodes.ODataKeyFieldNotFound);
+        Assert.Equal("$.entities[0].odata.key[2]", notFoundError.Path);
+    }
+
+    [Fact]
     public void CatalogVersionMismatchIsRejected()
     {
         var catalog = CreateCatalog();

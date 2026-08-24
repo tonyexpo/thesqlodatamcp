@@ -209,6 +209,26 @@ public sealed class SemanticOverlayImporterTests
     }
 
     [Fact]
+    public void DuplicateODataKeyEntryIsCaughtByJsonSchemaEvenThoughTypedDeserializationAccepts()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - source: "sales.InvoiceHeader"
+                odata:
+                  key:
+                    - "InvoiceId"
+                    - "InvoiceId"
+            """;
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, e => e.Code == SemanticOverlayValidationErrorCodes.SchemaViolation);
+        Assert.DoesNotContain(result.Errors, e => e.Code == SemanticOverlayValidationErrorCodes.StrictDeserializationFailed);
+    }
+
+    [Fact]
     public void MalformedYamlSyntaxIsSurfacedAsAValidationErrorNotAnException()
     {
         const string yaml = "catalogVersion: \"1.0\n  entities: [";

@@ -39,7 +39,7 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 ## Milestone 1 — Catalog foundation
 
 - [x] Define the provider-neutral technical catalog, entity, field, key, index, relationship, canonical/provider type models, and deterministic structural hash.
-- [ ] Define catalog capability and revision/lifecycle models alongside their first production consumers.
+- [x] Define catalog capability and revision/lifecycle models alongside their first production consumers. (No separate capability type was introduced — see ADR 0012 for the deliberate scope decision.)
 - [x] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection.
 - [x] Exclude system and unsupported programmable objects by construction.
 - [x] Implement canonical SQL type mapping with preserved provider details.
