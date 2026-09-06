@@ -1,6 +1,6 @@
 # ADR 0013 — SQLite/EF Core control store and durable `CatalogRevisions` storage
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-06
 
 ## Context
@@ -37,7 +37,7 @@ Implemented directly by the primary agent. Verified locally (this environment no
 - `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed (after stripping the UTF-8 BOM `dotnet ef migrations add` wrote into the three generated migration files, which this repository's `.editorconfig` charset rule rejects).
 - `bash eng/verify-markdown-links.sh` and `git diff --check`: passed.
 
-Pending: a real GitHub Actions run on `origin/main` proving the same in CI, per this repository's standing practice of never treating local verification alone as acceptance evidence. Status remains **Proposed** until that run is recorded here.
+Confirmed in CI: [GitHub Actions run 34054740259](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34054740259) on commit `fa60da41c98090b3ee84bdf2b82d858b8b83f617` — both the `validate` job (build/test/format/link-check) and the `sqlserver-integration` job passed.
 
 ## Consequences
 
