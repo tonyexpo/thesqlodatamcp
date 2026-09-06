@@ -228,6 +228,72 @@ public sealed class MergedCatalogTests
         Assert.NotEqual(MergedCatalogCanonicalJson.ComputeStructuralHash(baseline), MergedCatalogCanonicalJson.ComputeStructuralHash(changed));
     }
 
+    [Fact]
+    public void DeserializeRoundTripsSerializeAndPreservesTheStructuralHash()
+    {
+        var catalog = SimpleCatalog(withConfiguredRelationship: true);
+        var technicalCatalog = new TechnicalCatalog("1.0", "fixture", [CreateInvoiceHeaderEntity()]);
+
+        var roundTripped = MergedCatalogCanonicalJson.Deserialize(MergedCatalogCanonicalJson.Serialize(catalog), technicalCatalog);
+
+        Assert.Equal(MergedCatalogCanonicalJson.Serialize(catalog), MergedCatalogCanonicalJson.Serialize(roundTripped));
+        Assert.Equal(MergedCatalogCanonicalJson.ComputeStructuralHash(catalog), MergedCatalogCanonicalJson.ComputeStructuralHash(roundTripped));
+        var entity = roundTripped.Entities.Single();
+        Assert.Same(technicalCatalog.Entities.Single(), entity.Physical);
+        Assert.Equal("Fatture", entity.Description);
+        Assert.Equal(["fatture"], entity.Aliases);
+        Assert.Equal(["InvoiceId"], entity.EffectiveKeyFields);
+        Assert.Equal(2, entity.Relationships.Count);
+        Assert.Contains(entity.Relationships, relationship => relationship.Provenance == RelationshipProvenance.Configured);
+    }
+
+    [Fact]
+    public void DeserializeRejectsAnEntityAbsentFromTheSuppliedTechnicalCatalog()
+    {
+        var catalog = SimpleCatalog();
+        var unrelatedTechnicalCatalog = new TechnicalCatalog("1.0", "fixture", [CreateCustomersEntity()]);
+
+        Assert.Throws<ArgumentException>(() =>
+            MergedCatalogCanonicalJson.Deserialize(MergedCatalogCanonicalJson.Serialize(catalog), unrelatedTechnicalCatalog));
+    }
+
+    [Fact]
+    public void DeserializeRejectsAFieldAbsentFromTheCorrespondingPhysicalEntity()
+    {
+        var catalog = SimpleCatalog();
+        var physical = CreateInvoiceHeaderEntity();
+        var technicalCatalogMissingAField = new TechnicalCatalog(
+            "1.0",
+            "fixture",
+            [new TechnicalEntity(physical.Identity, physical.Kind, physical.Fields.Where(field => field.Name != "CustomerId"), physical.Keys)]);
+
+        Assert.Throws<ArgumentException>(() =>
+            MergedCatalogCanonicalJson.Deserialize(MergedCatalogCanonicalJson.Serialize(catalog), technicalCatalogMissingAField));
+    }
+
+    [Fact]
+    public void DeserializeRejectsATechnicalCatalogWithADifferentCatalogVersionOrProvider()
+    {
+        var catalog = SimpleCatalog();
+        var json = MergedCatalogCanonicalJson.Serialize(catalog);
+        var differentVersion = new TechnicalCatalog("2.0", "fixture", [CreateInvoiceHeaderEntity()]);
+        var differentProvider = new TechnicalCatalog("1.0", "other-fixture", [CreateInvoiceHeaderEntity()]);
+
+        Assert.Throws<ArgumentException>(() => MergedCatalogCanonicalJson.Deserialize(json, differentVersion));
+        Assert.Throws<ArgumentException>(() => MergedCatalogCanonicalJson.Deserialize(json, differentProvider));
+    }
+
+    [Fact]
+    public void DeserializeRejectsMalformedInput()
+    {
+        var technicalCatalog = new TechnicalCatalog("1.0", "fixture", [CreateInvoiceHeaderEntity()]);
+
+        Assert.Throws<ArgumentException>(() => MergedCatalogCanonicalJson.Deserialize(" ", technicalCatalog));
+        Assert.Throws<ArgumentException>(() => MergedCatalogCanonicalJson.Deserialize("null", technicalCatalog));
+        Assert.Throws<ArgumentException>(() => MergedCatalogCanonicalJson.Deserialize("{\"catalogVersion\":\"1.0\"", technicalCatalog));
+        Assert.Throws<ArgumentNullException>(() => MergedCatalogCanonicalJson.Deserialize("{}", null!));
+    }
+
     private static MergedCatalog SimpleCatalog(
         string displayName = "Invoices",
         IEnumerable<string>? aliases = null,

@@ -5,9 +5,9 @@ namespace TheSqlODataMcp.Persistence.CatalogStore;
 
 /// <summary>
 /// Durable storage for <see cref="CatalogRevision"/> build attempts. Stores every attempt, succeeded or
-/// failed, as an immutable, append-only row, plus (per ADR 0014) which one is currently active.
-/// Reconstructing a live <see cref="MergedCatalog"/> object graph from a stored row is later Milestone 1
-/// work (the in-memory catalog/search index) built on top of this store, not part of it.
+/// failed, as an immutable, append-only row, plus (per ADR 0014) which one is currently active. This type
+/// only ever deals in the raw JSON-blob rows themselves; reconstructing a live <see cref="MergedCatalog"/>
+/// object graph from one is <see cref="CatalogRevisionMapper.ToDomain"/>'s job (ADR 0015), not this store's.
 /// </summary>
 public sealed class CatalogRevisionStore
 {

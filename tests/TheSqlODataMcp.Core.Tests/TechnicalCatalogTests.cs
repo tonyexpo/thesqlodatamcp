@@ -111,6 +111,44 @@ public sealed class TechnicalCatalogTests
     }
 
     [Fact]
+    public void DeserializeRoundTripsSerializeAndPreservesTheStructuralHash()
+    {
+        var catalog = new TechnicalCatalog("1.0", "fixture", [CreateInvoiceEntity()]);
+
+        var roundTripped = TechnicalCatalogCanonicalJson.Deserialize(TechnicalCatalogCanonicalJson.Serialize(catalog));
+
+        Assert.Equal(TechnicalCatalogCanonicalJson.Serialize(catalog), TechnicalCatalogCanonicalJson.Serialize(roundTripped));
+        Assert.Equal(TechnicalCatalogCanonicalJson.ComputeStructuralHash(catalog), TechnicalCatalogCanonicalJson.ComputeStructuralHash(roundTripped));
+        var entity = roundTripped.Entities.Single();
+        Assert.True(entity.IsTemporal);
+        Assert.Equal("Invoice lines", entity.Description);
+        Assert.True(entity.Fields.Single(field => field.Name == "InvoiceId").IsIdentity);
+        Assert.True(entity.Fields.Single(field => field.Name == "LineTotal").IsPersistedComputed);
+        Assert.True(entity.Indexes.Single(index => index.Name == "UX_Invoices_Number").IsFiltered);
+        Assert.Equal(["InvoiceId", "LineNumber"], entity.Keys.Single(key => key.IsPrimary).Fields);
+    }
+
+    [Fact]
+    public void DeserializeRejectsMalformedInput()
+    {
+        Assert.Throws<ArgumentException>(() => TechnicalCatalogCanonicalJson.Deserialize(" "));
+        Assert.Throws<ArgumentException>(() => TechnicalCatalogCanonicalJson.Deserialize("null"));
+        Assert.Throws<ArgumentException>(() => TechnicalCatalogCanonicalJson.Deserialize("{\"catalogVersion\":\"1.0\",\"provider\":\"fixture\",\"entities\":[{\"schema\":\"s\""));
+    }
+
+    [Fact]
+    public void DeserializeRejectsAFieldWithNoProviderType()
+    {
+        var json = "{\"catalogVersion\":\"1.0\",\"provider\":\"fixture\",\"entities\":[{\"schema\":\"sales\",\"name\":\"Invoices\",\"kind\":\"table\","
+            + "\"description\":null,\"isTemporal\":false,\"fields\":[{\"name\":\"Id\",\"ordinal\":0,\"canonicalType\":\"int32\","
+            + "\"isNullable\":false,\"description\":null,\"isIdentity\":false,\"isComputed\":false,\"isPersistedComputed\":false,"
+            + "\"isTemporalPeriodStart\":false,\"isTemporalPeriodEnd\":false,\"isRowVersion\":false}],\"keys\":[],\"indexes\":[],\"relationships\":[]}]}";
+
+        var ex = Assert.Throws<ArgumentException>(() => TechnicalCatalogCanonicalJson.Deserialize(json));
+        Assert.Contains("Id", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ConstructorsDefensivelyCopyCollectionInputs()
     {
         var fields = new List<TechnicalField>
