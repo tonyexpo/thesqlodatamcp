@@ -63,4 +63,24 @@ public sealed class StoredCatalogRevisionTests
     {
         Assert.Throws<ArgumentException>(() => StoredCatalogRevision.Success(CreatedAt, "   ", "{}", "merged-hash", "{}"));
     }
+
+    [Fact]
+    public void ActivateSetsActivatedAtOnASucceededRow()
+    {
+        var stored = StoredCatalogRevision.Success(CreatedAt, "tech-hash", "{}", "merged-hash", "{}");
+        var activatedAt = CreatedAt.AddMinutes(5);
+
+        stored.Activate(activatedAt);
+
+        Assert.Equal(activatedAt, stored.ActivatedAt);
+    }
+
+    [Fact]
+    public void ActivateRejectsAFailedRow()
+    {
+        var stored = StoredCatalogRevision.Failure(CreatedAt, "tech-hash", "{}", "[]");
+
+        Assert.Throws<InvalidOperationException>(() => stored.Activate(CreatedAt));
+        Assert.Null(stored.ActivatedAt);
+    }
 }

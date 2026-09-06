@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TheSqlODataMcp.Persistence.CatalogStore;
 
@@ -10,9 +11,11 @@ using TheSqlODataMcp.Persistence.CatalogStore;
 namespace TheSqlODataMcp.Persistence.CatalogStore.Migrations
 {
     [DbContext(typeof(ControlStoreDbContext))]
-    partial class ControlStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260906192859_AddActivatedAtToCatalogRevisions")]
+    partial class AddActivatedAtToCatalogRevisions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");

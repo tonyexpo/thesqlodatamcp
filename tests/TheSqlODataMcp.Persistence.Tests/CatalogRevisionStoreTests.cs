@@ -113,6 +113,105 @@ public sealed class CatalogRevisionStoreTests
     }
 
     [Fact]
+    public async Task GetActiveReturnsNullWhenNothingHasEverBeenActivated()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var revision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        await store.SaveAsync(catalog, revision, timeout.Token);
+
+        var active = await store.GetActiveAsync(timeout.Token);
+
+        Assert.Null(active);
+    }
+
+    [Fact]
+    public async Task ActivateThenGetActiveReturnsTheActivatedRevision()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var revision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        var id = await store.SaveAsync(catalog, revision, timeout.Token);
+        var activatedAt = CreatedAt.AddMinutes(1);
+
+        await store.ActivateAsync(id, activatedAt, timeout.Token);
+        var active = await store.GetActiveAsync(timeout.Token);
+
+        Assert.NotNull(active);
+        Assert.Equal(id, active!.Id);
+        Assert.Equal(activatedAt, active.ActivatedAt);
+    }
+
+    [Fact]
+    public async Task ActivatingTheSameRevisionTwiceOverwritesItsActivatedAtTimestamp()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var revision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        var id = await store.SaveAsync(catalog, revision, timeout.Token);
+        await store.ActivateAsync(id, CreatedAt, timeout.Token);
+
+        await store.ActivateAsync(id, CreatedAt.AddMinutes(1), timeout.Token);
+        var active = await store.GetActiveAsync(timeout.Token);
+
+        Assert.Equal(id, active!.Id);
+        Assert.Equal(CreatedAt.AddMinutes(1), active.ActivatedAt);
+    }
+
+    [Fact]
+    public async Task ActivatingANewerRevisionSupersedesThePreviouslyActiveOne()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var revision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        var firstId = await store.SaveAsync(catalog, revision, timeout.Token);
+        var secondId = await store.SaveAsync(catalog, revision, timeout.Token);
+        await store.ActivateAsync(firstId, CreatedAt, timeout.Token);
+
+        await store.ActivateAsync(secondId, CreatedAt.AddMinutes(1), timeout.Token);
+        var active = await store.GetActiveAsync(timeout.Token);
+
+        Assert.Equal(secondId, active!.Id);
+    }
+
+    [Fact]
+    public async Task ActivateThrowsForAnUnknownId()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => store.ActivateAsync(12345, CreatedAt, timeout.Token));
+    }
+
+    [Fact]
+    public async Task ActivateThrowsForAFailedRevisionAndLeavesTheActiveRevisionUnchanged()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var goodRevision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        var goodId = await store.SaveAsync(catalog, goodRevision, timeout.Token);
+        await store.ActivateAsync(goodId, CreatedAt, timeout.Token);
+        var mismatchedOverlay = new SemanticOverlay("2.0", []);
+        var failedRevision = CatalogRevisionFactory.Create(catalog, mismatchedOverlay, CreatedAt.AddMinutes(1));
+        var failedId = await store.SaveAsync(catalog, failedRevision, timeout.Token);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => store.ActivateAsync(failedId, CreatedAt.AddMinutes(1), timeout.Token));
+        var active = await store.GetActiveAsync(timeout.Token);
+        Assert.Equal(goodId, active!.Id);
+    }
+
+    [Fact]
     public async Task DisposingTheFixtureDeletesTheDatabaseFile()
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
