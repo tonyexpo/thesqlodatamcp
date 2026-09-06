@@ -22,6 +22,11 @@ packages/
 # Local agent state
 .goose/
 
+# Local SQLite databases (design-time control-store files, e.g. from `dotnet ef database update`)
+*.db
+*.db-shm
+*.db-wal
+
 # Local configuration and secret overrides
 .env
 .env.*

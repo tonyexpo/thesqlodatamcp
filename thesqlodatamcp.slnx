@@ -9,6 +9,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/TheSqlODataMcp.Core.Tests/TheSqlODataMcp.Core.Tests.csproj" />
     <Project Path="tests/TheSqlODataMcp.IntegrationTests/TheSqlODataMcp.IntegrationTests.csproj" />
+    <Project Path="tests/TheSqlODataMcp.Persistence.Tests/TheSqlODataMcp.Persistence.Tests.csproj" />
     <Project Path="tests/TheSqlODataMcp.ProtocolTests/TheSqlODataMcp.ProtocolTests.csproj" />
     <Project Path="tests/TheSqlODataMcp.SqlServer.Tests/TheSqlODataMcp.SqlServer.Tests.csproj" />
   </Folder>

@@ -48,6 +48,8 @@ public sealed class ScaffoldConfigurationTests
         Assert.Equal("0.42.0", packageVersions["Markdig"]);
         Assert.Equal("9.5.0", packageVersions["Microsoft.AspNetCore.OData"]);
         Assert.Equal("6.1.1", packageVersions["Microsoft.Data.SqlClient"]);
+        Assert.Equal("10.0.11", packageVersions["Microsoft.EntityFrameworkCore.Design"]);
+        Assert.Equal("10.0.11", packageVersions["Microsoft.EntityFrameworkCore.Sqlite"]);
         Assert.Equal("1.4.1", packageVersions["ModelContextProtocol.AspNetCore"]);
         Assert.Equal("7.6.0", packageVersions["OpenIddict.Server.AspNetCore"]);
         Assert.Equal("16.3.0", packageVersions["YamlDotNet"]);
@@ -56,7 +58,9 @@ public sealed class ScaffoldConfigurationTests
         Assert.Equal("3.1.4", packageVersions["xunit.runner.visualstudio"]);
 
         Assert.Equal(["JsonSchema.Net", "Markdig", "YamlDotNet"], ReadPackageReferenceNames("TheSqlODataMcp.Core.csproj").Order());
-        Assert.Empty(ReadPackageReferenceNames("TheSqlODataMcp.Persistence.csproj"));
+        Assert.Equal(
+            ["Microsoft.EntityFrameworkCore.Design", "Microsoft.EntityFrameworkCore.Sqlite"],
+            ReadPackageReferenceNames("TheSqlODataMcp.Persistence.csproj").Order());
         Assert.Equal(
             ["Microsoft.AspNetCore.OData", "ModelContextProtocol.AspNetCore"],
             ReadPackageReferenceNames("TheSqlODataMcp.Protocols.csproj").Order());
