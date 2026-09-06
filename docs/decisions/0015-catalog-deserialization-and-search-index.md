@@ -1,6 +1,6 @@
 # ADR 0015 — Catalog JSON→domain deserialization and in-memory search index
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-06
 
 ## Context
@@ -36,7 +36,7 @@ Implemented directly by the primary agent, then fixed against every finding abov
 - `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: 257 passed, 0 failed, 0 skipped — 24 new versus ADR 0014's 233: 19 in `TheSqlODataMcp.Core.Tests` (3 for `TechnicalCatalogCanonicalJson.Deserialize`, 5 for `MergedCatalogCanonicalJson.Deserialize`, 11 for the new `CatalogSearchIndexTests`) and 5 in `TheSqlODataMcp.Persistence.Tests` (3 for `CatalogRevisionMapper.ToDomain`'s round trip/failure path, 2 for its new hash-verification guard).
 - `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed.
 
-Confirmed in CI: pending push.
+Confirmed in CI: [GitHub Actions run 34058927181](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34058927181) on commit `bb60830e389f19b80974f597379784598156cea3` — both the `validate` job (build/test/format/link-check) and the `sqlserver-integration` job passed.
 
 ## Consequences
 
