@@ -1,6 +1,6 @@
 # ADR 0014 — Atomic catalog activation, last-valid rollback, and bootstrap modes
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-09-06
 
 ## Context
@@ -35,7 +35,7 @@ Implemented directly by the primary agent. Verified locally:
 - `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: 233 passed, 0 failed, 0 skipped — 31 new versus ADR 0013's 202: 17 in `TheSqlODataMcp.Core.Tests` (`CatalogBootstrapPolicyTests`, one `[Theory]` per mode plus one rejection test), and 14 in `TheSqlODataMcp.Persistence.Tests` (2 for `StoredCatalogRevision.Activate`, 6 for `CatalogRevisionStore.GetActiveAsync`/`ActivateAsync` — including the double-activate case the independent review flagged as a coverage gap — and 6 in a new `CatalogBootstrapCoordinatorTests` covering all four bootstrap modes plus the failed-rebuild-preserves-active-revision case).
 - `dotnet format thesqlodatamcp.slnx --verify-no-changes --no-restore`: passed (after stripping the UTF-8 BOM `dotnet ef migrations add` again wrote into the new migration's three generated files, per the same rule identified in ADR 0013).
 
-Pending: a real GitHub Actions run on `origin/main`, per this repository's standing practice of never treating local verification alone as acceptance evidence. Status remains **Proposed** until that run is recorded here.
+Confirmed in CI: [GitHub Actions run 34055825384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34055825384) on commit `4e738ddeda5609c9bb6ac9d3197d21574da471da` — both the `validate` job (build/test/format/link-check) and the `sqlserver-integration` job passed.
 
 ## Consequences
 
