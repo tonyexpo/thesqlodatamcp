@@ -287,6 +287,17 @@ Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32
 
 SQLite revision persistence (ADR 0013), atomic activation/rollback/bootstrap modes (ADR 0014), and JSON deserialization/in-memory search (ADR 0015) are all implemented and accepted with real CI evidence. `CatalogPipelineIntegrationTests` (slice 9, 2026-09-07) proves the full composition against real SQL Server and a real SQLite control store. This closes the last Milestone 1 backlog item; Milestone 1 is complete.
 
+### `CatalogPipelineIntegrationTests` coverage gaps (not blocking, deferred to a future session)
+
+The second independent QA pass (above) identified four narrow gaps specific to this one composed real-infrastructure test — not production defects, and each already covered by isolated unit tests elsewhere, but worth folding into the real-infrastructure composition itself when a future session is back in this area:
+
+1. No overlay-declared ("configured", non-FK) relationship is exercised through the real end-to-end path — only FK-discovered relationships are.
+2. No non-ASCII/Unicode overlay text (display names, descriptions) is exercised through the real SQLite round trip.
+3. No overlay entry targets a keyless entity (the fixture has `reporting.InvoiceDetail`/`reporting.InvoiceMonthlySummary` available) through the real path.
+4. No failed-then-succeeded bootstrap sequence is exercised against the real SQL Server-introspected catalog (only against hand-built catalogs in `CatalogBootstrapCoordinatorTests`).
+
+Cheapest fix: extend `CatalogPipelineIntegrationTests`'s existing overlay with a second entity covering 1–3, plus one additional assertion pair for 4 — no new fixture or SQL Server schema change needed. Do not treat this as reopening Milestone 1; it is optional hardening, not a correctness gap.
+
 ### Recorded limitations carried from ADR 0014 (not blocking, revisit before real use)
 
 `CatalogRevisionStore.GetActiveAsync` materializes every ever-activated row's full JSON blobs with no retention policy, growing unboundedly under `AlwaysImport`; and `CatalogBootstrapCoordinator.RunAsync` assumes a single caller (no transaction/lock across its read-decide-save-activate steps), consistent with this project's documented single-instance v1 constraint. Revisit both before Milestone 3 wires this into a real host, especially if more than one startup/refresh path could call the coordinator concurrently.
