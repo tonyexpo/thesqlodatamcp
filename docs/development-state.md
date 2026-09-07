@@ -1,10 +1,10 @@
 # Development state
 
-**Checkpoint date:** 2026-08-22
+**Checkpoint date:** 2026-09-07
 
 **Branch:** `main`
 
-**Milestone:** 1 — Catalog foundation (in progress)
+**Milestone:** 1 — Catalog foundation (complete)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
@@ -168,6 +168,19 @@ This slice was implemented directly by the primary agent — the first under the
 
 This slice requires no real SQL Server access. No `dotnet` SDK is available in this environment, so local build/test verification was not possible. GitHub Actions run [32593045333](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32593045333) passed both `validate` and `sqlserver-integration` on commit `582e397`, closing this slice.
 
+## Session checkpoint — 2026-09-07 — Milestone 1 closed
+
+This environment now has `dotnet` SDK 10.0.111 available (unlike every prior Milestone 1 checkpoint above, which had no local build/test capability). Docker remains unavailable locally in this particular session, so `Category=SqlServerIntegration` tests are still verified only through GitHub Actions, not locally, in this checkpoint.
+
+Three further slices closed the remaining Milestone 1 backlog, all implemented directly by the primary agent (production code) with the mandatory independent-review sub-agent per this repository's Ultracode Dynamic Workflow policy:
+
+- **Slice 6 — SQLite/EF Core control-store persistence (ADR 0013):** `StoredCatalogRevision`, `CatalogRevisionMapper.ToStored`, `CatalogRevisionStore` (`SaveAsync`/`GetAsync`) over a new `ControlStoreDbContext`, and the `InitialCreate` migration; new `TheSqlODataMcp.Persistence.Tests` project with a real temp-file SQLite fixture. Independent review caught a real EF Core modeling defect before commit: get-only properties without explicit `OnModelCreating().Property()` calls were silently dropped from the migration (3 of 8 columns missing, no error). Fixed by giving every property a `private set`. GitHub Actions run [34054740259](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34054740259) passed both jobs on commit `fa60da4`. ADR 0013 Accepted.
+- **Slice 7 — atomic activation, last-valid rollback, bootstrap modes (ADR 0014):** `StoredCatalogRevision.ActivatedAt`/`Activate` (throws for a failed revision — this throw is the entire rollback guarantee), `CatalogRevisionStore.GetActiveAsync`/`ActivateAsync`, `CatalogBootstrapMode`/`CatalogBootstrapPolicy` (Core, pure decision table), and `CatalogBootstrapCoordinator` (Persistence) tying policy + `CatalogRevisionFactory` + `CatalogRevisionStore` into one startup decision. No blocking defect; three low-severity gaps recorded as known limitations (unbounded ever-activated-row growth under `AlwaysImport`, single-caller/no-transaction assumption, now a double-activate regression test). GitHub Actions run [34055825384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34055825384) passed both jobs on commit `4e738dd`. ADR 0014 Accepted. Host wiring and catalog deserialization were deliberately deferred.
+- **Slice 8 — catalog JSON→domain deserialization and search index (ADR 0015):** `TechnicalCatalogCanonicalJson.Deserialize`/`MergedCatalogCanonicalJson.Deserialize` (inverses of `Serialize`), `CatalogRevisionMapper.ToDomain` (chains both, closing the handoff's "load last active revision" lifecycle step), and `CatalogSearchIndex` (O(1) lookup plus ranked `Search` across names/aliases/descriptions/warnings/relationships). Independent adversarial review (scratch tests, then deleted) found and closed five real gaps before acceptance: silent data substitution from a structurally different "imposter" `TechnicalCatalog`, a `NullReferenceException` on a JSON row missing `providerType`, inconsistent malformed-JSON exception types between the two `Deserialize` methods, `ToDomain` trusting stored hashes instead of recomputing them, and the search index's dedup guard silently dropping a distinct match when two fields shared identical display text. GitHub Actions run [34058927181](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34058927181) passed both jobs on commit `bb60830`. ADR 0015 Accepted.
+- **Slice 9 — end-to-end pipeline test, closing the last Milestone 1 backlog item.** The primary agent audited the existing test suite and found every Milestone 1 capability had isolated coverage but none proved the full composition against real infrastructure. Delegated (static assignment — no Ultracode Dynamic Workflow active this session) to a dev-senior sub-agent, bounded to one new test file, no production changes unless a genuine defect surfaced (none did): `CatalogPipelineIntegrationTests` runs real SQL Server introspection through a real semantic overlay import, merge, and revision construction, persists it through `CatalogBootstrapCoordinator` into a real file-backed SQLite control store (calling it twice with an unchanged catalog to prove drift-skip against a *real* introspected catalog, not just hand-built fixtures), round-trips the active row through `CatalogRevisionMapper.ToDomain` and asserts byte-identical canonical JSON against the original in-memory merged catalog, then builds a `CatalogSearchIndex` over the round-tripped catalog and finds `crm.Customers` by an overlay-only display-name term ("Roster") that matches no physical name — proving the search index works over genuinely deserialized data, not just fresh in-memory objects. The primary agent independently re-verified every API call against the actual source (not the sub-agent's claims), reran build/test/format/`git diff --check` itself, and confirmed no production code was touched. This is a new `Category=SqlServerIntegration` test; it has not yet been observed passing in CI as of this checkpoint (push and CI run pending after this checkpoint is written).
+
+This closes the last Milestone 1 backlog item ("Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests"). Milestone 1 — Catalog foundation is complete.
+
 ## QA evidence at this checkpoint
 
 ### Remote CI evidence
@@ -266,9 +279,17 @@ Resolved and confirmed against real Docker in GitHub Actions run `32059087651` (
 
 Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32064882285`. This backlog item is closed; no further acceptance work remains for it.
 
-### Catalog lifecycle remains pending
+### Catalog lifecycle — complete
 
-SQLite revision persistence, atomic activation/rollback, bootstrap modes, and in-memory search are not implemented. Do not mark the remaining Milestone 1 backlog items complete. (The capability/revision model itself is accepted — ADR 0012 — including a deliberate decision not to introduce a separate capability type; see that ADR before assuming this is unfinished.)
+SQLite revision persistence (ADR 0013), atomic activation/rollback/bootstrap modes (ADR 0014), and JSON deserialization/in-memory search (ADR 0015) are all implemented and accepted with real CI evidence. `CatalogPipelineIntegrationTests` (slice 9, 2026-09-07) proves the full composition against real SQL Server and a real SQLite control store. This closes the last Milestone 1 backlog item; Milestone 1 is complete.
+
+### Pending CI confirmation for the new pipeline test
+
+`CatalogPipelineIntegrationTests` (Category=SqlServerIntegration) was added, reviewed, and locally build/format-verified in this checkpoint's session, but Docker was unavailable locally so it has not yet been observed passing for real. Confirm the next `sqlserver-integration` CI run includes and passes it before treating slice 9 as fully closed in spirit as well as in the backlog checkbox.
+
+### Recorded limitations carried from ADR 0014 (not blocking, revisit before real use)
+
+`CatalogRevisionStore.GetActiveAsync` materializes every ever-activated row's full JSON blobs with no retention policy, growing unboundedly under `AlwaysImport`; and `CatalogBootstrapCoordinator.RunAsync` assumes a single caller (no transaction/lock across its read-decide-save-activate steps), consistent with this project's documented single-instance v1 constraint. Revisit both before Milestone 3 wires this into a real host, especially if more than one startup/refresh path could call the coordinator concurrently.
 
 ### Relationship name collisions across provenance
 
@@ -280,13 +301,18 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-1. Add SQLite control-store migrations and catalog revision persistence, mapping `CatalogRevision` (ADR 0012) into durable storage.
-2. Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes on top of the persisted revision history.
+Milestone 1 (catalog foundation) is complete. The next dependency-ordered work is Milestone 2 — CQM and SQL Server query engine (`docs/backlog.md`, `docs/roadmap.md`):
+
+1. Define versioned strict CQM DTOs and a published JSON Schema.
+2. Implement expression normalization, canonical scalar types, type inference, aliases, and stable validation errors/paths.
+3. Implement entity/analytical classification, grouping rules, aggregate rules, and v1 operator/function capabilities.
+4. Implement explicit/named/automatic join resolution with ambiguity errors and v1 join limits — see the "Relationship name collisions across provenance" risk above before relying on relationship names being unambiguous.
+5. Implement provider abstractions and SQL Server catalog-only identifier resolution/quoting, compiling to exactly one parameterized `SELECT`.
 
 ## Restart checklist
 
 1. Run `git status --short --branch`; the primary agent does not push automatically.
-2. Read ADRs 0006–0012 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision implementation and tests before extending the catalog domain.
-3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change.
-4. Use the deterministic SQL Server fixture for introspection work; do not replace the real provider path with mocks or build-only evidence.
+2. Read ADRs 0006–0015 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision/persistence/activation/deserialization/search implementation and tests before extending the catalog domain, or before starting Milestone 2's CQM work.
+3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change. `dotnet` is available locally as of this checkpoint; confirm this is still true before assuming no local build/test capability. Docker/Testcontainers availability varies by session — check `docker info` before assuming `Category=SqlServerIntegration` tests can run locally, and fall back to CI evidence when they cannot.
+4. Use the deterministic SQL Server fixture (`tests/fixtures/reporting-catalog`) for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.

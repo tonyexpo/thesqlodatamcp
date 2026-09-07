@@ -48,7 +48,7 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Implement merge precedence, FK/configured relationships, keyless-view rules, and deterministic hashes.
 - [x] Add SQLite control-store migrations and catalog revision persistence.
 - [x] Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
-- [ ] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.
+- [x] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.
 
 ## Milestone 2 — CQM and SQL Server query engine
 
