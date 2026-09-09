@@ -287,16 +287,9 @@ Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32
 
 SQLite revision persistence (ADR 0013), atomic activation/rollback/bootstrap modes (ADR 0014), and JSON deserialization/in-memory search (ADR 0015) are all implemented and accepted with real CI evidence. `CatalogPipelineIntegrationTests` (slice 9, 2026-09-07) proves the full composition against real SQL Server and a real SQLite control store. This closes the last Milestone 1 backlog item; Milestone 1 is complete.
 
-### `CatalogPipelineIntegrationTests` coverage gaps (not blocking, deferred to a future session)
+### `CatalogPipelineIntegrationTests` coverage gaps — closed (2026-09-09)
 
-The second independent QA pass (above) identified four narrow gaps specific to this one composed real-infrastructure test — not production defects, and each already covered by isolated unit tests elsewhere, but worth folding into the real-infrastructure composition itself when a future session is back in this area:
-
-1. No overlay-declared ("configured", non-FK) relationship is exercised through the real end-to-end path — only FK-discovered relationships are.
-2. No non-ASCII/Unicode overlay text (display names, descriptions) is exercised through the real SQLite round trip.
-3. No overlay entry targets a keyless entity (the fixture has `reporting.InvoiceDetail`/`reporting.InvoiceMonthlySummary` available) through the real path.
-4. No failed-then-succeeded bootstrap sequence is exercised against the real SQL Server-introspected catalog (only against hand-built catalogs in `CatalogBootstrapCoordinatorTests`).
-
-Cheapest fix: extend `CatalogPipelineIntegrationTests`'s existing overlay with a second entity covering 1–3, plus one additional assertion pair for 4 — no new fixture or SQL Server schema change needed. Do not treat this as reopening Milestone 1; it is optional hardening, not a correctness gap.
+The second independent QA pass had identified four narrow gaps specific to this one composed real-infrastructure test (not production defects; each already covered by isolated unit tests elsewhere): no overlay-configured (non-FK) relationship, no non-ASCII overlay text, no overlay entry on a keyless entity, and no failed-then-succeeded bootstrap sequence exercised through the real path. All four were closed by extending the existing test (commit `223ac49`, no production code touched, no new fixture/schema, delegated to a dev-senior sub-agent and independently re-verified against source): an overlay-configured `sales.Invoices` → `archive.Invoices` relationship joined on `InvoiceNumber` (no physical FK links these two tables), a non-ASCII relationship description verified both by direct equality and via `CatalogSearchIndex.Search` after the real round trip, an overlay entry on the genuinely keyless `reporting.InvoiceDetail` view asserting `EffectiveKeyFields` stays empty, and a merge-time catalog-version-mismatch failure run through `CatalogBootstrapCoordinator.RunAsync` against the real SQL-Server-introspected catalog, proving the previously active revision survives untouched and a subsequent valid rebuild recovers. GitHub Actions run [34400385178](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34400385178) passed both `validate` and `sqlserver-integration` for real.
 
 ### Recorded limitations carried from ADR 0014 (not blocking, revisit before real use)
 
