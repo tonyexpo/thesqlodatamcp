@@ -30,6 +30,8 @@ Work includes catalog domain types, canonical/provider type mapping, SQL Server 
 
 **Outcome:** the gateway can accept, validate, compile, and execute the full v1 Canonical Query Model without any raw-SQL escape hatch.
 
+**Status:** In progress. The versioned CQM v1 DTOs, published strict JSON Schema, strict parser/serializer, and catalog-independent structural validator are implemented. Catalog resolution, type inference, expression normalization, join-priority resolution, SQL Server compilation/execution, result envelopes, and operational limits remain pending.
+
 Work includes strict CQM DTOs/schema, expression normalization, type inference, validation codes/paths, join priority, entity and analytical query classification, SQL Server compilation, explicit parameters, pagination, result envelopes, cancellation, timeouts, concurrency and size limits.
 
 **Exit gate:** golden tests prove one `SELECT`, catalog-only identifiers, no inline literals, deterministic aliases, and correct parameters; disposable-SQL integration tests cover entity queries, aggregates, explicit joins, limits, timeout, cancellation, and paging.

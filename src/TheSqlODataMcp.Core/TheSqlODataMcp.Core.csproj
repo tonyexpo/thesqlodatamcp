@@ -15,5 +15,9 @@
     <EmbeddedResource Include="Catalog/Schemas/semantic-overlay.v1.schema.json">
       <LogicalName>TheSqlODataMcp.Core.Catalog.Schemas.semantic-overlay.v1.schema.json</LogicalName>
     </EmbeddedResource>
+    <None Remove="Cqm/Schemas/cqm.v1.schema.json" />
+    <EmbeddedResource Include="Cqm/Schemas/cqm.v1.schema.json">
+      <LogicalName>TheSqlODataMcp.Core.Cqm.Schemas.cqm.v1.schema.json</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
