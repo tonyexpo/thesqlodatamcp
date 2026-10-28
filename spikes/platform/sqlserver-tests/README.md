@@ -15,7 +15,7 @@ network, or external-file source is used.
 
 Without configuration, the integration test starts the pinned
 `mcr.microsoft.com/mssql/server:2022-CU25-ubuntu-22.04` Testcontainers image using
-`Testcontainers.MsSql` 4.8.1, `Microsoft.Data.SqlClient` 6.1.1, and a random
+`Testcontainers.MsSql` 4.14.0, `Microsoft.Data.SqlClient` 6.1.8, and a random
 in-memory container password that is never logged. With
 `THESQLODATAMCP_TEST_SQLSERVER_CONNECTION_STRING` set, it uses that existing SQL
 Server instead. In either mode the supplied connection string is redirected to

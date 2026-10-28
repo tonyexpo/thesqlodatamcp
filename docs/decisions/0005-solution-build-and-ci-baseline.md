@@ -34,3 +34,5 @@ Milestone 0 requires a production solution whose boundaries match the target arc
 ## Subsequent evidence
 
 GitHub Actions run [29778536859](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/29778536859) later passed both the production `validate` job and the dependent owned-Testcontainers integration job. ADR 0004 is now Accepted and Milestone 0 is complete.
+
+The solution now contains five test projects rather than the four named in this decision: `TheSqlODataMcp.Persistence.Tests` was added by ADR 0013 to cover the real SQLite control store. On 2026-10-28, `Microsoft.Data.SqlClient` was also upgraded from the 6.1.1 baseline to 6.1.8 to clear a transitive `System.Security.Cryptography.Pkcs` advisory; see ADR 0004's subsequent-evidence note for the root cause, fix, and required CI revalidation.

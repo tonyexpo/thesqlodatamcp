@@ -1,10 +1,10 @@
 # Development state
 
-**Checkpoint date:** 2026-09-07
+**Checkpoint date:** 2026-10-28
 
 **Branch:** `main`
 
-**Milestone:** 1 — Catalog foundation (complete)
+**Milestone:** 1 — Catalog foundation (complete); next: 2 — CQM and SQL Server query engine (not started)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
@@ -64,7 +64,7 @@ With that policy in place, the project owner asked to proceed with Milestone 1's
 - MCP, OData, OpenIddict, Markdown/YAML, and JSON Schema library seams are fixed by ADR 0003 and their executable spikes.
 - Testcontainers SQL Server infrastructure is fixed by ADR 0004 and its successful intended-runner evidence.
 - The production solution, dependency graph, package placement, shared build policy, configuration conventions, and CI baseline are fixed by ADR 0005.
-- `thesqlodatamcp.slnx` contains exactly five source projects and four test projects; spikes remain outside it.
+- `thesqlodatamcp.slnx` now contains five source projects and five test projects (`TheSqlODataMcp.Persistence.Tests` was added with ADR 0013); spikes remain outside it.
 
 ### Milestone 1 slice 1 — provider-neutral technical Catalog Core
 
@@ -185,7 +185,26 @@ A second, freshly spawned, independent QA pass (no visibility into the implement
 
 This closes the last Milestone 1 backlog item ("Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests"). Milestone 1 — Catalog foundation is complete, CI-verified end to end, and has passed a second independent adversarial review with no defect found.
 
+## Session checkpoint — 2026-10-28 — dependency revalidation and documentation alignment
+
+A fresh status review found that the last CI run (2026-09-09) was green, but a standard `dotnet restore` on 2026-10-28 failed solution-wide with `NU1902`/`NU1903` on `System.Security.Cryptography.Pkcs` 9.0.4, transitively pinned by `Microsoft.Data.SqlClient` 6.1.1. The advisories ([GHSA-846f-f764-76mx](https://github.com/advisories/GHSA-846f-f764-76mx), high, and [GHSA-2fmv-rv2c-59x7](https://github.com/advisories/GHSA-2fmv-rv2c-59x7), moderate) were published on 2026-10-13, after the last successful CI run.
+
+`Microsoft.Data.SqlClient` was upgraded from 6.1.1 to 6.1.8 in `Directory.Packages.props` and in the independently pinned `spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`; 6.1.8 depends on `System.Security.Cryptography.Pkcs` 9.0.21, outside the affected range. `ScaffoldConfigurationTests` now asserts 6.1.8. With the upgrade, restore with NuGet audit enabled, a warning-free build, all 257 non-SQL test cases, the spike's three `FixtureStatic` tests, and the Markdown link check pass locally. `dotnet list package --vulnerable --include-transitive` reports no vulnerable packages for any solution project. The real `Category=SqlServerIntegration` gate was not rerun locally because the pinned image is not cached and local disk space is limited; GitHub Actions must rerun it before this dependency change is accepted. No production source code changed.
+
+The same review found stale documentation: README and roadmap still described Milestone 1 as in progress; architecture listed only four test projects and ADRs through 0012; the development-state header and project count were stale. README, roadmap, architecture, development-state, changelog, and the ADR 0004/0005 subsequent-evidence notes were aligned with the completed Milestone 1 and the new dependency baseline. No product scope changed.
+
 ## QA evidence at this checkpoint
+
+### Local dependency-revalidation evidence (2026-10-28)
+
+- `dotnet restore thesqlodatamcp.slnx` with NuGet audit enabled: passed; no `NU1902`/`NU1903`.
+- `dotnet list thesqlodatamcp.slnx package --vulnerable --include-transitive`: no vulnerable packages reported for any of the ten solution projects.
+- `dotnet build thesqlodatamcp.slnx --no-restore`: passed with zero warnings and zero errors.
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: 257 passed, 0 failed, 0 skipped (Core 124, SqlServer 94, Persistence 34, Integration 4, Protocol 1).
+- `dotnet restore` and `dotnet build` for the independently pinned `spikes/platform/sqlserver-tests/SqlServerTests.ApiSpike.csproj`, followed by its `Category=FixtureStatic` tests: passed; 3 tests.
+- `bash eng/verify-markdown-links.sh`: passed.
+- `Category=SqlServerIntegration` was not rerun locally because the pinned SQL Server image is not cached and local disk space is limited; GitHub Actions revalidation is required.
+- `dotnet format` was not rerun locally because `global.json` pins SDK 10.0.110 while the installed SDK is 10.0.402; build-time code-style enforcement still ran through `EnforceCodeStyleInBuild`.
 
 ### Remote CI evidence
 
@@ -279,6 +298,10 @@ Slice 4A (ADR 0010) is accepted, with real CI evidence in GitHub Actions run `32
 
 Resolved and confirmed against real Docker in GitHub Actions run `32059087651` (see ADR 0004's subsequent-evidence note for the full root cause and fix). No further action required unless a future advisory reappears.
 
+### `Microsoft.Data.SqlClient` / `System.Security.Cryptography.Pkcs` advisory — fixed, CI revalidation pending (2026-10-28)
+
+A new advisory pair published on 2026-10-13 ([GHSA-846f-f764-76mx](https://github.com/advisories/GHSA-846f-f764-76mx), high, and [GHSA-2fmv-rv2c-59x7](https://github.com/advisories/GHSA-2fmv-rv2c-59x7), moderate), affecting `System.Security.Cryptography.Pkcs` 9.0.0–9.0.20, broke solution restore because `Microsoft.Data.SqlClient` 6.1.1 transitively pinned 9.0.4. The package was upgraded to `Microsoft.Data.SqlClient` 6.1.8, which depends on the patched 9.0.21, in both central package management and the independently pinned SQL Server spike. Local restore with audit enabled, warning-free build, 257 non-SQL test cases, and the spike's static tests pass; `dotnet list package --vulnerable --include-transitive` reports no vulnerable packages. The real `Category=SqlServerIntegration` gate and GitHub Actions must still confirm the upgrade before it is accepted.
+
 ### Merging the overlay into the technical catalog
 
 Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32064882285`. This backlog item is closed; no further acceptance work remains for it.
@@ -317,6 +340,6 @@ Milestone 1 (catalog foundation) is complete. The next dependency-ordered work i
 
 1. Run `git status --short --branch`; the primary agent does not push automatically.
 2. Read ADRs 0006–0015 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision/persistence/activation/deserialization/search implementation and tests before extending the catalog domain, or before starting Milestone 2's CQM work.
-3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change. `dotnet` is available locally as of this checkpoint; confirm this is still true before assuming no local build/test capability. Docker/Testcontainers availability varies by session — check `docker info` before assuming `Category=SqlServerIntegration` tests can run locally, and fall back to CI evidence when they cannot.
+3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change. The `dotnet` SDK is installed at `~/.dotnet` (10.0.402 as of 2026-10-28), but `global.json` pins 10.0.110 with `latestPatch`; commands run from inside the repository fail SDK resolution unless the pinned SDK is installed, so use a temporary working directory outside the repository or install the pinned SDK. Docker is available locally as of this checkpoint, but the pinned SQL Server image is not cached and disk space is limited; check `docker info` and free space before assuming `Category=SqlServerIntegration` tests can run locally, and fall back to CI evidence when they cannot.
 4. Use the deterministic SQL Server fixture (`tests/fixtures/reporting-catalog`) for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.

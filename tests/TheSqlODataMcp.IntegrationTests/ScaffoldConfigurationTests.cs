@@ -47,7 +47,7 @@ public sealed class ScaffoldConfigurationTests
         Assert.Equal("7.3.0", packageVersions["JsonSchema.Net"]);
         Assert.Equal("0.42.0", packageVersions["Markdig"]);
         Assert.Equal("9.5.0", packageVersions["Microsoft.AspNetCore.OData"]);
-        Assert.Equal("6.1.1", packageVersions["Microsoft.Data.SqlClient"]);
+        Assert.Equal("6.1.8", packageVersions["Microsoft.Data.SqlClient"]);
         Assert.Equal("10.0.11", packageVersions["Microsoft.EntityFrameworkCore.Design"]);
         Assert.Equal("10.0.11", packageVersions["Microsoft.EntityFrameworkCore.Sqlite"]);
         Assert.Equal("1.4.1", packageVersions["ModelContextProtocol.AspNetCore"]);
