@@ -23,6 +23,11 @@ Milestone 0 is complete: the .NET 10 solution, dependency directions, central pa
 
 ## Product boundaries
 
+**Latest QA (2026-11-02):** the [local adversarial report](./docs/qa-check-2026-11-02T10-54-29Z.md) identifies open
+catalog-hardening and CQM-contract findings despite 324 passing non-SQL tests. The CQM commit and this review remain
+local on `main-qa`, not validated by the older remote CI. See [development state](./docs/development-state.md) for
+exact commit provenance, blocked gates and restart order. Historical milestone acceptance is not production readiness.
+
 - Read-only by construction; no writes or arbitrary commands.
 - No caller-supplied or LLM-generated raw SQL.
 - Runtime database introspection; no static ORM model for reporting data.

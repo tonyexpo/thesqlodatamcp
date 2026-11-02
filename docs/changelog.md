@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Owner-requested [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 - Public project handoff documenting the transition from Qwen 3.6 35B to Codex 5.6 Terra.

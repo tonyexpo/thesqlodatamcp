@@ -50,6 +50,21 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 - [x] Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
 - [x] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.
 
+## Adversarial QA repair gates — 2026-11-02
+
+The [current report](./qa-check-2026-11-02T10-54-29Z.md) supplements the untriaged 2026-10-28 review. Historical
+Milestone 1 positive-path acceptance does not close these demonstrated defects or public-boundary risks.
+
+- [ ] TS-03: detect semantic/overlay-only changes during `ImportIfChanged`, including exposure changes.
+- [ ] TS-04: return structured errors for null YAML subgraphs and numeric overflow; bound input size/depth/alias expansion.
+- [ ] TS-07: make bootstrap's returned revision agree with persisted active selection after clock rollback; avoid loading all historical JSON to select one row.
+- [ ] TS2-01: represent automatic relationship resolution in CQM DTO/schema without implementing an unapproved raw-SQL escape hatch.
+- [ ] TS2-02: define deterministic temporal literal grammar, offset and precision rules; reject incomplete values.
+- [ ] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server CI; keep ADR 0016 Proposed until accepted.
+- [ ] TS-01/02, before public catalog/query hosting: enforce exposed-only views and schema/object configuration, including hidden relationship targets and cross-schema FKs; prove metadata denial with tests.
+- [ ] TS-06, before host/OAuth/admin acceptance: explicit proxy trust list, empty-admin-token denial, MCP Origin policy and startup validation; scaffold values are not implemented security.
+- [ ] Triage TS-05/08/09/10 with evidence: unusual metadata diagnostics, ordinal hash policy, dotted identifiers and supply-chain automation. Do not treat the previous review's hypotheses as reproduced defects.
+
 ## Milestone 2 — CQM and SQL Server query engine
 
 - [x] Define versioned strict CQM DTOs and a published JSON Schema.

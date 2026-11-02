@@ -1,12 +1,37 @@
 # Development state
 
-**Checkpoint date:** 2026-10-28
+**Checkpoint date:** 2026-11-02 (QA branch; development baseline remains 2026-10-28)
 
-**Branch:** `main`
+**Branch:** local `main-qa`; review of local `main` at `dbe98fb` (unpublished)
 
 **Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
+
+## Latest checkpoint — 2026-11-02 — adversarial QA, local only
+
+The [new QA report](./qa-check-2026-11-02T10-54-29Z.md) reviews the unpublished CQM commit `dbe98fb` plus the catalog
+foundation. Local `main-qa` merges that existing commit with `origin/main-qa` (`9603b7f`); neither development nor QA
+is pushed in this task, following the owner's instruction to commit local reviews locally. `origin/main` remains
+`14a7f02`. The local checkout returns to the unchanged `main` after recording QA; read/merge `main-qa` explicitly.
+
+Fresh verification: restore/audit passed, build had 0 warnings/errors, all **324 non-SQL tests passed (0 failed/skipped)**,
+and the Markdown-link check passed. These build/tests used installed SDK 10.0.402 from outside the repo; the pinned
+10.0.110 SDK is absent. Formatter re-resolves the pin and is blocked; real SQL Server tests were not rerun on the
+nearly full local disk. Existing green remote CI on `9603b7f`/`14a7f02` does not validate the unpublished CQM code.
+ADR 0016 therefore remains Proposed, not CI-accepted.
+
+**QA verdict: changes required.** Independent probes reproduced ignored overlay-only refreshes (TS-03), malformed
+YAML causing NullReferenceException/OverflowException (TS-04), hidden entities returned by the internal search index
+(TS-01; not exposed through any current HTTP host), and inconsistent activation after clock rollback (TS-07). New CQM
+findings: automatic-join representation missing (TS2-01), incomplete/host-dependent temporal literals accepted
+(TS2-02). Ordinary duplicate YAML keys correctly return a structured error. Production code is unchanged by QA.
+
+**Next dependency-ordered work:** harden importer and semantic drift/activation; reconcile CQM automatic-join shape
+and temporal grammar with the authoritative contract; rerun pinned-SDK format and real-provider CI before accepting
+ADR 0016; then continue normalization/type inference and join resolution. Track and test exposure/config/proxy/auth
+boundaries before wiring any public adapter. See the explicit QA repair section in backlog; historical milestone
+acceptance below is not evidence that these newly demonstrated cases are fixed.
 
 ## Operating model
 

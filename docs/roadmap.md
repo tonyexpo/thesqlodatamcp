@@ -32,6 +32,10 @@ Work includes catalog domain types, canonical/provider type mapping, SQL Server 
 
 **Status:** In progress. The versioned CQM v1 DTOs, published strict JSON Schema, strict parser/serializer, and catalog-independent structural validator are implemented. Catalog resolution, type inference, expression normalization, join-priority resolution, SQL Server compilation/execution, result envelopes, and operational limits remain pending.
 
+The [2026-11-02 local QA](./qa-check-2026-11-02T10-54-29Z.md) leaves ADR 0016 Proposed: automatic-join representation,
+deterministic temporal literals, pinned-SDK formatting and real-provider CI acceptance need closure. Catalog semantic
+drift/import/activation defects and public-exposure gates are explicitly reopened in [backlog](./backlog.md).
+
 Work includes strict CQM DTOs/schema, expression normalization, type inference, validation codes/paths, join priority, entity and analytical query classification, SQL Server compilation, explicit parameters, pagination, result envelopes, cancellation, timeouts, concurrency and size limits.
 
 **Exit gate:** golden tests prove one `SELECT`, catalog-only identifiers, no inline literals, deterministic aliases, and correct parameters; disposable-SQL integration tests cover entity queries, aggregates, explicit joins, limits, timeout, cancellation, and paging.

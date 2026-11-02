@@ -53,3 +53,11 @@ The v1 operator, function, aggregate, and canonical scalar vocabularies are exac
 Schema diagnostics filter evaluator branch noise so each reported path points at an actionable location. Valid `double`/`json` literals outside decimal range are preserved end to end; the schema evaluator receives a sanitized numeric copy only to avoid a `JsonSchema.Net` decimal-conversion limitation. Errors are collected as stable `code`/`path`/`message` values (`CqmValidationError`) instead of throwing one violation at a time.
 
 Catalog entity/field/relationship resolution, type inference, expression normalization, group-by completeness, join-priority resolution, administrator limits, and SQL compilation are later Milestone 2 slices. No CQM document can execute until those slices exist.
+
+## Pending adversarial findings (2026-11-02)
+
+The [latest local QA](./qa-check-2026-11-02T10-54-29Z.md) found that current strict join construction/schema cannot
+represent the handoff's automatic-relationship case (TS2-01), and permissive temporal parsers accept incomplete or
+host-dependent strings (TS2-02). These are open defects, not supported capability claims. Structural success is not
+catalog/type/operational validation; disconnected joins and expensive scans must still be rejected by later stages.
+ADR 0016 remains Proposed and the CQM slice has no remote CI acceptance yet.
