@@ -31,6 +31,15 @@ Local validation on 2026-08-17: `dotnet restore`/`build` succeed for all project
 
 This slice requires no real SQL Server access — it exercises no provider code — so its only outstanding gate was a green `validate` job on `origin/main`. The first push (commit `05f96e1`) failed `validate` at its very first step, `dotnet restore`, on an unrelated `NU1903` advisory that had newly appeared on a transitive dependency of the SQL Server test infrastructure (see ADR 0004's subsequent-evidence note for the full root cause and fix). After that fix (commit `9a8caf9`), GitHub Actions run [32059087651](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/32059087651) passed both `validate` (55s) and `sqlserver-integration` (67s). ADR 0010 is therefore Accepted.
 
+## Subsequent hardening — 2026-11-02 (TS-04)
+
+The importer now treats malformed input as validation data, not as an exception path: null entity/field/relationship
+entries produce `overlay.schemaViolation`; non-finite numeric scalars produce `overlay.numericOutOfRange`; decimal
+overflow inside schema evaluation is caught; YAML is bounded to 1,000,000 characters, 64 nesting levels and 100,000
+nodes; Markdown is bounded to 2,000,000 characters. Regression tests cover the QA `entities: [null]` and `name: 1e400`
+probes, null nested fields, oversized YAML and deep nesting. Duplicate YAML keys still correctly return
+`overlay.yamlSyntaxInvalid`.
+
 ## Consequences
 
 - Administrators get complete, stable, machine-readable feedback on overlay YAML errors in one pass instead of iterative fix-and-resubmit.

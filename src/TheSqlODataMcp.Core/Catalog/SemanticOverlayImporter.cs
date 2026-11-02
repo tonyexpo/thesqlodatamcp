@@ -27,6 +27,11 @@ namespace TheSqlODataMcp.Core.Catalog;
 /// </remarks>
 public static class SemanticOverlayImporter
 {
+    private const int MaxYamlCharacters = 1_000_000;
+    private const int MaxMarkdownCharacters = 2_000_000;
+    private const int MaxYamlDepth = 64;
+    private const int MaxYamlNodes = 100_000;
+
     private static readonly MarkdownPipeline FrontMatterPipeline = new MarkdownPipelineBuilder().UseYamlFrontMatter().Build();
 
     private static readonly IDeserializer StrictDeserializer = new DeserializerBuilder()
@@ -85,12 +90,44 @@ public static class SemanticOverlayImporter
     {
         var errors = new List<SemanticOverlayValidationError>();
 
+        // Bound the administrator input itself before any parser or schema work: a small compressed or deeply nested
+        // document must not turn into an unbounded allocation (TS-04).
+        if (yaml.Length > MaxYamlCharacters)
+        {
+            return SemanticOverlayImportResult.Failure(
+            [
+                new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.YamlTooLarge,
+                    "$",
+                    $"The YAML metadata is {yaml.Length:N0} characters, above the limit of {MaxYamlCharacters:N0}."),
+            ]);
+        }
+
+        if (markdown.Length > MaxMarkdownCharacters)
+        {
+            return SemanticOverlayImportResult.Failure(
+            [
+                new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.MarkdownTooLarge,
+                    "$",
+                    $"The Markdown narrative is {markdown.Length:N0} characters, above the limit of {MaxMarkdownCharacters:N0}."),
+            ]);
+        }
+
         JsonNode? jsonNode;
         try
         {
             jsonNode = ParseYamlToJson(yaml);
         }
-        catch (YamlException ex)
+        catch (NumericScalarOutOfRangeException ex)
+        {
+            errors.Add(new SemanticOverlayValidationError(
+                SemanticOverlayValidationErrorCodes.NumericOutOfRange,
+                "$",
+                ex.Message));
+            return SemanticOverlayImportResult.Failure(errors);
+        }
+        catch (Exception ex) when (ex is YamlException or NotSupportedException or OverflowException or ArgumentException)
         {
             errors.Add(new SemanticOverlayValidationError(
                 SemanticOverlayValidationErrorCodes.YamlSyntaxInvalid,
@@ -100,9 +137,22 @@ public static class SemanticOverlayImporter
         }
 
         EvaluationResults evaluation;
-        lock (SchemaEvaluationLock)
+        try
         {
-            evaluation = Schema.Evaluate(jsonNode, new EvaluationOptions { OutputFormat = OutputFormat.List });
+            lock (SchemaEvaluationLock)
+            {
+                evaluation = Schema.Evaluate(jsonNode, new EvaluationOptions { OutputFormat = OutputFormat.List });
+            }
+        }
+        catch (Exception ex) when (ex is OverflowException or ArgumentException or InvalidOperationException)
+        {
+            // JsonSchema.Net converts numbers to decimal while evaluating. A finite double outside decimal's range,
+            // or a non-finite token that slipped through, is a validation result, not a process failure.
+            errors.Add(new SemanticOverlayValidationError(
+                SemanticOverlayValidationErrorCodes.NumericOutOfRange,
+                "$",
+                $"A numeric value is outside the range the schema evaluator can represent: {ex.Message}"));
+            return SemanticOverlayImportResult.Failure(errors);
         }
 
         if (!evaluation.IsValid)
@@ -167,6 +217,15 @@ public static class SemanticOverlayImporter
             var entityDto = dto.Entities[entityIndex];
             var entityPath = string.Create(CultureInfo.InvariantCulture, $"$.entities[{entityIndex}]");
 
+            if (entityDto is null)
+            {
+                errors.Add(new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.SchemaViolation,
+                    entityPath,
+                    "An entities entry cannot be null."));
+                continue;
+            }
+
             if (string.IsNullOrWhiteSpace(entityDto.Source))
             {
                 // Already reported as a required-field schema violation; nothing further to check here.
@@ -197,11 +256,20 @@ public static class SemanticOverlayImporter
                 ? null
                 : new HashSet<string>(physicalEntity.Fields.Select(static field => field.Name), StringComparer.Ordinal);
 
-            if (physicalFieldNames is not null && entityDto.Fields is not null)
+            if (entityDto.Fields is not null)
             {
-                foreach (var fieldKey in entityDto.Fields.Keys)
+                foreach (var (fieldKey, fieldDto) in entityDto.Fields)
                 {
-                    if (!physicalFieldNames.Contains(fieldKey))
+                    if (fieldDto is null)
+                    {
+                        errors.Add(new SemanticOverlayValidationError(
+                            SemanticOverlayValidationErrorCodes.SchemaViolation,
+                            $"{entityPath}.fields.{fieldKey}",
+                            "A fields entry cannot be null."));
+                        continue;
+                    }
+
+                    if (physicalFieldNames is not null && !physicalFieldNames.Contains(fieldKey))
                     {
                         errors.Add(new SemanticOverlayValidationError(
                             SemanticOverlayValidationErrorCodes.FieldNotFound,
@@ -218,6 +286,15 @@ public static class SemanticOverlayImporter
 
             foreach (var (relationshipName, relationshipDto) in entityDto.Relationships)
             {
+                if (relationshipDto is null)
+                {
+                    errors.Add(new SemanticOverlayValidationError(
+                        SemanticOverlayValidationErrorCodes.SchemaViolation,
+                        $"{entityPath}.relationships.{relationshipName}",
+                        "A relationships entry cannot be null."));
+                    continue;
+                }
+
                 ValidateRelationship(entityPath, relationshipName, relationshipDto, entityDto.Source, physicalFieldNames, catalogByIdentity, errors);
             }
         }
@@ -403,35 +480,54 @@ public static class SemanticOverlayImporter
         using var reader = new StringReader(yaml);
         var stream = new YamlStream();
         stream.Load(reader);
-        return stream.Documents.Count == 0 ? new JsonObject() : ConvertYamlNode(stream.Documents[0].RootNode);
+        if (stream.Documents.Count == 0)
+        {
+            return new JsonObject();
+        }
+
+        var nodeCount = 0;
+        return ConvertYamlNode(stream.Documents[0].RootNode, depth: 0, ref nodeCount);
     }
 
-    private static JsonNode? ConvertYamlNode(YamlNode node) => node switch
+    private static JsonNode? ConvertYamlNode(YamlNode node, int depth, ref int nodeCount)
     {
-        YamlScalarNode scalar => ConvertScalar(scalar),
-        YamlSequenceNode sequence => ConvertSequence(sequence),
-        YamlMappingNode mapping => ConvertMapping(mapping),
-        _ => throw new NotSupportedException($"Unsupported YAML node type '{node.GetType().Name}'."),
-    };
+        if (depth > MaxYamlDepth)
+        {
+            throw new YamlException($"The YAML document is nested deeper than {MaxYamlDepth} levels.");
+        }
 
-    private static JsonArray ConvertSequence(YamlSequenceNode sequence)
+        if (++nodeCount > MaxYamlNodes)
+        {
+            throw new YamlException($"The YAML document contains more than {MaxYamlNodes:N0} nodes.");
+        }
+
+        return node switch
+        {
+            YamlScalarNode scalar => ConvertScalar(scalar),
+            YamlSequenceNode sequence => ConvertSequence(sequence, depth + 1, ref nodeCount),
+            YamlMappingNode mapping => ConvertMapping(mapping, depth + 1, ref nodeCount),
+            _ => throw new NotSupportedException($"Unsupported YAML node type '{node.GetType().Name}'."),
+        };
+    }
+
+    private static JsonArray ConvertSequence(YamlSequenceNode sequence, int depth, ref int nodeCount)
     {
         var array = new JsonArray();
         foreach (var child in sequence.Children)
         {
-            array.Add(ConvertYamlNode(child));
+            array.Add(ConvertYamlNode(child, depth, ref nodeCount));
         }
 
         return array;
     }
 
-    private static JsonObject ConvertMapping(YamlMappingNode mapping)
+    private static JsonObject ConvertMapping(YamlMappingNode mapping, int depth, ref int nodeCount)
     {
         var obj = new JsonObject();
         foreach (var entry in mapping.Children)
         {
             var key = entry.Key is YamlScalarNode keyScalar ? keyScalar.Value ?? string.Empty : entry.Key.ToString();
-            obj[key] = ConvertYamlNode(entry.Value);
+            obj[key] = ConvertYamlNode(entry.Value, depth, ref nodeCount);
         }
 
         return obj;
@@ -464,6 +560,13 @@ public static class SemanticOverlayImporter
 
             if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
             {
+                // A non-finite token (for example 1e400) is not representable as a JSON number. It is an invalid
+                // numeric scalar, not a string, and must not reach the schema evaluator as Infinity.
+                if (!double.IsFinite(doubleValue))
+                {
+                    throw new NumericScalarOutOfRangeException(value);
+                }
+
                 return JsonValue.Create(doubleValue);
             }
         }
@@ -487,6 +590,14 @@ public static class SemanticOverlayImporter
                 var message = string.IsNullOrEmpty(error.Key) ? error.Value : $"{error.Key}: {error.Value}";
                 yield return new SemanticOverlayValidationError(SemanticOverlayValidationErrorCodes.SchemaViolation, path, message);
             }
+        }
+    }
+
+    private sealed class NumericScalarOutOfRangeException : Exception
+    {
+        public NumericScalarOutOfRangeException(string value)
+            : base($"The numeric scalar '{value}' is outside the finite range supported by the overlay contract.")
+        {
         }
     }
 

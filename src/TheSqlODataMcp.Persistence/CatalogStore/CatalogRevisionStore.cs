@@ -37,35 +37,65 @@ public sealed class CatalogRevisionStore
     /// <summary>
     /// Reads back the currently active revision — the row with the greatest non-null
     /// <see cref="StoredCatalogRevision.ActivatedAt"/> — or null if no revision has ever been activated.
-    /// Ordering happens client-side: SQLite's EF Core provider cannot translate an ORDER BY over
-    /// <see cref="DateTimeOffset"/> into SQL, and the set of ever-activated rows is small in practice.
+    /// Only the id and timestamp are loaded for the selection; the full row (including the catalog JSON blobs)
+    /// is loaded once, after the winner is known. This keeps historical revisions out of memory even when
+    /// <c>AlwaysImport</c> has accumulated many of them.
     /// </summary>
     public async Task<StoredCatalogRevision?> GetActiveAsync(CancellationToken cancellationToken)
     {
         var activated = await dbContext.CatalogRevisions
             .AsNoTracking()
             .Where(revision => revision.ActivatedAt != null)
+            .Select(revision => new { revision.Id, revision.ActivatedAt })
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return activated
+        // SQLite's EF Core provider cannot translate ORDER BY over DateTimeOffset; the projection above makes
+        // the client-side sort cheap because no catalog JSON is materialized.
+        var activeId = activated
             .OrderByDescending(revision => revision.ActivatedAt)
             .ThenByDescending(revision => revision.Id)
+            .Select(revision => (long?)revision.Id)
             .FirstOrDefault();
+
+        return activeId is null ? null : await GetAsync(activeId.Value, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Atomically marks revision <paramref name="id"/> as active as of <paramref name="activatedAt"/> — a
     /// single tracked-entity update through one <see cref="DbContext.SaveChangesAsync(CancellationToken)"/>
-    /// call. Throws <see cref="ArgumentException"/> if no such revision exists, or
-    /// <see cref="InvalidOperationException"/> (via <see cref="StoredCatalogRevision.Activate"/>) if it
-    /// failed — a failed revision can never become active, which is what makes last-valid rollback
-    /// automatic: the caller simply never reaches a state where the previously active row is disturbed.
+    /// call. Activation timestamps must strictly increase: a clock rollback is rejected instead of producing a
+    /// row that <see cref="GetActiveAsync"/> would not select. Throws <see cref="ArgumentException"/> if no such
+    /// revision exists, <see cref="InvalidOperationException"/> if the revision failed or the timestamp is not
+    /// monotonically increasing — a failed revision or a rejected activation never disturbs the active row.
     /// </summary>
     public async Task ActivateAsync(long id, DateTimeOffset activatedAt, CancellationToken cancellationToken)
     {
         var revision = await dbContext.CatalogRevisions.SingleOrDefaultAsync(revision => revision.Id == id, cancellationToken).ConfigureAwait(false)
             ?? throw new ArgumentException($"No catalog revision with id {id} exists.", nameof(id));
+
+        var active = await dbContext.CatalogRevisions
+            .AsNoTracking()
+            .Where(revision => revision.ActivatedAt != null)
+            .Select(revision => new { revision.Id, revision.ActivatedAt })
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var current = active
+            .OrderByDescending(revision => revision.ActivatedAt)
+            .ThenByDescending(revision => revision.Id)
+            .FirstOrDefault();
+
+        if (current is not null
+            && current.ActivatedAt is { } currentActivatedAt
+            && (activatedAt < currentActivatedAt
+                || (activatedAt == currentActivatedAt && id <= current.Id)))
+        {
+            throw new InvalidOperationException(
+                $"Catalog revision {id} cannot be activated at {activatedAt:O}: the active revision "
+                + $"{current.Id} is already active at {currentActivatedAt:O}. Activation timestamps must increase "
+                + "monotonically, so a clock rollback cannot create a revision that GetActiveAsync would not select.");
+        }
 
         revision.Activate(activatedAt);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

@@ -30,11 +30,12 @@ Work includes catalog domain types, canonical/provider type mapping, SQL Server 
 
 **Outcome:** the gateway can accept, validate, compile, and execute the full v1 Canonical Query Model without any raw-SQL escape hatch.
 
-**Status:** In progress. The versioned CQM v1 DTOs, published strict JSON Schema, strict parser/serializer, and catalog-independent structural validator are implemented. Catalog resolution, type inference, expression normalization, join-priority resolution, SQL Server compilation/execution, result envelopes, and operational limits remain pending.
+**Status:** In progress. The versioned CQM v1 DTOs, published strict JSON Schema, strict parser/serializer, and catalog-independent structural validator are implemented, including automatic-join representation and the deterministic temporal grammar. Catalog resolution, type inference, expression normalization, join-priority resolution, SQL Server compilation/execution, result envelopes, and operational limits remain pending.
 
-The [2026-11-02 local QA](./qa-check-2026-11-02T10-54-29Z.md) leaves ADR 0016 Proposed: automatic-join representation,
-deterministic temporal literals, pinned-SDK formatting and real-provider CI acceptance need closure. Catalog semantic
-drift/import/activation defects and public-exposure gates are explicitly reopened in [backlog](./backlog.md).
+The [2026-11-02 local QA](./qa-check-2026-11-02T10-54-29Z.md) was closed locally: TS-03/04/07 and TS2-01/02 have
+regressions, and TS-01 has the `CatalogReadView` Core boundary. The pinned SDK formatter and real-SQL integration pass
+locally; ADR 0016 remains Proposed until remote CI and the independent QA of this fix cycle accept it. TS-02/06 and
+adapter wiring remain explicit Milestone 3/4/5 gates.
 
 Work includes strict CQM DTOs/schema, expression normalization, type inference, validation codes/paths, join priority, entity and analytical query classification, SQL Server compilation, explicit parameters, pagination, result envelopes, cancellation, timeouts, concurrency and size limits.
 

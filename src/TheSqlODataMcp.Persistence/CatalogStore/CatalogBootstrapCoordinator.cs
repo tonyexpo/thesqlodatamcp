@@ -36,18 +36,34 @@ public sealed class CatalogBootstrapCoordinator
         ArgumentNullException.ThrowIfNull(technicalCatalog);
 
         var active = await store.GetActiveAsync(cancellationToken).ConfigureAwait(false);
-        var freshHash = TechnicalCatalogCanonicalJson.ComputeStructuralHash(technicalCatalog);
-        var changed = active is null || !string.Equals(active.TechnicalHash, freshHash, StringComparison.Ordinal);
+
+        if (mode == CatalogBootstrapMode.Disabled)
+        {
+            return active;
+        }
+
+        // ImportIfChanged must compare the candidate revision's whole outcome, not only the technical hash: an
+        // overlay-only edit (exposure, description, relationship) leaves the physical catalog identical but changes
+        // what the gateway may expose (TS-03). AlwaysImport still needs a candidate to save.
+        CatalogRevision? candidate = null;
+        var changed = true;
+
+        if (active is null || mode is CatalogBootstrapMode.ImportIfChanged or CatalogBootstrapMode.AlwaysImport)
+        {
+            candidate = CatalogRevisionFactory.Create(technicalCatalog, overlay, now);
+            var candidateStored = CatalogRevisionMapper.ToStored(technicalCatalog, candidate);
+            changed = active is null || !SameOutcome(active, candidateStored);
+        }
 
         if (!CatalogBootstrapPolicy.ShouldImport(mode, active is not null, changed))
         {
             return active;
         }
 
-        var revision = CatalogRevisionFactory.Create(technicalCatalog, overlay, now);
-        var id = await store.SaveAsync(technicalCatalog, revision, cancellationToken).ConfigureAwait(false);
+        candidate ??= CatalogRevisionFactory.Create(technicalCatalog, overlay, now);
+        var id = await store.SaveAsync(technicalCatalog, candidate, cancellationToken).ConfigureAwait(false);
 
-        if (!revision.Succeeded)
+        if (!candidate.Succeeded)
         {
             return active;
         }
@@ -55,4 +71,10 @@ public sealed class CatalogBootstrapCoordinator
         await store.ActivateAsync(id, now, cancellationToken).ConfigureAwait(false);
         return await store.GetAsync(id, cancellationToken).ConfigureAwait(false);
     }
+
+    private static bool SameOutcome(StoredCatalogRevision active, StoredCatalogRevision candidate) =>
+        active.Status == candidate.Status
+        && string.Equals(active.TechnicalHash, candidate.TechnicalHash, StringComparison.Ordinal)
+        && string.Equals(active.MergedHash, candidate.MergedHash, StringComparison.Ordinal)
+        && string.Equals(active.ValidationResultJson, candidate.ValidationResultJson, StringComparison.Ordinal);
 }

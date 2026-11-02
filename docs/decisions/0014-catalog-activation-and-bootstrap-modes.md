@@ -37,10 +37,21 @@ Implemented directly by the primary agent. Verified locally:
 
 Confirmed in CI: [GitHub Actions run 34055825384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34055825384) on commit `4e738ddeda5609c9bb6ac9d3197d21574da471da` — both the `validate` job (build/test/format/link-check) and the `sqlserver-integration` job passed.
 
+## Subsequent hardening — 2026-11-02 (TS-03 / TS-07)
+
+`ImportIfChanged` now compares the candidate revision's full outcome (status, technical hash, merged hash and
+serialized validation errors), so a semantic-overlay-only edit such as `exposed:false` is not ignored. Activation
+timestamps must strictly increase: a clock rollback is rejected before the active row is touched, and the previous
+valid revision stays selected. `GetActiveAsync` projects only `Id`/`ActivatedAt` for the selection and loads the full
+JSON row once for the winner, so historical revisions are no longer materialized just to choose one.
+
 ## Consequences
 
 - The control store can now answer "what is the active revision" and "activate this one," and a caller can implement any of the four bootstrap modes without re-deriving the decision logic.
 - Milestone 3's actual host startup sequence has a tested `CatalogBootstrapCoordinator` to call into; it still needs to supply real SQL Server introspection, a loaded `SemanticOverlay`, and (per the handoff's lifecycle step 3, "load last active revision") a JSON→domain deserializer for the case where no rebuild happens but the process still needs a live `MergedCatalog` in memory.
 - No in-memory catalog/search index exists yet; `GetActiveAsync` returns only the raw stored row. This is deliberate, recorded scope, not an oversight.
-- `GetActiveAsync`'s ever-activated row set (and the JSON blobs it materializes per row) grows unboundedly over a deployment's lifetime under `AlwaysImport`, since `ActivatedAt` is never cleared on supersession and no pruning/retention policy exists yet. Revisit before `AlwaysImport` sees real production use.
+- The ever-activated row set still grows unboundedly over a deployment's lifetime under `AlwaysImport`, since
+  `ActivatedAt` is never cleared on supersession and no pruning/retention policy exists yet. The active-selection
+  query now projects only id/timestamp, so it does not materialize historical JSON; revisit retention before
+  `AlwaysImport` sees real production use.
 - `CatalogBootstrapCoordinator.RunAsync` assumes a single caller at a time (consistent with `docs/architecture.md`'s already-documented single-instance v1 constraint): it covers `GetActiveAsync → decide → SaveAsync → ActivateAsync` with no transaction or lock, so concurrent invocations could activate the wrong revision relative to real commit order. Milestone 3 must not call this from more than one place (e.g. a startup path and a concurrent admin-triggered refresh) without adding that coordination.

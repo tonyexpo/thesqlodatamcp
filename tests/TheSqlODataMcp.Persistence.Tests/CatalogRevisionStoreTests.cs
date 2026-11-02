@@ -183,6 +183,27 @@ public sealed class CatalogRevisionStoreTests
     }
 
     [Fact]
+    public async Task ActivationWithAnEarlierClockIsRejectedAndThePreviousRevisionStaysActive()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var store = new CatalogRevisionStore(fixture.DbContext);
+        var catalog = CreateCatalog();
+        var revision = CatalogRevisionFactory.Create(catalog, overlay: null, CreatedAt);
+        var firstId = await store.SaveAsync(catalog, revision, timeout.Token);
+        var secondId = await store.SaveAsync(catalog, revision, timeout.Token);
+        await store.ActivateAsync(firstId, CreatedAt.AddMinutes(1), timeout.Token);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => store.ActivateAsync(secondId, CreatedAt, timeout.Token));
+
+        Assert.Contains("monotonically", exception.Message, StringComparison.Ordinal);
+        var active = await store.GetActiveAsync(timeout.Token);
+        Assert.Equal(firstId, active!.Id);
+        Assert.Equal(CreatedAt.AddMinutes(1), active.ActivatedAt);
+    }
+
+    [Fact]
     public async Task ActivateThrowsForAnUnknownId()
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));

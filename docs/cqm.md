@@ -54,10 +54,31 @@ Schema diagnostics filter evaluator branch noise so each reported path points at
 
 Catalog entity/field/relationship resolution, type inference, expression normalization, group-by completeness, join-priority resolution, administrator limits, and SQL compilation are later Milestone 2 slices. No CQM document can execute until those slices exist.
 
-## Pending adversarial findings (2026-11-02)
+## Join shape
 
-The [latest local QA](./qa-check-2026-11-02T10-54-29Z.md) found that current strict join construction/schema cannot
-represent the handoff's automatic-relationship case (TS2-01), and permissive temporal parsers accept incomplete or
-host-dependent strings (TS2-02). These are open defects, not supported capability claims. Structural success is not
-catalog/type/operational validation; disconnected joins and expensive scans must still be rejected by later stages.
-ADR 0016 remains Proposed and the CQM slice has no remote CI acceptance yet.
+A v1 join carries **at most one** of `on` and `relationship`. If `on` is present it wins; if `relationship` is present
+it names a catalog relationship; if both are absent the resolver must later use the one unambiguous discovered or
+configured relationship for the pair. Both present is rejected by the schema and by direct construction. The resolver
+itself, including ambiguity errors, is a later Milestone 2 slice; structural acceptance of the automatic shape does not
+mean the join is executable yet.
+
+## Temporal literals
+
+The wire grammar is canonical, culture-independent and exact (TS2-02):
+
+| Type | Accepted form |
+| --- | --- |
+| `date` | `yyyy-MM-dd` |
+| `time` | `HH:mm:ss` or `HH:mm:ss.FFFFFFF` (1–7 fractional digits) |
+| `datetime` | `yyyy-MM-ddTHH:mm:ss` or `yyyy-MM-ddTHH:mm:ss.FFFFFFF` (no offset) |
+| `datetimeOffset` | the `datetime` form plus a mandatory `Z` or `±HH:mm`, with optional 1–7 fractional digits |
+
+Incomplete values, date-only datetimes, missing offsets, offset-bearing `datetime` and more than seven fractional
+digits are rejected. No normalization or rounding is applied.
+
+## Local QA closure (2026-11-02)
+
+The [latest local QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; both are fixed in the contract with
+regression tests. Structural success is still not catalog/type/operational validation: disconnected joins and expensive
+scans must be rejected by later resolver/type/limit stages. ADR 0016 remains Proposed until remote CI and the independent
+QA of the local fix cycle accept it.

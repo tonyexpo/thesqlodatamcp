@@ -55,15 +55,21 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 The [current report](./qa-check-2026-11-02T10-54-29Z.md) supplements the untriaged 2026-10-28 review. Historical
 Milestone 1 positive-path acceptance does not close these demonstrated defects or public-boundary risks.
 
-- [ ] TS-03: detect semantic/overlay-only changes during `ImportIfChanged`, including exposure changes.
-- [ ] TS-04: return structured errors for null YAML subgraphs and numeric overflow; bound input size/depth/alias expansion.
-- [ ] TS-07: make bootstrap's returned revision agree with persisted active selection after clock rollback; avoid loading all historical JSON to select one row.
-- [ ] TS2-01: represent automatic relationship resolution in CQM DTO/schema without implementing an unapproved raw-SQL escape hatch.
-- [ ] TS2-02: define deterministic temporal literal grammar, offset and precision rules; reject incomplete values.
-- [ ] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server CI; keep ADR 0016 Proposed until accepted.
-- [ ] TS-01/02, before public catalog/query hosting: enforce exposed-only views and schema/object configuration, including hidden relationship targets and cross-schema FKs; prove metadata denial with tests.
+- [x] TS-03: detect semantic/overlay-only changes during `ImportIfChanged`, including exposure changes. Candidate status,
+      technical/merged hashes and validation outcome are compared; real-SQLite regression added.
+- [x] TS-04: return structured errors for null YAML subgraphs and numeric overflow; bound input size/depth/alias expansion.
+- [x] TS-07: make bootstrap's returned revision agree with persisted active selection after clock rollback; avoid loading all historical JSON to select one row. Non-monotonic activation is rejected; selection projects id/timestamp before loading one row.
+- [x] TS2-01: represent automatic relationship resolution in CQM DTO/schema without implementing an unapproved raw-SQL escape hatch. Both absent is valid; both present is rejected.
+- [x] TS2-02: define deterministic temporal literal grammar, offset and precision rules; reject incomplete values.
+- [x] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server **locally**; keep ADR 0016 Proposed until remote CI and independent QA accept it.
+- [x] TS-01: add the exposed-only `CatalogReadView` Core boundary and tests (hidden entities, hidden-target relationships,
+      warnings/Markdown). **Still open for wiring** into every public adapter in Milestone 3/4.
+- [ ] TS-02, before public catalog/query hosting: make `IncludedSchemas`/`ExcludedObjects` SQL-side introspector options,
+      define cross-boundary FK behavior, and validate them at startup.
 - [ ] TS-06, before host/OAuth/admin acceptance: explicit proxy trust list, empty-admin-token denial, MCP Origin policy and startup validation; scaffold values are not implemented security.
-- [ ] Triage TS-05/08/09/10 with evidence: unusual metadata diagnostics, ordinal hash policy, dotted identifiers and supply-chain automation. Do not treat the previous review's hypotheses as reproduced defects.
+- [x] Triage TS-05/08/09/10 with evidence: unusual metadata diagnostics, ordinal hash policy, dotted identifiers and
+      supply-chain automation. No previous hypothesis is promoted to a reproduced defect; they remain design/automation debt.
+- [ ] Wire `CatalogReadView` into JSON/OData/MCP catalog and query surfaces before Milestone 3/4 exposes metadata.
 
 ## Milestone 2 — CQM and SQL Server query engine
 

@@ -88,16 +88,58 @@ public sealed class CqmLiteralExpression : CqmExpression
         CanonicalScalarType.Date => value.ValueKind == JsonValueKind.String
             && DateOnly.TryParseExact(value.GetString()!, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _),
         CanonicalScalarType.Time => value.ValueKind == JsonValueKind.String
-            && TimeOnly.TryParse(value.GetString()!, CultureInfo.InvariantCulture, DateTimeStyles.None, out _),
+            && IsCanonicalTime(value.GetString()!),
         CanonicalScalarType.DateTime => value.ValueKind == JsonValueKind.String
-            && DateTime.TryParse(value.GetString()!, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out _),
+            && IsCanonicalDateTime(value.GetString()!),
         CanonicalScalarType.DateTimeOffset => value.ValueKind == JsonValueKind.String
-            && DateTimeOffset.TryParse(value.GetString()!, CultureInfo.InvariantCulture, DateTimeStyles.None, out _),
+            && IsCanonicalDateTimeOffset(value.GetString()!),
         CanonicalScalarType.Binary => value.ValueKind == JsonValueKind.String
             && IsBase64(value.GetString()!),
         CanonicalScalarType.Json => true,
         _ => false,
     };
+
+    /// <summary>
+    /// Canonical time-only grammar: a complete <c>HH:mm:ss</c> with up to seven fractional digits. No date, no
+    /// timezone, no culture-dependent parsing (TS2-02).
+    /// </summary>
+    private static bool IsCanonicalTime(string value) =>
+        TimeOnly.TryParseExact(
+            value,
+            ["HH:mm:ss", "HH:mm:ss.FFFFFFF"],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _);
+
+    /// <summary>
+    /// Canonical local datetime grammar: complete date and time with the <c>T</c> separator and up to seven fractional
+    /// digits. An offset is deliberately not accepted here; use <c>datetimeOffset</c> when the instant is offset-bearing.
+    /// </summary>
+    private static bool IsCanonicalDateTime(string value) =>
+        DateTime.TryParseExact(
+            value,
+            ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF"],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _);
+
+    /// <summary>
+    /// Canonical offset datetime grammar: complete date and time, <c>T</c> separator, up to seven fractional digits,
+    /// and a mandatory <c>Z</c> or <c>±HH:mm</c> offset.
+    /// </summary>
+    private static bool IsCanonicalDateTimeOffset(string value) =>
+        DateTimeOffset.TryParseExact(
+            value,
+            ["yyyy-MM-dd'T'HH:mm:sszzz", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz"],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out _)
+        || DateTimeOffset.TryParseExact(
+            value,
+            ["yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'"],
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out _);
 
     internal static bool IsJsonZero(JsonElement value)
     {

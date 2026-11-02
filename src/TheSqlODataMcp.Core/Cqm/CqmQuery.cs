@@ -123,8 +123,9 @@ public enum CqmJoinType
 }
 
 /// <summary>
-/// One join. Exactly one of <see cref="On"/> and <see cref="Relationship"/> is present: an explicit
-/// condition always wins, while a named relationship defers resolution to the catalog.
+/// One join. At most one of <see cref="On"/> and <see cref="Relationship"/> is present: an explicit
+/// condition always wins, a named relationship defers resolution to the catalog, and neither asks the
+/// resolver to use the one unambiguous discovered/configured relationship for the pair.
 /// </summary>
 public sealed class CqmJoin
 {
@@ -136,9 +137,9 @@ public sealed class CqmJoin
         }
 
         ArgumentNullException.ThrowIfNull(source);
-        if ((on is null) == (relationship is null))
+        if (on is not null && relationship is not null)
         {
-            throw new ArgumentException("Exactly one of on or relationship is required.", nameof(on));
+            throw new ArgumentException("on and relationship are mutually exclusive; omit both for automatic resolution.", nameof(on));
         }
 
         Type = type;

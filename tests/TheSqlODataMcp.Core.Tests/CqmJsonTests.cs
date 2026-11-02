@@ -687,27 +687,6 @@ public sealed class CqmJsonTests
     }
 
     [Fact]
-    public void JoinWithoutAConditionIsRejectedByTheSchema()
-    {
-        var result = CqmJson.Deserialize("""
-            {
-              "version": "1.0",
-              "from": { "entity": "sales.Invoices", "alias": "i" },
-              "joins": [
-                {
-                  "type": "inner",
-                  "source": { "entity": "sales.Customers", "alias": "c" }
-                }
-              ],
-              "page": { "limit": 10, "offset": 0 }
-            }
-            """);
-
-        Assert.False(result.Succeeded);
-        Assert.Contains(result.Errors, error => error.Code == CqmValidationErrorCodes.SchemaViolation && error.Path == "$.joins[0]");
-    }
-
-    [Fact]
     public void NonCountAggregateWithoutExpressionIsRejectedByTheSchema()
     {
         var result = CqmJson.Deserialize("""
@@ -809,6 +788,71 @@ public sealed class CqmJsonTests
 
         Assert.False(result.Succeeded);
         Assert.Contains(result.Errors, error => error.Code == CqmValidationErrorCodes.SchemaViolation && error.Path == "$.from.alias");
+    }
+
+    [Fact]
+    public void JoinWithNeitherOnNorRelationshipRepresentsAutomaticResolution()
+    {
+        var result = CqmJson.Deserialize("""
+            {
+              "version": "1.0",
+              "from": { "entity": "sales.Secrets", "alias": "s" },
+              "joins": [
+                {
+                  "type": "inner",
+                  "source": { "entity": "sales.Other", "alias": "o" }
+                }
+              ],
+              "page": { "limit": 10, "offset": 0 }
+            }
+            """);
+
+        Assert.True(result.Succeeded, FormatErrors(result));
+        var join = Assert.Single(result.Query!.Joins);
+        Assert.Null(join.On);
+        Assert.Null(join.Relationship);
+    }
+
+    [Theory]
+    [InlineData("time", "12:30:00", true)]
+    [InlineData("time", "12:30:00.1234567", true)]
+    [InlineData("time", "November 2", false)]
+    [InlineData("time", "2026-11-02T12:30:00", false)]
+    [InlineData("time", "12:30", false)]
+    [InlineData("datetime", "2026-11-02T12:30:00", true)]
+    [InlineData("datetime", "2026-11-02T12:30:00.1234567", true)]
+    [InlineData("datetime", "12:30", false)]
+    [InlineData("datetime", "2026-11-02", false)]
+    [InlineData("datetime", "2026-11-02T12:30:00Z", false)]
+    [InlineData("datetimeOffset", "2026-11-02T12:30:00Z", true)]
+    [InlineData("datetimeOffset", "2026-11-02T12:30:00.1234567+02:00", true)]
+    [InlineData("datetimeOffset", "12:30", false)]
+    [InlineData("datetimeOffset", "2026-11-02T12:30:00", false)]
+    [InlineData("datetimeOffset", "2026-11-02T12:30:00.123456789Z", false)]
+    public void TemporalLiteralsUseACompleteDeterministicGrammar(string type, string value, bool accepted)
+    {
+        var result = CqmJson.Deserialize($$"""
+            {
+              "version": "1.0",
+              "from": { "entity": "sales.Invoices", "alias": "i" },
+              "where": {
+                "operator": "eq",
+                "arguments": [
+                  { "field": "i.Id" },
+                  { "value": "{{value}}", "type": "{{type}}" }
+                ]
+              },
+              "page": { "limit": 10, "offset": 0 }
+            }
+            """);
+
+        Assert.Equal(accepted, result.Succeeded);
+        if (!accepted)
+        {
+            Assert.Contains(
+                result.Errors,
+                error => error.Code is CqmValidationErrorCodes.DeserializationFailed or CqmValidationErrorCodes.SchemaViolation);
+        }
     }
 
     [Fact]

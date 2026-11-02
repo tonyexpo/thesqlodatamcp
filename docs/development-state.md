@@ -1,14 +1,36 @@
 # Development state
 
-**Checkpoint date:** 2026-11-02 (QA branch; development baseline remains 2026-10-28)
+**Checkpoint date:** 2026-11-02 (local fix cycle; `main` not pushed)
 
-**Branch:** local `main-qa`; review of local `main` at `dbe98fb` (unpublished)
+**Branch:** local `main`; `main-qa` merged before the fixes; origin unchanged
 
-**Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete)
+**Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete locally)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-02 — adversarial QA, local only
+## Latest checkpoint — 2026-11-02 — local fix cycle
+
+The local `main` now contains the fixes for the [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), on top
+of the previously unpublished CQM commit `dbe98fb` and the fast-forwarded QA documentation. No push was performed.
+
+- TS-03: `ImportIfChanged` compares the candidate revision's status, technical hash, merged hash and validation
+  outcome, so an overlay-only exposure change is imported and activated (real-SQLite regression).
+- TS-04: invalid overlay subgraphs and numeric values return stable errors; YAML/Markdown size, YAML depth and node
+  count are bounded.
+- TS-07: non-monotonic activation is rejected and the previous active revision stays selected; active selection loads
+  only id/timestamp before the one full row.
+- TS2-01: a join may omit both `on` and `relationship` (automatic resolution); both present remains invalid.
+- TS2-02: canonical temporal grammar (complete time/datetime; mandatory offset for `datetimeOffset`; 1–7 fractional
+  digits).
+- TS-01: `CatalogReadView` filters hidden entities and hidden-target relationships for protocols; adapters must wire it
+  before Milestone 3/4.
+- TS-02/TS-06 remain pre-hosting/auth gates. TS-05/08/09/10 remain triage/design debt with no new reproduction claim.
+
+Verification uses the pinned SDK 10.0.110: warning-free build; **349 non-SQL tests** (Core 213, Persistence 37, SqlServer
+94, Integration 4, Protocol 1); **2 real SQL Server integration tests**; `dotnet format --verify-no-changes`; Markdown
+links. ADR 0016 remains Proposed pending remote CI and an independent QA of this fix cycle.
+
+## Previous checkpoint — 2026-11-02 — adversarial QA, local only
 
 The [new QA report](./qa-check-2026-11-02T10-54-29Z.md) reviews the unpublished CQM commit `dbe98fb` plus the catalog
 foundation. Local `main-qa` merges that existing commit with `origin/main-qa` (`9603b7f`); neither development nor QA

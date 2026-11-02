@@ -73,6 +73,18 @@ public static class SemanticOverlayValidationErrorCodes
 
     /// <summary>A join pair's <c>targetField</c> does not resolve to a field on the relationship's target entity.</summary>
     public const string JoinTargetFieldNotFound = "overlay.joinTargetFieldNotFound";
+
+    /// <summary>The YAML metadata is larger than the importer accepts.</summary>
+    public const string YamlTooLarge = "overlay.yamlTooLarge";
+
+    /// <summary>The Markdown narrative is larger than the importer accepts.</summary>
+    public const string MarkdownTooLarge = "overlay.markdownTooLarge";
+
+    /// <summary>A numeric scalar cannot be represented by the validation pipeline.</summary>
+    public const string NumericOutOfRange = "overlay.numericOutOfRange";
+
+    /// <summary>The YAML document is nested deeper or contains more nodes than the importer accepts.</summary>
+    public const string YamlTooComplex = "overlay.yamlTooComplex";
 }
 
 /// <summary>

@@ -13,7 +13,10 @@ public enum CatalogBootstrapMode
     /// <summary>Build a new revision only when no revision has ever been activated yet.</summary>
     ImportIfEmpty,
 
-    /// <summary>Build a new revision when none is active yet, or when the technical catalog has changed.</summary>
+    /// <summary>
+    /// Build a new revision when none is active yet, or when the technical or semantic catalog has changed
+    /// (including a failed validation outcome).
+    /// </summary>
     ImportIfChanged,
 
     /// <summary>Always build a new revision, whether or not the technical catalog has changed.</summary>
@@ -27,11 +30,11 @@ public enum CatalogBootstrapMode
 /// </summary>
 public static class CatalogBootstrapPolicy
 {
-    public static bool ShouldImport(CatalogBootstrapMode mode, bool hasActiveRevision, bool technicalCatalogChanged) => mode switch
+    public static bool ShouldImport(CatalogBootstrapMode mode, bool hasActiveRevision, bool catalogChanged) => mode switch
     {
         CatalogBootstrapMode.Disabled => false,
         CatalogBootstrapMode.ImportIfEmpty => !hasActiveRevision,
-        CatalogBootstrapMode.ImportIfChanged => !hasActiveRevision || technicalCatalogChanged,
+        CatalogBootstrapMode.ImportIfChanged => !hasActiveRevision || catalogChanged,
         CatalogBootstrapMode.AlwaysImport => true,
         _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown catalog bootstrap mode."),
     };

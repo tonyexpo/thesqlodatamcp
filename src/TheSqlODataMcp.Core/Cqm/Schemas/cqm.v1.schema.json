@@ -130,18 +130,12 @@
           "pattern": "\\S"
         }
       },
-      "oneOf": [
-        {
-          "required": [
-            "on"
-          ]
-        },
-        {
-          "required": [
-            "relationship"
-          ]
-        }
-      ]
+      "not": {
+        "required": [
+          "on",
+          "relationship"
+        ]
+      }
     },
     "selectItem": {
       "type": "object",

@@ -52,7 +52,10 @@ Protocol syntax never reaches the provider directly. Every request becomes a ver
 - SQL Server metadata is discovered at runtime using `Microsoft.Data.SqlClient`.
 - Technical metadata is merged with administrator-authored Markdown and YAML.
 - Files are bootstrap/import/export artifacts; the active runtime revision lives in the control store.
-- Invalid refreshes never replace the last valid revision.
+- Invalid refreshes never replace the last valid revision. Activation timestamps must increase monotonically; a clock
+  rollback is rejected before it can create a revision the active-selection query would not choose.
+- The internal search index intentionally retains administrative metadata; protocol adapters must resolve catalog
+  metadata through `CatalogReadView`, which keeps only exposed entities and relationships whose target is exposed.
 - Foreign keys are relationship hints. Explicit valid join conditions take priority.
 - The technical catalog is provider-neutral, preserves physical identifier casing and provider type details, supports keyless views, and has deterministic canonical JSON and a structural SHA-256 hash.
 - SQL Server catalog types are normalized and validated in the provider boundary before entering Core. Supported scalar families preserve meaningful provider details; unsupported or user-defined names remain explicit `unknown` values without inferred metadata.

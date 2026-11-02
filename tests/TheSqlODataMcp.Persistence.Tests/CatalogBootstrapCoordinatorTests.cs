@@ -67,6 +67,25 @@ public sealed class CatalogBootstrapCoordinatorTests
     }
 
     [Fact]
+    public async Task ImportIfChangedRebuildsWhenOnlyTheSemanticOverlayChanges()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var coordinator = new CatalogBootstrapCoordinator(new CatalogRevisionStore(fixture.DbContext));
+        var catalog = CreateCatalog("sales");
+        var source = new PhysicalObjectIdentity("sales", "Customers");
+        var visible = new SemanticOverlay("1.0", [new SemanticOverlayEntity(source, exposed: true)]);
+        var hidden = new SemanticOverlay("1.0", [new SemanticOverlayEntity(source, exposed: false)]);
+
+        var first = await coordinator.RunAsync(CatalogBootstrapMode.ImportIfChanged, catalog, visible, CreatedAt, timeout.Token);
+        var second = await coordinator.RunAsync(CatalogBootstrapMode.ImportIfChanged, catalog, hidden, CreatedAt.AddMinutes(1), timeout.Token);
+
+        Assert.NotEqual(first!.Id, second!.Id);
+        var merged = CatalogRevisionMapper.ToDomain(second).MergedCatalog;
+        Assert.False(Assert.Single(merged!.Entities, entity => entity.Physical.Identity.Equals(source)).Exposed);
+    }
+
+    [Fact]
     public async Task AlwaysImportRebuildsEveryTimeEvenWhenUnchanged()
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
@@ -77,6 +96,23 @@ public sealed class CatalogBootstrapCoordinatorTests
         var second = await coordinator.RunAsync(CatalogBootstrapMode.AlwaysImport, CreateCatalog("sales"), overlay: null, CreatedAt.AddMinutes(1), timeout.Token);
 
         Assert.NotEqual(first!.Id, second!.Id);
+    }
+
+    [Fact]
+    public async Task AClockRollbackIsRejectedAndThePreviousRevisionStaysActive()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var fixture = await SqliteControlStoreFixture.CreateAsync(timeout.Token);
+        var coordinator = new CatalogBootstrapCoordinator(new CatalogRevisionStore(fixture.DbContext));
+        var catalog = CreateCatalog("sales");
+        var first = await coordinator.RunAsync(CatalogBootstrapMode.AlwaysImport, catalog, overlay: null, CreatedAt.AddMinutes(1), timeout.Token);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => coordinator.RunAsync(CatalogBootstrapMode.AlwaysImport, catalog, overlay: null, CreatedAt, timeout.Token));
+
+        var active = await new CatalogRevisionStore(fixture.DbContext).GetActiveAsync(timeout.Token);
+        Assert.Equal(first!.Id, active!.Id);
+        Assert.Equal(CreatedAt.AddMinutes(1), active.ActivatedAt);
     }
 
     [Fact]

@@ -9,11 +9,18 @@ namespace TheSqlODataMcp.Core.Tests;
 public sealed class CqmModelTests
 {
     [Fact]
-    public void JoinRequiresExactlyOneCondition()
+    public void JoinAllowsAtMostOneConditionAndAutomaticResolutionIsRepresentable()
     {
         var source = new CqmEntitySource("sales.Customers", "c");
 
-        Assert.Throws<ArgumentException>(() => new CqmJoin(CqmJoinType.Inner, source));
+        var automatic = new CqmJoin(CqmJoinType.Inner, source);
+        Assert.Null(automatic.On);
+        Assert.Null(automatic.Relationship);
+
+        var named = new CqmJoin(CqmJoinType.Inner, source, relationship: "i.customer");
+        Assert.Null(named.On);
+        Assert.Equal("i.customer", named.Relationship);
+
         Assert.Throws<ArgumentException>(() => new CqmJoin(
             CqmJoinType.Inner,
             source,

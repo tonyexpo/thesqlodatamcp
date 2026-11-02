@@ -125,6 +125,76 @@ public sealed class SemanticOverlayImporterQaTests
     }
 
     [Fact]
+    public void ANullEntityEntryReturnsAStableValidationErrorInsteadOfThrowing()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - null
+            """;
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.SchemaViolation && error.Path == "$.entities[0]");
+    }
+
+    [Fact]
+    public void ANullFieldEntryReturnsAStableValidationErrorInsteadOfThrowing()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - source: "sales.InvoiceHeader"
+                fields:
+                  InvoiceId: null
+            """;
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.SchemaViolation && error.Path == "$.entities[0].fields.InvoiceId");
+    }
+
+    [Fact]
+    public void AnOutOfRangeNumberReturnsAStableValidationResultInsteadOfThrowing()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - source: "sales.InvoiceHeader"
+            name: 1e400
+            """;
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.NumericOutOfRange);
+    }
+
+    [Fact]
+    public void OversizedYamlIsRejectedBeforeParsing()
+    {
+        var yaml = "catalogVersion: \"1.0\"\nname: \"" + new string('x', 1_000_001) + "\"";
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.YamlTooLarge);
+    }
+
+    [Fact]
+    public void DeeplyNestedYamlIsRejectedWithAStableError()
+    {
+        var yaml = "catalogVersion: \"1.0\"\nname: " + new string('[', 80) + "x" + new string(']', 80);
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.YamlSyntaxInvalid);
+    }
+
+    [Fact]
     public void JoinFieldPairRejectsNullOrEmptyFieldNames()
     {
         // RequireIdentifier throws ArgumentNullException for null and ArgumentException for
