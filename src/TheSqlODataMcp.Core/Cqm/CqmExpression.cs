@@ -104,7 +104,8 @@ public sealed class CqmLiteralExpression : CqmExpression
     /// timezone, no culture-dependent parsing (TS2-02).
     /// </summary>
     private static bool IsCanonicalTime(string value) =>
-        TimeOnly.TryParseExact(
+        HasNonEmptyFraction(value)
+        && TimeOnly.TryParseExact(
             value,
             ["HH:mm:ss", "HH:mm:ss.FFFFFFF"],
             CultureInfo.InvariantCulture,
@@ -116,7 +117,8 @@ public sealed class CqmLiteralExpression : CqmExpression
     /// digits. An offset is deliberately not accepted here; use <c>datetimeOffset</c> when the instant is offset-bearing.
     /// </summary>
     private static bool IsCanonicalDateTime(string value) =>
-        DateTime.TryParseExact(
+        HasNonEmptyFraction(value)
+        && DateTime.TryParseExact(
             value,
             ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF"],
             CultureInfo.InvariantCulture,
@@ -128,7 +130,8 @@ public sealed class CqmLiteralExpression : CqmExpression
     /// and a mandatory <c>Z</c> or <c>±HH:mm</c> offset.
     /// </summary>
     private static bool IsCanonicalDateTimeOffset(string value) =>
-        DateTimeOffset.TryParseExact(
+        HasNonEmptyFraction(value)
+        && (DateTimeOffset.TryParseExact(
             value,
             ["yyyy-MM-dd'T'HH:mm:sszzz", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz"],
             CultureInfo.InvariantCulture,
@@ -139,7 +142,17 @@ public sealed class CqmLiteralExpression : CqmExpression
             ["yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'"],
             CultureInfo.InvariantCulture,
             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-            out _);
+            out _));
+
+    /// <summary>
+    /// A present decimal separator must be followed by at least one digit. The optional <c>FFFFFFF</c> format also
+    /// accepts a zero-digit fraction, so the strict grammar needs this explicit check (TS3-03).
+    /// </summary>
+    private static bool HasNonEmptyFraction(string value)
+    {
+        var dot = value.IndexOf('.');
+        return dot < 0 || (dot + 1 < value.Length && char.IsAsciiDigit(value[dot + 1]));
+    }
 
     internal static bool IsJsonZero(JsonElement value)
     {

@@ -22,7 +22,7 @@ public sealed class CatalogReadView
 
         var entities = exposed
             .Select(entity => new MergedEntity(
-                entity.Physical,
+                SanitizePhysical(entity.Physical, exposedIdentities),
                 entity.DisplayName,
                 entity.Fields,
                 entity.Aliases,
@@ -33,14 +33,16 @@ public sealed class CatalogReadView
                 relationships: entity.Relationships.Where(relationship => exposedIdentities.Contains(relationship.Target))))
             .ToArray();
 
+        // Catalog-level narrative is omitted too: a description or title written for administrators can name a
+        // hidden object just like warnings and Markdown can (TS3-02).
         Catalog = new MergedCatalog(
             catalog.CatalogVersion,
             catalog.Provider,
             catalog.Configured,
             entities,
-            catalog.Name,
-            catalog.Title,
-            catalog.Description,
+            name: null,
+            title: null,
+            description: null,
             warnings: [],
             markdown: null);
 
@@ -60,4 +62,22 @@ public sealed class CatalogReadView
     /// <summary>Ranked search restricted to the exposed view.</summary>
     public IReadOnlyList<CatalogSearchMatch> Search(string query, int maxResults = 20) =>
         searchIndex.Search(query, maxResults);
+
+    /// <summary>
+    /// Rebuilds the physical entity with only the relationships whose target is exposed. The merged relationship
+    /// list is filtered separately; this closes the underlying physical graph that a default object serializer or
+    /// a direct <see cref="MergedEntity.Physical"/> reader would otherwise expose (TS3-02).
+    /// </summary>
+    private static TechnicalEntity SanitizePhysical(
+        TechnicalEntity physical,
+        HashSet<PhysicalObjectIdentity> exposedIdentities)
+        => new(
+            physical.Identity,
+            physical.Kind,
+            physical.Fields,
+            physical.Keys,
+            physical.Indexes,
+            physical.Relationships.Where(relationship => exposedIdentities.Contains(relationship.Target)),
+            physical.Description,
+            physical.IsTemporal);
 }

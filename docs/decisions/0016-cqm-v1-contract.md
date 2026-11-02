@@ -45,7 +45,11 @@ temporal parsers accepted incomplete/host-dependent values (TS2-02). The DTO and
 documented in `docs/cqm.md`. Regression tests cover the handoff's automatic-join example and the accepted/rejected
 temporal literals.
 
-Local verification with the pinned SDK 10.0.110: warning-free build; 348 non-SQL tests; 2 real SQL Server integration
-tests; `dotnet format --verify-no-changes` and the Markdown-link check pass. This is local evidence only; remote GitHub
-Actions revalidation is still required before this ADR moves to Accepted, and the join resolver/type inference remain
-out of scope.
+Post-fix QA then found a dangling decimal separator accepted as a zero-digit fraction (TS3-03); the parsers now require
+at least one digit after a present separator, with regressions for all three temporal types.
+
+Local verification with the pinned SDK 10.0.110: warning-free build; **349 non-SQL tests** (the earlier count in this
+section was 348); 2 real SQL Server integration tests; `dotnet format --verify-no-changes` and the Markdown-link check
+pass. Exact-source remote CI [41463543384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/41463543384) was green
+on `f16f653`. The TS3 fix commit is newer, so remote Actions revalidation and independent acceptance are still required
+before this ADR moves to Accepted; the join resolver/type inference remain out of scope.

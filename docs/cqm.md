@@ -74,16 +74,16 @@ The wire grammar is canonical, culture-independent and exact (TS2-02):
 | `datetime` | `yyyy-MM-ddTHH:mm:ss` or `yyyy-MM-ddTHH:mm:ss.FFFFFFF` (no offset) |
 | `datetimeOffset` | the `datetime` form plus a mandatory `Z` or `±HH:mm`, with optional 1–7 fractional digits |
 
-Incomplete values, date-only datetimes, missing offsets, offset-bearing `datetime` and more than seven fractional
-digits are rejected. No normalization or rounding is applied.
+Incomplete values, a present decimal separator with zero digits (`12:30:00.`), date-only datetimes, missing offsets,
+offset-bearing `datetime` and more than seven fractional digits are rejected. No normalization or rounding is applied.
 
 ## Local QA closure (2026-11-02)
 
-**Post-fix qualification:** [independent QA](./qa-check-2026-11-02T14-46-14Z.md) confirms automatic-join representation
-and the main temporal corrections, but finds a dangling decimal separator accepted as a zero-digit fraction (TS3-03).
-Exact-source remote CI is now green; ADR 0016 remains Proposed pending independent acceptance of residual findings.
+The [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) confirmed automatic-join representation and the main temporal
+corrections, and identified the dangling decimal separator (TS3-03). The local fix cycle closes it: every temporal
+parser now requires at least one digit after a present separator. Exact-source remote CI was green on `f16f653`;
+ADR 0016 remains Proposed pending remote CI and independent acceptance of the new local fix commit.
 
-The [previous QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; their main cases have contract fixes and
-regression tests, subject to the residual above. Structural success is still not catalog/type/operational validation:
-disconnected joins and expensive scans must be rejected by later resolver/type/limit stages. ADR 0016 remains Proposed
-until independent acceptance; the exact-source remote CI requirement is now satisfied.
+The [previous QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; both are fixed and regression-tested.
+Structural success is still not catalog/type/operational validation: disconnected joins and expensive scans must be
+rejected by later resolver/type/limit stages; `page` only bounds returned pagination, not source work.

@@ -195,6 +195,34 @@ public sealed class SemanticOverlayImporterQaTests
     }
 
     [Fact]
+    public void ANullJoinPairReturnsStableErrorsFromBothImportEntryPoints()
+    {
+        const string yaml = """
+            catalogVersion: "1.0"
+            entities:
+              - source: "sales.InvoiceHeader"
+                relationships:
+                  self:
+                    target: "sales.InvoiceHeader"
+                    join: [null]
+            """;
+
+        var direct = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+        var markdown = SemanticOverlayImporter.ImportMarkdownWithFrontMatter(
+            $"---\n{yaml}\n---\n",
+            CreateCatalog());
+
+        foreach (var result in new[] { direct, markdown })
+        {
+            Assert.False(result.Succeeded);
+            Assert.Contains(
+                result.Errors,
+                error => error.Code == SemanticOverlayValidationErrorCodes.SchemaViolation
+                    && error.Path.Contains("join[0]", StringComparison.Ordinal));
+        }
+    }
+
+    [Fact]
     public void JoinFieldPairRejectsNullOrEmptyFieldNames()
     {
         // RequireIdentifier throws ArgumentNullException for null and ArgumentException for

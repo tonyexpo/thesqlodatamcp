@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Added
-- Independent [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces remaining null join-pair, physical-FK projection and temporal grammar cases, and updates restart/backlog tracking only on `main-qa` without production changes.
+- Independent [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces TS3-01/02/03, and is now followed by a local fix cycle that closes them with regressions. The report was merged from `main-qa` into `main`; the new fix commit is not pushed.
 - Owner-requested [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
@@ -50,6 +50,10 @@
 - Added the versioned CQM v1 contract in `TheSqlODataMcp.Core.Cqm`: immutable query/expression types, a published strict JSON Schema (`CqmSchema.Json`/`CqmJson.SchemaJson`), strict parse/serialize (`CqmJson`), and catalog-independent structural validation (`CqmValidator`) with stable `cqm.*` codes and JSON paths. Parsing also rejects duplicate JSON properties and unpaired UTF-16 surrogates, preserves valid huge `double`/`json` literals, and filters schema-evaluator branch noise from reported paths. The model cannot represent writes, raw SQL, or SQL fragments. See ADR 0016 and `docs/cqm.md`.
 
 ### Fixed
+- Closed the post-fix QA residuals: a null relationship join pair returns `overlay.schemaViolation` from both import
+  entry points instead of `NullReferenceException` (TS3-01); `CatalogReadView` sanitizes the exposed physical FK graph
+  and omits catalog-level narrative, so a default serializer cannot reach a hidden target (TS3-02); and temporal
+  literals reject a present decimal separator with zero digits (TS3-03). Adapter wiring remains a Milestone 3/4 gate.
 - Closed the local 2026-11-02 adversarial QA repairs on top of the CQM contract: semantic-overlay-only changes are
   detected by `ImportIfChanged` (TS-03); malformed YAML subgraphs, non-finite numbers and schema-evaluator overflow
   return stable errors and YAML/Markdown size/depth/nodes are bounded (TS-04); activation timestamps are monotonic and

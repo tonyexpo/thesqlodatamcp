@@ -342,6 +342,17 @@ public static class SemanticOverlayImporter
             var pair = relationshipDto.Join[joinIndex];
             var pairPath = string.Create(CultureInfo.InvariantCulture, $"{relationshipPath}.join[{joinIndex}]");
 
+            if (pair is null)
+            {
+                // The schema already reported the type violation; reference traversal must not dereference it
+                // (TS3-01, residual TS-04).
+                errors.Add(new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.SchemaViolation,
+                    pairPath,
+                    "A join entry cannot be null."));
+                continue;
+            }
+
             if (physicalFieldNames is not null
                 && !string.IsNullOrWhiteSpace(pair.SourceField)
                 && !physicalFieldNames.Contains(pair.SourceField))

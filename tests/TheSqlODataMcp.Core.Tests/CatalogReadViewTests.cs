@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using TheSqlODataMcp.Core.Catalog;
 using Xunit;
 
@@ -20,24 +22,40 @@ public sealed class CatalogReadViewTests
         Assert.Equal(2, view.Catalog.Entities.Count);
         Assert.Empty(view.Search("Secrets"));
         Assert.Single(internalCatalog.Entities, entity => entity.Physical.Identity.ObjectName == "Secrets");
+        Assert.DoesNotContain("Secrets", JsonSerializer.Serialize(view.Catalog), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void RelationshipsTargetingAHiddenEntityAreRemovedFromExposedSources()
+    public void RelationshipsTargetingAHiddenEntityAreRemovedFromBothGraphs()
     {
         var view = new CatalogReadView(CreateCatalog());
 
         var orders = Assert.Single(view.Catalog.Entities, entity => entity.Physical.Identity.ObjectName == "Orders");
 
+        // The merged relationship list and the underlying physical FK graph must both be sanitized: a default
+        // serializer or a direct Physical reader must not reveal the hidden target (TS3-02).
         Assert.DoesNotContain(orders.Relationships, relationship => relationship.Target.ObjectName == "Secrets");
         Assert.Contains(orders.Relationships, relationship => relationship.Target.ObjectName == "Customers");
+        Assert.DoesNotContain(orders.Physical.Relationships, relationship => relationship.Target.ObjectName == "Secrets");
+        Assert.Contains(orders.Physical.Relationships, relationship => relationship.Target.ObjectName == "Customers");
     }
 
     private static MergedCatalog CreateCatalog()
     {
         var customers = Entity("Customers");
         var secrets = Entity("Secrets");
-        var orders = Entity("Orders");
+        var orders = Entity(
+            "Orders",
+            [
+                new CatalogRelationship(
+                    "FK_Orders_Customer",
+                    customers.Identity,
+                    [new RelationshipFieldPair("Id", "Id")]),
+                new CatalogRelationship(
+                    "FK_Orders_Secret",
+                    secrets.Identity,
+                    [new RelationshipFieldPair("Id", "Id")]),
+            ]);
         var relationships = new[]
         {
             new MergedRelationship(
@@ -60,10 +78,13 @@ public sealed class CatalogReadViewTests
                 new MergedEntity(customers, "Customers", [new MergedField(customers.Fields[0])]),
                 new MergedEntity(secrets, "Secrets", [new MergedField(secrets.Fields[0])], exposed: false),
                 new MergedEntity(orders, "Orders", [new MergedField(orders.Fields[0])], relationships: relationships),
-            ]);
+            ],
+            name: "Secrets administration catalog",
+            title: "Secrets",
+            description: "Internal notes about sales.Secrets.");
     }
 
-    private static TechnicalEntity Entity(string name)
+    private static TechnicalEntity Entity(string name, IEnumerable<CatalogRelationship>? relationships = null)
     {
         var identity = new PhysicalObjectIdentity("sales", name);
 
@@ -71,6 +92,7 @@ public sealed class CatalogReadViewTests
             identity,
             CatalogObjectKind.Table,
             [new TechnicalField("Id", 0, CanonicalScalarType.Int32, new ProviderTypeDetails("int", "int"), isNullable: false, isIdentity: true)],
-            [new CatalogKey($"PK_{name}", ["Id"], isPrimary: true)]);
+            [new CatalogKey($"PK_{name}", ["Id"], isPrimary: true)],
+            relationships: relationships);
     }
 }

@@ -1,14 +1,31 @@
 # Development state
 
-**Checkpoint date:** 2026-11-02 (independent post-fix QA)
+**Checkpoint date:** 2026-11-02 (local fix cycle after the post-fix QA)
 
-**Branch:** `main-qa`; reviewed published `main` at `f16f653`; QA not merged back into `main`
+**Branch:** local `main`; `main-qa` was fast-forward merged before the fixes; the new commit is not pushed
 
 **Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete locally)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-02 — independent post-fix QA
+## Latest checkpoint — 2026-11-02 — local fix cycle
+
+The local `main` now closes the [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) residuals on top of published
+`f16f653`, with the QA report and tracking merged first. No push was performed.
+
+- TS3-01: a null join pair returns `overlay.schemaViolation` from both import entry points instead of
+  `NullReferenceException`.
+- TS3-02: `CatalogReadView` sanitizes the exposed physical FK graph and omits catalog-level narrative, so a default
+  serializer cannot reach a hidden target; adapter wiring remains a Milestone 3/4 gate.
+- TS3-03: a temporal decimal separator with zero digits is rejected for `time`, `datetime` and `datetimeOffset`.
+- TS-02/TS-06 remain explicit pre-hosting/auth gates; TS-05/08/09/10 remain triaged design/automation debt.
+- ADR 0016 remains Proposed until the new local gate, remote CI and independent QA accept the checkpoint.
+
+Local verification with pinned SDK 10.0.110: warning-free build; **357 non-SQL tests** (Core 221, Persistence 37,
+SqlServer 94, Integration 4, Protocol 1); **2/2 real SQL Server integration tests**; formatter, Markdown links and
+transitive-package audit pass. Remote CI and independent QA are still pending.
+
+## Previous checkpoint — 2026-11-02 — independent post-fix QA
 
 The [new report](./qa-check-2026-11-02T14-46-14Z.md) rechecks `f16f653`, now present on both `main` and `origin/main`.
 After fetch, `main-qa` was fast-forwarded from `5e9f73f` to that baseline; QA and tracking are committed only there,
