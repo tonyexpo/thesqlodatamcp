@@ -52,8 +52,9 @@ The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative
 
 ## Milestone 2 — CQM and SQL Server query engine
 
-- [ ] Define versioned strict CQM DTOs and a published JSON Schema.
-- [ ] Implement expression normalization, canonical scalar types, type inference, aliases, and stable validation errors/paths.
+- [x] Define versioned strict CQM DTOs and a published JSON Schema.
+- [x] Implement catalog-independent structural validation, canonical literal typing, alias scope, and stable error codes/paths. (ADR 0016)
+- [ ] Implement expression normalization and type inference.
 - [ ] Implement entity/analytical classification, grouping rules, aggregate rules, and v1 operator/function capabilities.
 - [ ] Implement explicit/named/automatic join resolution with ambiguity errors and v1 join limits.
 - [ ] Implement provider abstractions and SQL Server catalog-only identifier resolution/quoting.

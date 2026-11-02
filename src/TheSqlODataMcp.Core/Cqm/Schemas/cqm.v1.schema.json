@@ -1,0 +1,556 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:thesqlodatamcp:cqm:1.0",
+  "title": "Canonical Query Model v1.0",
+  "description": "Strict, provider-neutral query contract shared by every thesqlodatamcp protocol adapter. The model cannot represent writes, raw SQL, or SQL fragments.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "from",
+    "page"
+  ],
+  "properties": {
+    "version": {
+      "const": "1.0"
+    },
+    "from": {
+      "$ref": "#/$defs/entitySource"
+    },
+    "joins": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/join"
+      },
+      "default": []
+    },
+    "select": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/selectItem"
+      },
+      "default": []
+    },
+    "where": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "groupBy": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/expression"
+      },
+      "default": []
+    },
+    "having": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "orderBy": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/orderBy"
+      },
+      "default": []
+    },
+    "distinct": {
+      "type": "boolean",
+      "default": false
+    },
+    "page": {
+      "$ref": "#/$defs/page"
+    },
+    "includeTotalCount": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "$defs": {
+    "alias": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?!.*\\s)[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    "entitySource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity",
+        "alias"
+      ],
+      "properties": {
+        "entity": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "\\S"
+        },
+        "alias": {
+          "$ref": "#/$defs/alias"
+        }
+      }
+    },
+    "join": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "source"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "inner",
+            "left"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/entitySource"
+        },
+        "on": {
+          "$ref": "#/$defs/expression"
+        },
+        "relationship": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "\\S"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "on"
+          ]
+        },
+        {
+          "required": [
+            "relationship"
+          ]
+        }
+      ]
+    },
+    "selectItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expression",
+        "alias"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/$defs/expression"
+        },
+        "alias": {
+          "$ref": "#/$defs/alias"
+        }
+      }
+    },
+    "orderBy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expression",
+        "direction"
+      ],
+      "properties": {
+        "expression": {
+          "$ref": "#/$defs/expression"
+        },
+        "direction": {
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limit",
+        "offset"
+      ],
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "expression": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/fieldExpression"
+        },
+        {
+          "$ref": "#/$defs/literalExpression"
+        },
+        {
+          "$ref": "#/$defs/aliasExpression"
+        },
+        {
+          "$ref": "#/$defs/operatorExpression"
+        },
+        {
+          "$ref": "#/$defs/functionExpression"
+        },
+        {
+          "$ref": "#/$defs/aggregateExpression"
+        }
+      ]
+    },
+    "fieldExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ],
+      "properties": {
+        "field": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 512,
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*\\..+$"
+        }
+      }
+    },
+    "literalExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {},
+        "type": {
+          "enum": [
+            "boolean",
+            "int16",
+            "int32",
+            "int64",
+            "decimal",
+            "double",
+            "string",
+            "guid",
+            "date",
+            "time",
+            "datetime",
+            "datetimeOffset",
+            "binary",
+            "json"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "int16"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": -32768,
+                "maximum": 32767
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "int32"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "int64"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "decimal",
+                  "double"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "string",
+                  "guid",
+                  "date",
+                  "time",
+                  "datetime",
+                  "datetimeOffset",
+                  "binary"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "aliasExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias"
+      ],
+      "properties": {
+        "alias": {
+          "$ref": "#/$defs/alias"
+        }
+      }
+    },
+    "operatorExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operator",
+        "arguments"
+      ],
+      "properties": {
+        "operator": {
+          "enum": [
+            "and",
+            "or",
+            "not",
+            "eq",
+            "ne",
+            "gt",
+            "ge",
+            "lt",
+            "le",
+            "in",
+            "notIn",
+            "between",
+            "isNull",
+            "isNotNull",
+            "contains",
+            "startsWith",
+            "endsWith",
+            "add",
+            "subtract",
+            "multiply",
+            "divide",
+            "modulo",
+            "negate"
+          ]
+        },
+        "arguments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
+        }
+      }
+    },
+    "functionExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "function",
+        "arguments"
+      ],
+      "properties": {
+        "function": {
+          "enum": [
+            "lower",
+            "upper",
+            "trim",
+            "length",
+            "concat",
+            "substring",
+            "year",
+            "month",
+            "day",
+            "dateTrunc",
+            "round",
+            "floor",
+            "ceiling",
+            "absolute",
+            "coalesce"
+          ]
+        },
+        "arguments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/expression"
+          }
+        }
+      }
+    },
+    "aggregateExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aggregate"
+      ],
+      "properties": {
+        "aggregate": {
+          "enum": [
+            "count",
+            "sum",
+            "average",
+            "minimum",
+            "maximum"
+          ]
+        },
+        "expression": {
+          "$ref": "#/$defs/expression"
+        },
+        "distinct": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "aggregate": {
+                "enum": [
+                  "sum",
+                  "average",
+                  "minimum",
+                  "maximum"
+                ]
+              }
+            },
+            "required": [
+              "aggregate"
+            ]
+          },
+          "then": {
+            "required": [
+              "expression"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "distinct": {
+                "const": true
+              }
+            },
+            "required": [
+              "distinct"
+            ]
+          },
+          "then": {
+            "required": [
+              "expression"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

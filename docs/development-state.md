@@ -4,7 +4,7 @@
 
 **Branch:** `main`
 
-**Milestone:** 1 — Catalog foundation (complete); next: 2 — CQM and SQL Server query engine (not started)
+**Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
@@ -193,6 +193,14 @@ A fresh status review found that the last CI run (2026-09-09) was green, but a s
 
 The same review found stale documentation: README and roadmap still described Milestone 1 as in progress; architecture listed only four test projects and ADRs through 0012; the development-state header and project count were stale. README, roadmap, architecture, development-state, changelog, and the ADR 0004/0005 subsequent-evidence notes were aligned with the completed Milestone 1 and the new dependency baseline. No product scope changed.
 
+## Session checkpoint — 2026-10-28 — Milestone 2 CQM v1 contract
+
+Milestone 2 began with the handoff's CQM contract step. The primary agent implemented `TheSqlODataMcp.Core.Cqm` directly: immutable query/expression types, `CqmVersions.V1`, a strict published JSON Schema, `CqmSchema`, `CqmJson` parse/serialize, and `CqmValidator` for catalog-independent structural rules. ADR 0016 records the design and explicitly defers catalog resolution, type inference, expression normalization, join resolution, limits, and SQL compilation/execution.
+
+The contract requires an explicit bounded `page` and `from`, rejects unknown properties throughout, models expressions as a strict six-way union, requires exactly one join condition, and uses the handoff's canonical operator/function/aggregate names and `CanonicalScalarType` vocabulary. The structural validator rejects duplicate aliases, unknown field aliases, alias references outside `having`/`orderBy`, invalid operator/function arity, nested or misplaced aggregates, `having` without an analytical query, and division by a literal zero. Errors are collected with stable `cqm.*` codes and JSON paths.
+
+Local verification: warning-free build; 324 non-SQL test cases passed, 0 failed, 0 skipped, including 67 new CQM tests. `dotnet format` and the real SQL Server integration gate remain CI-only evidence for this slice. Documentation was updated in README, architecture, roadmap, backlog, changelog, `docs/cqm.md`, and ADR 0016; the ADR remains Proposed until GitHub Actions passes.
+
 ## QA evidence at this checkpoint
 
 ### Local dependency-revalidation evidence (2026-10-28)
@@ -205,6 +213,14 @@ The same review found stale documentation: README and roadmap still described Mi
 - `bash eng/verify-markdown-links.sh`: passed.
 - `Category=SqlServerIntegration` was not rerun locally because the pinned SQL Server image is not cached and local disk space is limited; GitHub Actions revalidation is required.
 - `dotnet format` was not rerun locally because `global.json` pins SDK 10.0.110 while the installed SDK is 10.0.402; build-time code-style enforcement still ran through `EnforceCodeStyleInBuild`.
+
+### Local CQM v1 evidence (2026-10-28)
+
+- `dotnet build thesqlodatamcp.slnx --no-restore`: passed with zero warnings and zero errors.
+- `dotnet test thesqlodatamcp.slnx --no-build --no-restore --filter "Category!=SqlServerIntegration"`: 324 passed, 0 failed, 0 skipped (Core 191, SqlServer 94, Persistence 34, Integration 4, Protocol 1).
+- `TheSqlODataMcp.Core.Tests` contains 67 new CQM tests covering the handoff's entity/analytical examples, schema publication, strict parsing, round-trip idempotence, duplicate/unknown/missing/invalid properties, valid huge `double`/`json` literals, double overflow/underflow rejection, subnormals, unpaired UTF-16 surrogates (including direct construction), expression-union violations, page and literal bounds, alias scope/uniqueness, valid/invalid join-condition shapes, operator/function/aggregate arity, aggregate placement/nesting, `having` classification, division by zero, typed date/GUID lexical checks, clean diagnostic paths, concurrent parsing, and construction invariants.
+- `CqmJson.SchemaJson` is the embedded, published schema; `JsonSchema.FromText` parses it in the test suite.
+- `Category=SqlServerIntegration` and `dotnet format` remain CI-only evidence for this slice because the pinned SQL Server image is not cached locally and the installed SDK (10.0.402) does not satisfy `global.json`'s 10.0.110 pin.
 
 ### Remote CI evidence
 
@@ -311,6 +327,10 @@ Slice 4B (ADR 0011) is accepted, with real CI evidence in GitHub Actions run `32
 
 SQLite revision persistence (ADR 0013), atomic activation/rollback/bootstrap modes (ADR 0014), and JSON deserialization/in-memory search (ADR 0015) are all implemented and accepted with real CI evidence. `CatalogPipelineIntegrationTests` (slice 9, 2026-09-07) proves the full composition against real SQL Server and a real SQLite control store. This closes the last Milestone 1 backlog item; Milestone 1 is complete.
 
+### CQM v1 contract — complete; query engine pending (2026-10-28)
+
+The versioned CQM DTOs, strict published JSON Schema, `CqmJson` parser/serializer, and catalog-independent `CqmValidator` are implemented in `TheSqlODataMcp.Core.Cqm` (ADR 0016). The contract rejects writes, raw SQL, unknown properties, duplicate/invalid aliases, malformed expression unions, invalid arity, misplaced/nested aggregates, `having` without an analytical query, and literal-zero division with stable `cqm.*` codes and JSON paths. It is not executable yet: catalog resolution, type inference, normalization, join resolution, limits, and the SQL Server compiler/executor are the next Milestone 2 slices.
+
 ### `CatalogPipelineIntegrationTests` coverage gaps — closed (2026-09-09)
 
 The second independent QA pass had identified four narrow gaps specific to this one composed real-infrastructure test (not production defects; each already covered by isolated unit tests elsewhere): no overlay-configured (non-FK) relationship, no non-ASCII overlay text, no overlay entry on a keyless entity, and no failed-then-succeeded bootstrap sequence exercised through the real path. All four were closed by extending the existing test (commit `223ac49`, no production code touched, no new fixture/schema, delegated to a dev-senior sub-agent and independently re-verified against source): an overlay-configured `sales.Invoices` → `archive.Invoices` relationship joined on `InvoiceNumber` (no physical FK links these two tables), a non-ASCII relationship description verified both by direct equality and via `CatalogSearchIndex.Search` after the real round trip, an overlay entry on the genuinely keyless `reporting.InvoiceDetail` view asserting `EffectiveKeyFields` stays empty, and a merge-time catalog-version-mismatch failure run through `CatalogBootstrapCoordinator.RunAsync` against the real SQL-Server-introspected catalog, proving the previously active revision survives untouched and a subsequent valid rebuild recovers. GitHub Actions run [34400385178](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/34400385178) passed both `validate` and `sqlserver-integration` for real.
@@ -329,10 +349,10 @@ OpenIddict 7.6.0 does not implement RFC 7591 Dynamic Client Registration. Before
 
 ## Next dependency-ordered work
 
-Milestone 1 (catalog foundation) is complete. The next dependency-ordered work is Milestone 2 — CQM and SQL Server query engine (`docs/backlog.md`, `docs/roadmap.md`):
+Milestone 1 (catalog foundation) is complete. Milestone 2 is in progress (`docs/backlog.md`, `docs/roadmap.md`): the CQM v1 contract (step 1) is implemented in ADR 0016. The next dependency-ordered work is:
 
-1. Define versioned strict CQM DTOs and a published JSON Schema.
-2. Implement expression normalization, canonical scalar types, type inference, aliases, and stable validation errors/paths.
+1. ✅ Define versioned strict CQM DTOs and a published JSON Schema (ADR 0016). Catalog-independent structural validation, canonical literal typing, alias scope, and stable error codes/paths are also in place.
+2. Implement expression normalization and type inference (including selected non-aggregate expressions absent from `groupBy`).
 3. Implement entity/analytical classification, grouping rules, aggregate rules, and v1 operator/function capabilities.
 4. Implement explicit/named/automatic join resolution with ambiguity errors and v1 join limits — see the "Relationship name collisions across provenance" risk above before relying on relationship names being unambiguous.
 5. Implement provider abstractions and SQL Server catalog-only identifier resolution/quoting, compiling to exactly one parameterized `SELECT`.
@@ -340,7 +360,7 @@ Milestone 1 (catalog foundation) is complete. The next dependency-ordered work i
 ## Restart checklist
 
 1. Run `git status --short --branch`; the primary agent does not push automatically.
-2. Read ADRs 0006–0015 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision/persistence/activation/deserialization/search implementation and tests before extending the catalog domain, or before starting Milestone 2's CQM work.
+2. Read ADRs 0006–0016 and the Catalog Core/type-mapper/introspector/semantic-overlay/merge/revision/persistence/activation/deserialization/search implementation plus the CQM v1 types/schema/parser/validator before extending either area.
 3. Re-run production restore, build, tests, formatting, Markdown-link validation, and `git diff --check` after any change. The `dotnet` SDK is installed at `~/.dotnet` (10.0.402 as of 2026-10-28), but `global.json` pins 10.0.110 with `latestPatch`; commands run from inside the repository fail SDK resolution unless the pinned SDK is installed, so use a temporary working directory outside the repository or install the pinned SDK. Docker is available locally as of this checkpoint, but the pinned SQL Server image is not cached and disk space is limited; check `docker info` and free space before assuming `Category=SqlServerIntegration` tests can run locally, and fall back to CI evidence when they cannot.
 4. Use the deterministic SQL Server fixture (`tests/fixtures/reporting-catalog`) for introspection work; do not replace the real provider path with mocks or build-only evidence.
 5. Preserve the Core dependency direction and never introduce SQL fragments, provider client types, protocol concerns, or (for the technical catalog specifically, as opposed to the semantic overlay) semantic rules into the technical catalog domain.
