@@ -1,14 +1,36 @@
 # Development state
 
-**Checkpoint date:** 2026-11-02 (local fix cycle; `main` not pushed)
+**Checkpoint date:** 2026-11-02 (independent post-fix QA)
 
-**Branch:** local `main`; `main-qa` merged before the fixes; origin unchanged
+**Branch:** `main-qa`; reviewed published `main` at `f16f653`; QA not merged back into `main`
 
 **Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete locally)
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-02 — local fix cycle
+## Latest checkpoint — 2026-11-02 — independent post-fix QA
+
+The [new report](./qa-check-2026-11-02T14-46-14Z.md) rechecks `f16f653`, now present on both `main` and `origin/main`.
+After fetch, `main-qa` was fast-forwarded from `5e9f73f` to that baseline; QA and tracking are committed only there,
+and the local checkout returns to unchanged `main` at delivery. The prior local-only provenance below is historical.
+
+**Verdict: changes required.** Overlay-only refresh and clock-rollback refusal are independently reproduced as fixed;
+automatic joins parse, and the old incomplete temporal values are rejected. New residuals: TS3-01 null join-pair
+`NullReferenceException`; TS3-02 hidden-target physical FK reachable from `CatalogReadView`; TS3-03 dangling fraction
+separator accepted in temporal literals. The last is low severity; the read-view seam must close before public adapters.
+
+Exact-source remote CI [41463543384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/41463543384) is green:
+349 non-SQL, 3 fixture-static and 2 real SQL integration tests, build/format/links. SDK 10.0.110 is now installed;
+fresh local results and any environment limitations are recorded in the report. This supersedes "remote CI pending"
+as an environment blocker, **not** the independent QA findings. ADR 0016 stays Proposed while acceptance is unresolved.
+Fresh local build/format/audit/links and 349 non-SQL tests pass. The first unfiltered run had two SQL execution
+timeouts under concurrent local WebGL/SQL load; each then passed once in separate sequential reruns (1m26s/1m40s).
+The original full is not reclassified as green and contention is not a proven root cause.
+
+Next: complete invalid-subgraph handling, sanitize the physical FK projection before adapter wiring, tighten the
+temporal edge, then continue resolver/type inference/compiler work. No production code was changed by this audit.
+
+## Previous checkpoint — 2026-11-02 — local fix cycle
 
 The local `main` now contains the fixes for the [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), on top
 of the previously unpublished CQM commit `dbe98fb` and the fast-forwarded QA documentation. No push was performed.

@@ -32,10 +32,11 @@ Work includes catalog domain types, canonical/provider type mapping, SQL Server 
 
 **Status:** In progress. The versioned CQM v1 DTOs, published strict JSON Schema, strict parser/serializer, and catalog-independent structural validator are implemented, including automatic-join representation and the deterministic temporal grammar. Catalog resolution, type inference, expression normalization, join-priority resolution, SQL Server compilation/execution, result envelopes, and operational limits remain pending.
 
-The [2026-11-02 local QA](./qa-check-2026-11-02T10-54-29Z.md) was closed locally: TS-03/04/07 and TS2-01/02 have
-regressions, and TS-01 has the `CatalogReadView` Core boundary. The pinned SDK formatter and real-SQL integration pass
-locally; ADR 0016 remains Proposed until remote CI and the independent QA of this fix cycle accept it. TS-02/06 and
-adapter wiring remain explicit Milestone 3/4/5 gates.
+The fix cycle for the [previous QA](./qa-check-2026-11-02T10-54-29Z.md) added regressions and the `CatalogReadView`
+boundary. The [independent post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) now confirms exact-source remote CI green,
+but leaves null join-pair handling, physical-FK projection and a temporal grammar edge open. Local full SQL timeouts
+and successful isolated reruns are distinguished in the report. ADR 0016 remains Proposed pending independent
+acceptance; TS-02/06 and adapter wiring remain explicit Milestone 3/4/5 gates.
 
 Work includes strict CQM DTOs/schema, expression normalization, type inference, validation codes/paths, join priority, entity and analytical query classification, SQL Server compilation, explicit parameters, pagination, result envelopes, cancellation, timeouts, concurrency and size limits.
 

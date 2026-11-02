@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Independent [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces remaining null join-pair, physical-FK projection and temporal grammar cases, and updates restart/backlog tracking only on `main-qa` without production changes.
 - Owner-requested [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.

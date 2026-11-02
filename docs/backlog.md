@@ -73,6 +73,17 @@ Milestone 1 positive-path acceptance does not close these demonstrated defects o
 
 ## Milestone 2 — CQM and SQL Server query engine
 
+### Independent post-fix QA gates (2026-11-02)
+
+The [follow-up](./qa-check-2026-11-02T14-46-14Z.md) distinguishes implemented fixes above from incomplete closure:
+
+- [ ] TS3-01: null relationship join-pair must return collected errors, not `NullReferenceException` (residual TS-04).
+- [ ] TS3-02: remove hidden-target FKs from the public read-view's physical graph/actual serializer, not only merged relationships (residual TS-01, before hosting).
+- [ ] TS3-03: a present fractional separator requires 1–7 digits in temporal literals (small residual TS2-02).
+- [ ] Re-evaluate ADR 0016 after these fixes and independent acceptance; exact-source remote CI is now observed green, not still an unexecuted gate.
+
+### Planned query-engine work
+
 - [x] Define versioned strict CQM DTOs and a published JSON Schema.
 - [x] Implement catalog-independent structural validation, canonical literal typing, alias scope, and stable error codes/paths. (ADR 0016)
 - [ ] Implement expression normalization and type inference.

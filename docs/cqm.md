@@ -26,7 +26,8 @@ The normative contract is the strict JSON Schema at [`src/TheSqlODataMcp.Core/Cq
 }
 ```
 
-`version`, `from`, and `page` are always required. The page bounds every query explicitly; no CQM document can represent an unbounded scan.
+`version`, `from`, and `page` are always required. `page` bounds returned pagination, not database work: source scans,
+joins, aggregates and total counts still require the later operational limits/resolver/compiler stages.
 
 ## Expressions
 
@@ -78,7 +79,11 @@ digits are rejected. No normalization or rounding is applied.
 
 ## Local QA closure (2026-11-02)
 
-The [latest local QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; both are fixed in the contract with
-regression tests. Structural success is still not catalog/type/operational validation: disconnected joins and expensive
-scans must be rejected by later resolver/type/limit stages. ADR 0016 remains Proposed until remote CI and the independent
-QA of the local fix cycle accept it.
+**Post-fix qualification:** [independent QA](./qa-check-2026-11-02T14-46-14Z.md) confirms automatic-join representation
+and the main temporal corrections, but finds a dangling decimal separator accepted as a zero-digit fraction (TS3-03).
+Exact-source remote CI is now green; ADR 0016 remains Proposed pending independent acceptance of residual findings.
+
+The [previous QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; their main cases have contract fixes and
+regression tests, subject to the residual above. Structural success is still not catalog/type/operational validation:
+disconnected joins and expensive scans must be rejected by later resolver/type/limit stages. ADR 0016 remains Proposed
+until independent acceptance; the exact-source remote CI requirement is now satisfied.
