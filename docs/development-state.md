@@ -19,6 +19,8 @@ Fresh verification: restore/audit passed, build had 0 warnings/errors, all **324
 and the Markdown-link check passed. These build/tests used installed SDK 10.0.402 from outside the repo; the pinned
 10.0.110 SDK is absent. Formatter re-resolves the pin and is blocked; real SQL Server tests were not rerun on the
 nearly full local disk. Existing green remote CI on `9603b7f`/`14a7f02` does not validate the unpublished CQM code.
+The independently pinned SQL Server spike's three `Category=FixtureStatic` tests also passed; these are static
+fixture/SQL-script contract checks, not a substitute for live SQL integration.
 ADR 0016 therefore remains Proposed, not CI-accepted.
 
 **QA verdict: changes required.** Independent probes reproduced ignored overlay-only refreshes (TS-03), malformed
