@@ -65,7 +65,7 @@ Milestone 1 positive-path acceptance does not close these demonstrated defects o
 - [x] TS-07: make bootstrap's returned revision agree with persisted active selection after clock rollback; avoid loading all historical JSON to select one row. Non-monotonic activation is rejected; selection projects id/timestamp before loading one row.
 - [x] TS2-01: represent automatic relationship resolution in CQM DTO/schema without implementing an unapproved raw-SQL escape hatch. Both absent is valid; both present is rejected.
 - [x] TS2-02: define deterministic temporal literal grammar, offset and precision rules; reject incomplete values.
-- [x] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server **locally**; keep ADR 0016 Proposed until remote CI and independent QA accept it.
+- [x] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server **locally**. ADR 0016 stayed Proposed until the exact-source `2f63e58` CI and the independent 2026-11-04 QA accepted its bounded structural slice.
 - [x] TS-01: add the exposed-only `CatalogReadView` Core boundary and tests (hidden entities, hidden-target relationships,
       warnings/Markdown). **Still open for wiring** into every public adapter in Milestone 3/4.
 - [ ] TS-02, before public catalog/query hosting: make `IncludedSchemas`/`ExcludedObjects` SQL-side introspector options,

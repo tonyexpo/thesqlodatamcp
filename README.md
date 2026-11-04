@@ -27,7 +27,7 @@ Milestone 0 is complete: the .NET 10 solution, dependency directions, central pa
 closes TS3-01/02/03 with 359 full-suite passes (including two real SQL integration tests), three fixture-static tests,
 format/audit/links and exact-source CI green. Acceptance is **scoped to the fix/structural foundation**, not v1.
 The [SQL-00–17 delivery plan](./docs/v1-delivery-plan.md) maps remaining work to every handoff acceptance outcome.
-New QA/planning is on `main-qa`; there is still no runnable gateway.
+The QA report and this plan are now on `main`; there is still no runnable gateway.
 
 - Read-only by construction; no writes or arbitrary commands.
 - No caller-supplied or LLM-generated raw SQL.

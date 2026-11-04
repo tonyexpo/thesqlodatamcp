@@ -2,7 +2,8 @@
 
 **Checkpoint date:** 2026-11-04 (independent QA + architecture delivery plan)
 
-**Branch:** `main-qa`; reviewed published `main` at `2f63e58`; QA/planning not merged back into `main`
+**Branch:** `main`; the QA report and delivery plan were fast-forwarded from `main-qa` to `main`; no production code
+changed in this documentation checkpoint
 
 **Milestone:** 2 — in progress; bounded CQM structural slice accepted, resolver/compiler/executor still pending
 
@@ -20,9 +21,10 @@ three fixture-static, formatter, audit and links pass. No SQL/Playwright overlap
 "unpublished/pending CI" statements below are historical. ADR 0016 now Accepted for its bounded structural contract.
 
 The [SQL-00–17 delivery plan](./v1-delivery-plan.md) expands existing handoff/milestones into dependency-ordered
-tickets and acceptance oracles through downloadable v1, including a §29 crosswalk. **Next:** finish SQL-00 matrix,
-then SQL-01 discovery/exposure/resource seams and SQL-02 bound identifiers; only then normalization/types/joins/compiler.
-No production feature was written here. TS-02/06, adapter wiring, execution/auth/real-client/packaging gates remain open.
+tickets and acceptance oracles through downloadable v1, including a §29 crosswalk. The documentation checkpoint is now
+on `main` (local one commit ahead of `origin/main` until pushed). **Next:** finish SQL-00 matrix, then SQL-01
+discovery/exposure/resource seams and SQL-02 bound identifiers; only then normalization/types/joins/compiler. No
+production feature was written here. TS-02/06, adapter wiring, execution/auth/real-client/packaging gates remain open.
 QA/architecture lead owns the dependency/acceptance ledger; implementation assignment remains governed by AGENTS/skill.
 
 ## Previous checkpoint — 2026-11-02 — local fix cycle
