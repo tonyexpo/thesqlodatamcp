@@ -4,6 +4,10 @@
 
 The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative product baseline. The [roadmap](./roadmap.md) defines milestone order and exit gates. This file tracks implementation work; it must not silently change settled product boundaries.
 
+For bounded development tickets and future QA use [SQL-00–17](./v1-delivery-plan.md), including the handoff §29
+acceptance crosswalk and evidence ledger. The [2026-11-04 QA](./qa-check-2026-11-04T09-54-31Z.md) closes TS3 cases and
+accepts ADR 0016's structural slice; it does not mark the query engine, host or full v1 complete.
+
 ## Milestone 0 — Rebaseline and de-risk
 
 ### Documentation and decisions
@@ -83,8 +87,8 @@ The [follow-up](./qa-check-2026-11-02T14-46-14Z.md) distinguishes implemented fi
       test proves the hidden target is unreachable. Adapter wiring remains the separate Milestone 3/4 gate above.
 - [x] TS3-03: a present fractional separator requires 1–7 digits in temporal literals; the reported dangling-dot values
       are rejected.
-- [ ] Re-evaluate ADR 0016 after the new local gate, remote CI and independent acceptance; exact-source remote CI was
-      green on `f16f653`, but the current local fix commit is newer.
+- [x] Accept ADR 0016's structural slice after exact-source `2f63e58` CI and independent 2026-11-04 QA; resolver,
+       type inference, compiler/executor and public-host acceptance remain future work.
 
 ### Planned query-engine work
 

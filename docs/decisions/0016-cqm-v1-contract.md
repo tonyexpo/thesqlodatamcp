@@ -1,6 +1,6 @@
 # ADR 0016 — CQM v1 contract and strict structural validation
 
-- **Status:** Proposed
+- **Status:** Accepted (bounded structural slice, 2026-11-04)
 - **Date:** 2026-10-28
 
 ## Context
@@ -53,3 +53,12 @@ section was 348); 2 real SQL Server integration tests; `dotnet format --verify-n
 pass. Exact-source remote CI [41463543384](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/41463543384) was green
 on `f16f653`. The TS3 fix commit is newer, so remote Actions revalidation and independent acceptance are still required
 before this ADR moves to Accepted; the join resolver/type inference remain out of scope.
+
+## Independent acceptance — 2026-11-04
+
+The [new independent QA](../qa-check-2026-11-04T09-54-31Z.md) reviews published `2f63e58` and closes TS3-01/02/03.
+Fresh pinned-SDK verification: 0-warning/error build, **357 non-SQL + 2 real SQL integration cases**, no failed/skipped
+case in the full solution, three fixture-static cases, formatter/audit/links green. Exact-source CI
+[41480832934](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/41480832934) passed validate and real SQL jobs.
+The QA/software architecture lead accepts this ADR's original **DTO/schema/parser/structural-validation** boundary.
+No catalog/type/join resolver, compiler/executor, host/auth/protocol or full Milestone 2/v1 acceptance is implied.

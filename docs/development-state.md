@@ -1,14 +1,31 @@
 # Development state
 
-**Checkpoint date:** 2026-11-02 (local fix cycle after the post-fix QA)
+**Checkpoint date:** 2026-11-04 (independent QA + architecture delivery plan)
 
-**Branch:** local `main`; `main-qa` was fast-forward merged before the fixes; the new commit is not pushed
+**Branch:** `main-qa`; reviewed published `main` at `2f63e58`; QA/planning not merged back into `main`
 
-**Milestone:** 2 — CQM and SQL Server query engine (in progress; CQM v1 contract complete locally)
+**Milestone:** 2 — in progress; bounded CQM structural slice accepted, resolver/compiler/executor still pending
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-02 — local fix cycle
+## Latest checkpoint — 2026-11-04 — independent foundation acceptance and implementation sequence
+
+[QA report](./qa-check-2026-11-04T09-54-31Z.md): PASS for the TS3 fix/structural-foundation slice, not public gateway
+or v1 acceptance. Own probes confirm null join pairs return errors, hidden physical FKs are unreachable through the
+view serializer, and dangling fractions are rejected. Real-SQLite drift/rollback controls still work.
+
+Fresh SDK 10.0.110 gates: warning-free build; **359/359 full solution tests** (357 non-SQL, 2 actual SQL integration),
+three fixture-static, formatter, audit and links pass. No SQL/Playwright overlap. Remote exact-source CI
+[41480832934](https://github.com/tonyexpo/thesqlodatamcp/actions/runs/41480832934) passed on `2f63e58`; the older
+"unpublished/pending CI" statements below are historical. ADR 0016 now Accepted for its bounded structural contract.
+
+The [SQL-00–17 delivery plan](./v1-delivery-plan.md) expands existing handoff/milestones into dependency-ordered
+tickets and acceptance oracles through downloadable v1, including a §29 crosswalk. **Next:** finish SQL-00 matrix,
+then SQL-01 discovery/exposure/resource seams and SQL-02 bound identifiers; only then normalization/types/joins/compiler.
+No production feature was written here. TS-02/06, adapter wiring, execution/auth/real-client/packaging gates remain open.
+QA/architecture lead owns the dependency/acceptance ledger; implementation assignment remains governed by AGENTS/skill.
+
+## Previous checkpoint — 2026-11-02 — local fix cycle
 
 The local `main` now closes the [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) residuals on top of published
 `f16f653`, with the QA report and tracking merged first. No push was performed.

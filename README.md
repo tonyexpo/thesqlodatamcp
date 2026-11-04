@@ -23,11 +23,11 @@ Milestone 0 is complete: the .NET 10 solution, dependency directions, central pa
 
 ## Product boundaries
 
-**Latest QA (2026-11-02, post-fix):** the [independent follow-up](./docs/qa-check-2026-11-02T14-46-14Z.md) reviews
-published `main` at `f16f653`. Exact-source CI is green (349 non-SQL and 2 SQL integration tests), but null join-pair
-handling, the physical-FK exposure seam and a temporal grammar edge remain open. This new QA/tracking lives only on
-`main-qa`. See [development state](./docs/development-state.md) for provenance and restart order; no runnable gateway
-or production readiness is claimed.
+**Latest QA (2026-11-04):** [independent verification](./docs/qa-check-2026-11-04T09-54-31Z.md) of published `2f63e58`
+closes TS3-01/02/03 with 359 full-suite passes (including two real SQL integration tests), three fixture-static tests,
+format/audit/links and exact-source CI green. Acceptance is **scoped to the fix/structural foundation**, not v1.
+The [SQL-00–17 delivery plan](./docs/v1-delivery-plan.md) maps remaining work to every handoff acceptance outcome.
+New QA/planning is on `main-qa`; there is still no runnable gateway.
 
 - Read-only by construction; no writes or arbitrary commands.
 - No caller-supplied or LLM-generated raw SQL.
@@ -57,11 +57,12 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [ADR 0013: catalog revision persistence](./docs/decisions/0013-catalog-revision-persistence.md) — accepted SQLite/EF Core control-store persistence for catalog revisions.
 - [ADR 0014: catalog activation and bootstrap modes](./docs/decisions/0014-catalog-activation-and-bootstrap-modes.md) — accepted atomic activation, last-valid rollback, and startup bootstrap policy.
 - [ADR 0015: catalog deserialization and search index](./docs/decisions/0015-catalog-deserialization-and-search-index.md) — accepted JSON-to-domain reconstruction and in-memory catalog search.
-- [ADR 0016: CQM v1 contract](./docs/decisions/0016-cqm-v1-contract.md) — proposed versioned query model, strict JSON Schema, and catalog-independent structural validation.
+- [ADR 0016: CQM v1 contract](./docs/decisions/0016-cqm-v1-contract.md) — accepted bounded query-model/schema/structural-validation slice; compiler and execution remain pending.
 - [Canonical Query Model v1](./docs/cqm.md) — public query contract, expression forms, and validation boundary.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.
+- [v1 delivery plan](./docs/v1-delivery-plan.md) — dependency-ordered tickets, per-step gates and handoff acceptance crosswalk for development and future QA.
 - [Development state](./docs/development-state.md) — verified restart checkpoint, open gates, and next dependency-ordered work.
 - [Deterministic reporting-catalog fixture](./tests/fixtures/reporting-catalog/README.md) — portable logical contract plus SQL Server bootstrap and teardown assets.
 - [Changelog](./docs/changelog.md)

@@ -1,5 +1,9 @@
 # Architecture
 
+Execution companion: [SQL-00–17](./v1-delivery-plan.md), stable development/QA gates through the handoff's complete v1.
+The [2026-11-04 checkpoint](./qa-check-2026-11-04T09-54-31Z.md) accepts only the TS3/structural-foundation slice;
+catalog resolution, query execution, public hosting/auth and real-client release gates remain future work.
+
 ## Status and authority
 
 The complete architectural baseline is [AI Data Gateway — Project Handoff](./AI_DATA_GATEWAY_HANDOFF.md). Its product boundaries, non-goals, security constraints, public contracts, and release sequence are authoritative unless the project owner changes them explicitly.

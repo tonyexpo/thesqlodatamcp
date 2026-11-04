@@ -1,5 +1,8 @@
 # Roadmap
 
+Execution companion: [v1 delivery plan SQL-00–17](./v1-delivery-plan.md), dependencies, per-ticket deliverables,
+negative-case oracles and complete handoff acceptance crosswalk. This supplements, not replaces, milestone scope.
+
 ## How to read this roadmap
 
 The [authoritative handoff](./AI_DATA_GATEWAY_HANDOFF.md) defines the product and six-release direction. This roadmap turns its recommended v1 implementation order into delivery milestones with explicit exit gates. The [backlog](./backlog.md) contains the actionable checklist.
@@ -36,8 +39,9 @@ The fix cycle for the [previous QA](./qa-check-2026-11-02T10-54-29Z.md) added re
 boundary. The [independent post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) confirmed exact-source remote CI green and
 identified TS3-01/02/03; the local fix cycle closes them (null join-pair errors, sanitized physical FK graph plus
 catalog narrative, and a strict non-empty temporal fraction). Local full SQL timeouts and successful isolated reruns
-are distinguished in the report. ADR 0016 remains Proposed pending the new remote CI and independent acceptance;
-TS-02/06 and adapter wiring remain explicit Milestone 3/4/5 gates.
+are distinguished in the historical report. [Independent 2026-11-04 QA](./qa-check-2026-11-04T09-54-31Z.md) and
+exact-source CI on `2f63e58` now accept ADR 0016's structural slice (359 full local cases pass). TS-02/06 and adapter
+wiring remain explicit gates; no full query-engine/v1 acceptance is implied. Next: SQL-01/02 in the delivery plan.
 
 Work includes strict CQM DTOs/schema, expression normalization, type inference, validation codes/paths, join priority, entity and analytical query classification, SQL Server compilation, explicit parameters, pagination, result envelopes, cancellation, timeouts, concurrency and size limits.
 
