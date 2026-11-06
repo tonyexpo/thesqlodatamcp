@@ -9,7 +9,33 @@ changed in this documentation checkpoint
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-04 — independent foundation acceptance and implementation sequence
+## Latest checkpoint — 2026-11-06 — CQM and overlay input boundary (SQL-A1…A4)
+
+The 6 November QA (report and ordered queue kept on `main-qa` as `qa-check-2026-11-06T08-30-00Z.md` and
+`dev-queue-2026-11-06T08-30-00Z.md`) found two input-boundary hazards: CQM schema evaluation was exponential in
+expression nesting (636 bytes / depth 14 → 17 s and 3.2 GB; 100,000 select items → 5.5 GB) and a 400 KB YAML flow
+collection stack-overflowed inside YamlDotNet before the importer's depth guard.
+
+- **SQL-A1:** `CqmLimits` and a single-pass `Utf8JsonReader` guard reject bytes (1 MiB default), JSON depth (64),
+  tokens (200,000), `select`/`joins`/`groupBy`/`orderBy`/`arguments` widths and `page.limit` (5,000) before the DOM or
+  schema. The result is `cqm.limitExceeded` with a stable path.
+- **SQL-A2:** the published schema keeps the recursive `expression` `oneOf` as the client contract; the runtime schema
+  treats an expression as an object and `CqmExpressionShapeValidator` applies the same six forms linearly. Depth 20 now
+  parses in milliseconds; depth 21 is rejected; the 100,000-item `select` is rejected at the byte gate.
+- **SQL-A3:** runtime schema instances are per thread (`ThreadLocal<JsonSchema>`) instead of one global evaluator behind
+  a lock. A parallel-vs-sequential test parses eight valid and eight invalid documents with identical results.
+- **SQL-A4:** an iterative YamlDotNet `Parser` pre-scan enforces depth (64) and node count (100,000) before
+  `YamlStream.Load`; the combined Markdown+front-matter length is bounded before `Markdig.Parse`, and Markdown parser
+  exceptions return `overlay.markdownInvalid`. Depth-200,000 flow YAML and 1.9 MB/3.9 MB Markdown cases are structured
+  failures, not crashes.
+- **SQL-A5 remains TODO:** the child-process harness for resource tests is not implemented; the new depth tests run in
+  process because the guard rejects before the recursive loader. No host code (SQL-07+) was started.
+
+Local gates: warning-free build, **367/367 non-SQL tests** (Core 231, SqlServer 94, Persistence 37, Integration 4,
+Protocol 1), formatter clean. The two real SQL Server integration tests were not run here (no Docker); remote CI covers
+them. The checkpoint is local and unpushed.
+
+## Previous checkpoint — 2026-11-04 — independent foundation acceptance and implementation sequence
 
 [QA report](./qa-check-2026-11-04T09-54-31Z.md): PASS for the TS3 fix/structural-foundation slice, not public gateway
 or v1 acceptance. Own probes confirm null join pairs return errors, hidden physical FKs are unreachable through the

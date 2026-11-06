@@ -28,8 +28,12 @@ public static class CqmJson
         return JsonSerializer.Serialize(query, SerializerOptions);
     }
 
-    public static CqmParseResult Deserialize(string json)
+    public static CqmParseResult Deserialize(string json) => Deserialize(json, CqmLimits.Default);
+
+    public static CqmParseResult Deserialize(string json, CqmLimits limits)
     {
+        ArgumentNullException.ThrowIfNull(limits);
+
         if (string.IsNullOrWhiteSpace(json))
         {
             return Failure(
@@ -37,6 +41,23 @@ public static class CqmJson
                     CqmValidationErrorCodes.JsonInvalid,
                     "$",
                     "The CQM JSON is empty."));
+        }
+
+        // SQL-A1: reject bytes, depth, token count and array widths before JsonDocument/JsonNode or
+        // the schema evaluator can allocate the pathological document. UTF-8 is never shorter than the
+        // UTF-16 length, so this first check avoids allocating the byte copy for an oversized string.
+        if (json.Length > limits.MaxBytes)
+        {
+            return Failure(new CqmValidationError(
+                CqmValidationErrorCodes.LimitExceeded,
+                "$",
+                $"The CQM document is {json.Length:N0} characters, above the {limits.MaxBytes:N0}-byte limit."));
+        }
+
+        var limitError = CqmRequestGuard.Validate(Encoding.UTF8.GetBytes(json), limits);
+        if (limitError is not null)
+        {
+            return Failure(limitError);
         }
 
         try
@@ -58,6 +79,14 @@ public static class CqmJson
                         CqmValidationErrorCodes.JsonInvalid,
                         duplicatePath,
                         "Duplicate JSON property names are not allowed."));
+            }
+
+            // SQL-A2: the six expression forms are checked linearly here; the runtime schema treats
+            // `expression` as an object so the recursive oneOf never reaches JsonSchema.Net.
+            var shapeErrors = CqmExpressionShapeValidator.Validate(document.RootElement, limits);
+            if (shapeErrors.Count > 0)
+            {
+                return CqmParseResult.Failure(shapeErrors);
             }
         }
         catch (JsonException ex)
@@ -118,10 +147,7 @@ public static class CqmJson
         EvaluationResults evaluation;
         try
         {
-            lock (CqmSchema.EvaluationLock)
-            {
-                evaluation = CqmSchema.Compiled.Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
-            }
+            evaluation = CqmSchema.GetCompiled().Evaluate(node, new EvaluationOptions { OutputFormat = OutputFormat.List });
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException or JsonException or OverflowException or NotSupportedException)
         {

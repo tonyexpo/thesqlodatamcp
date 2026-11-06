@@ -4,6 +4,7 @@ using Json.Schema;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using YamlDotNet.Core;
+using YamlDotNet.Core.Events;
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -56,7 +57,36 @@ public static class SemanticOverlayImporter
         ArgumentNullException.ThrowIfNull(markdownWithFrontMatter);
         ArgumentNullException.ThrowIfNull(catalog);
 
-        var document = Markdown.Parse(markdownWithFrontMatter, FrontMatterPipeline);
+        // SQL-A4: Markdig parses the whole document before the front matter is separated, so the
+        // combined YAML+Markdown bound must be applied first. A 3.9 MB nested list otherwise reached
+        // Markdig despite MaxMarkdownCharacters = 2,000,000 (QA TS4-04).
+        if (markdownWithFrontMatter.Length > MaxYamlCharacters + MaxMarkdownCharacters)
+        {
+            return SemanticOverlayImportResult.Failure(
+            [
+                new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.MarkdownTooLarge,
+                    "$",
+                    $"The Markdown document is {markdownWithFrontMatter.Length:N0} characters, above the combined limit of {MaxYamlCharacters + MaxMarkdownCharacters:N0}."),
+            ]);
+        }
+
+        Markdig.Syntax.MarkdownDocument document;
+        try
+        {
+            document = Markdown.Parse(markdownWithFrontMatter, FrontMatterPipeline);
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+        {
+            return SemanticOverlayImportResult.Failure(
+            [
+                new SemanticOverlayValidationError(
+                    SemanticOverlayValidationErrorCodes.MarkdownInvalid,
+                    "$",
+                    $"The Markdown document could not be parsed: {ex.Message}"),
+            ]);
+        }
+
         var frontMatter = document.OfType<YamlFrontMatterBlock>().FirstOrDefault();
         if (frontMatter is null)
         {
@@ -117,6 +147,10 @@ public static class SemanticOverlayImporter
         JsonNode? jsonNode;
         try
         {
+            // SQL-A4: YamlStream.Load builds the whole representation tree recursively. Reject an
+            // over-deep/over-wide event stream first; Parser is iterative, so a 400 KB run of '['
+            // returns a structured failure instead of a stack overflow (QA TS4-03).
+            GuardYamlShape(yaml);
             jsonNode = ParseYamlToJson(yaml);
         }
         catch (NumericScalarOutOfRangeException ex)
@@ -127,7 +161,7 @@ public static class SemanticOverlayImporter
                 ex.Message));
             return SemanticOverlayImportResult.Failure(errors);
         }
-        catch (Exception ex) when (ex is YamlException or NotSupportedException or OverflowException or ArgumentException)
+        catch (Exception ex) when (ex is YamlException or NotSupportedException or OverflowException or ArgumentException or InvalidOperationException)
         {
             errors.Add(new SemanticOverlayValidationError(
                 SemanticOverlayValidationErrorCodes.YamlSyntaxInvalid,
@@ -163,9 +197,11 @@ public static class SemanticOverlayImporter
         SemanticOverlayDocumentDto? dto = null;
         try
         {
+            // The event-stream guard above bounds depth and node count, so this second parser cannot
+            // recurse without bound. Still treat any parser/type-shape exception as a structured failure.
             dto = StrictDeserializer.Deserialize<SemanticOverlayDocumentDto>(yaml);
         }
-        catch (YamlException ex)
+        catch (Exception ex) when (ex is YamlException or ArgumentException or OverflowException or InvalidOperationException)
         {
             errors.Add(new SemanticOverlayValidationError(
                 SemanticOverlayValidationErrorCodes.StrictDeserializationFailed,
@@ -484,6 +520,45 @@ public static class SemanticOverlayImporter
         }
 
         return string.Join('\n', bodyLines);
+    }
+
+    /// <summary>
+    /// Pulls the YAML event stream once, before YamlStream.Load builds a recursive representation tree.
+    /// The parser itself is iterative, so this is the cheap place to enforce depth and node bounds.
+    /// </summary>
+    private static void GuardYamlShape(string yaml)
+    {
+        using var reader = new StringReader(yaml);
+        var parser = new Parser(reader);
+        var depth = 0;
+        var nodes = 0;
+
+        while (parser.MoveNext())
+        {
+            switch (parser.Current)
+            {
+                case SequenceStart or MappingStart:
+                    depth += 1;
+                    nodes += 1;
+                    if (depth > MaxYamlDepth)
+                    {
+                        throw new YamlException($"The YAML document is nested deeper than {MaxYamlDepth} levels.");
+                    }
+
+                    break;
+                case SequenceEnd or MappingEnd:
+                    depth -= 1;
+                    break;
+                case Scalar or AnchorAlias:
+                    nodes += 1;
+                    break;
+            }
+
+            if (nodes > MaxYamlNodes)
+            {
+                throw new YamlException($"The YAML document contains more than {MaxYamlNodes:N0} nodes.");
+            }
+        }
     }
 
     private static JsonNode? ParseYamlToJson(string yaml)

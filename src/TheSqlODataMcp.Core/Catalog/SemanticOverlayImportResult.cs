@@ -37,8 +37,11 @@ public static class SemanticOverlayValidationErrorCodes
     /// <summary>A combined Markdown-with-front-matter import found no YAML front matter block.</summary>
     public const string MissingFrontMatter = "overlay.frontMatterMissing";
 
-    /// <summary>The YAML text itself could not be parsed (malformed YAML syntax).</summary>
+    /// <summary>The YAML text itself could not be parsed (malformed YAML syntax or an exceeded nesting/node bound).</summary>
     public const string YamlSyntaxInvalid = "overlay.yamlSyntaxInvalid";
+
+    /// <summary>The Markdown body could not be parsed (for example, Markdig rejected an excessively nested document).</summary>
+    public const string MarkdownInvalid = "overlay.markdownInvalid";
 
     /// <summary>
     /// Strict typed YAML deserialization rejected the document. Most commonly an unrecognized key

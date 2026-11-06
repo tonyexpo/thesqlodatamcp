@@ -272,6 +272,44 @@ public sealed class SemanticOverlayImporterQaTests
         Assert.Throws<ArgumentException>(() => new SemanticOverlayEntity(source, fields: duplicateFields));
     }
 
+    [Fact]
+    public void FlowYamlAtTwoHundredThousandDepthReturnsAStructuredFailure()
+    {
+        var yaml = "catalogVersion: \"1.0\"\nentities: "
+            + new string('[', 200_000)
+            + new string(']', 200_000);
+
+        var result = SemanticOverlayImporter.ImportYamlAndMarkdown(yaml, string.Empty, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.YamlSyntaxInvalid);
+    }
+
+    [Fact]
+    public void DeepMarkdownReturnsAStructuredFailureInsteadOfThrowing()
+    {
+        var markdown = "---\ncatalogVersion: \"1.0\"\n---\n" + new string('>', 1_900_000);
+
+        var result = SemanticOverlayImporter.ImportMarkdownWithFrontMatter(markdown, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(
+            result.Errors,
+            error => error.Code is SemanticOverlayValidationErrorCodes.MarkdownInvalid
+                or SemanticOverlayValidationErrorCodes.MarkdownTooLarge);
+    }
+
+    [Fact]
+    public void CombinedMarkdownOverTheLimitIsRejectedBeforeMarkdig()
+    {
+        var markdown = "---\ncatalogVersion: \"1.0\"\n---\n" + new string('[', 3_900_000);
+
+        var result = SemanticOverlayImporter.ImportMarkdownWithFrontMatter(markdown, CreateCatalog());
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.Errors, error => error.Code == SemanticOverlayValidationErrorCodes.MarkdownTooLarge);
+    }
+
     private static TechnicalCatalog CreateCatalog()
     {
         var invoiceHeader = new TechnicalEntity(
