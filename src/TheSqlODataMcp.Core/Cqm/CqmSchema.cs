@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Json.Schema;
 
 namespace TheSqlODataMcp.Core.Cqm;
@@ -14,12 +15,33 @@ public static class CqmSchema
 
     public static string Json { get; } = LoadJson();
 
-    internal static JsonSchema Compiled { get; } = JsonSchema.FromText(Json);
+    // The published schema keeps the recursive `expression` oneOf as the client-facing contract, but
+    // JsonSchema.Net evaluates every branch at every level: depth 14 costs 17 s and 3.2 GB (QA TS4-01).
+    // The runtime copy therefore treats an expression as an object and lets CqmExpressionShapeValidator
+    // apply the same six-form contract linearly (QA TS4-01/02, SQL-A2).
+    private static readonly string RuntimeJson = BuildRuntimeSchema();
 
-    // JsonSchema.Net's Evaluate is not safe to call concurrently on a shared recursive schema instance.
-    // CQM parsing may happen concurrently in a host, so serialize evaluation rather than risk a silent
-    // validation bypass. Validation is cheap relative to actual query execution.
-    internal static object EvaluationLock { get; } = new();
+    // JsonSchema.Net's Evaluate is not safe to call concurrently on a shared schema instance (the overlay
+    // importer documents an observed validation bypass). A schema instance per thread removes the shared
+    // mutable evaluator without serialising every parse; the runtime schema is no longer recursive, so the
+    // per-thread construction is bounded and happens once per pool thread (QA TS4-05, SQL-A3).
+    private static readonly ThreadLocal<JsonSchema> Compiled = new(
+        () => JsonSchema.FromText(RuntimeJson),
+        trackAllValues: false);
+
+    internal static JsonSchema GetCompiled() => Compiled.Value!;
+
+    private static string BuildRuntimeSchema()
+    {
+        var root = JsonNode.Parse(Json)!.AsObject();
+        var definitions = root["$defs"]!.AsObject();
+        definitions["expression"] = new JsonObject
+        {
+            ["type"] = "object",
+        };
+
+        return root.ToJsonString();
+    }
 
     private static string LoadJson()
     {

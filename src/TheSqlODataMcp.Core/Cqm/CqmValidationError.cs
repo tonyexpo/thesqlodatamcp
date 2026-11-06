@@ -32,6 +32,7 @@ public sealed class CqmValidationError
 public static class CqmValidationErrorCodes
 {
     public const string JsonInvalid = "cqm.jsonInvalid";
+    public const string LimitExceeded = "cqm.limitExceeded";
     public const string SchemaViolation = "cqm.schemaViolation";
     public const string DeserializationFailed = "cqm.deserializationFailed";
     public const string DuplicateAlias = "cqm.duplicateAlias";
