@@ -1,6 +1,6 @@
 # v1 delivery plan — architecture, development slices and QA gates
 
-Updated **2026-11-04**, reviewed baseline **`2f63e58`**. Execution breakdown by the QA lead/software architecture lead.
+Updated **2026-11-09**, reviewed baseline **`4df04ac`**. Execution breakdown by the QA lead/software architecture lead.
 The [authoritative handoff](AI_DATA_GATEWAY_HANDOFF.md), accepted [ADRs](decisions/), [architecture](architecture.md),
 [roadmap](roadmap.md) and [backlog](backlog.md) remain authoritative in that order. This file elaborates their steps;
 it does **not** replace them or silently reduce the handoff's v1 definition of done (§29).
@@ -9,7 +9,7 @@ it does **not** replace them or silently reduce the handoff's v1 definition of d
 
 Milestones 0/1 and the structural CQM slice exist. Compiler, execution, protocols, standalone OAuth, backoffice and
 packaging **do not**. A catalog/parser acceptance is not a runnable-gateway release. See the
-[fresh QA](qa-check-2026-11-04T09-54-31Z.md) for exact-source evidence and limitations.
+[latest QA](qa-check-2026-11-09T14-47-28Z.md) for exact-source evidence and limitations.
 
 The v1 endpoint is unchanged: downloadable Windows/Linux and Docker application, SQL Server reporting source with
 read-only rights, persistent SQLite, optional semantic import, actual MCP OAuth client, entity/analytical queries,
@@ -184,6 +184,7 @@ Each new QA states its baseline and affected step IDs, rechecks previous finding
 and validates documentation claims against working artifacts. Keep historical reports; do not rewrite a timeout as
 a pass after a diagnostic retry. Milestone-level QA is requested, not an uncontrolled fix/review loop.
 
-**Next development ticket:** independent audit of checkpoint A′ (SQL7-01…04 + SQL-A5/A6a), then SQL-01b/01c while
-SQL-00 decisions 4/5 are pending, then SQL-01a/01d and SQL-02 (discovery/exposure and bound identifiers) before type
-inference/compiler. This document and the QA are merged on `main`; no host or compiler feature is implied.
+**Next development ticket:** checkpoint A′ is accepted by the 2026-11-09 independent QA (SQL7-01…04 closed;
+SQL-A5/A6a and SQL-01c verified). **SQL-01b** is next while SQL-00 decisions 4/5 are pending, then SQL-01a/01d and
+SQL-02 (discovery/exposure and bound identifiers) before type inference/compiler. This document and the QA live on
+`main-qa`; no host or compiler feature is implied.

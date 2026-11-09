@@ -23,11 +23,12 @@ Milestone 0 is complete: the .NET 10 solution, dependency directions, central pa
 
 ## Product boundaries
 
-**Latest QA (2026-11-04):** [independent verification](./docs/qa-check-2026-11-04T09-54-31Z.md) of published `2f63e58`
-closes TS3-01/02/03 with 359 full-suite passes (including two real SQL integration tests), three fixture-static tests,
-format/audit/links and exact-source CI green. Acceptance is **scoped to the fix/structural foundation**, not v1.
-The [SQL-00–17 delivery plan](./docs/v1-delivery-plan.md) maps remaining work to every handoff acceptance outcome.
-The QA report and this plan are now on `main`; there is still no runnable gateway.
+**Latest QA (2026-11-09):** [independent verification](./docs/qa-check-2026-11-09T14-47-28Z.md) of published `4df04ac`
+accepts Checkpoint A′ technically: SQL7-01–04 closed, SQL-A5/A6a and SQL-01c verified, **382/382 full-suite passes**
+(380 non-SQL + 2 real SQL integration tests), three fixture-static tests, warning-free build, format/links and exact-source
+CI green. Acceptance is **scoped to CQM/overlay and the catalog boundary**, not the gateway or v1; SQL7-05 is a low
+documentation-only follow-up. The [SQL-00–17 delivery plan](./docs/v1-delivery-plan.md) maps remaining work to every
+handoff acceptance outcome. There is still no runnable gateway.
 
 - Read-only by construction; no writes or arbitrary commands.
 - No caller-supplied or LLM-generated raw SQL.
