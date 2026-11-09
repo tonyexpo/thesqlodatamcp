@@ -51,6 +51,12 @@
 - Added the versioned CQM v1 contract in `TheSqlODataMcp.Core.Cqm`: immutable query/expression types, a published strict JSON Schema (`CqmSchema.Json`/`CqmJson.SchemaJson`), strict parse/serialize (`CqmJson`), and catalog-independent structural validation (`CqmValidator`) with stable `cqm.*` codes and JSON paths. Parsing also rejects duplicate JSON properties and unpaired UTF-16 surrogates, preserves valid huge `double`/`json` literals, and filters schema-evaluator branch noise from reported paths. The model cannot represent writes, raw SQL, or SQL fragments. See ADR 0016 and `docs/cqm.md`.
 
 ### Fixed
+- Closed the 2026-11-09 QA7 findings on the CQM/overlay input boundary: literal `value` trees are no longer
+  interpreted as query structure (SQL7-01); the configured JSON depth reaches every DOM/serializer parser (SQL7-02);
+  the published schema and `docs/cqm.md` document the default widths/page limit (SQL7-03); and overlay diagnostic
+  paths decode JSON Pointer segments without corrupting `/` or `~` in names (SQL7-04). Added the SQL-A5 child-process
+  resource harness and SQL-A6a bounded error lists (`TotalErrors`/`Truncated`, 100 reported). Local gates: 379 non-SQL
+  tests, formatter and links pass; remote CI pending.
 - Closed the post-fix QA residuals: a null relationship join pair returns `overlay.schemaViolation` from both import
   entry points instead of `NullReferenceException` (TS3-01); `CatalogReadView` sanitizes the exposed physical FK graph
   and omits catalog-level narrative, so a default serializer cannot reach a hidden target (TS3-02); and temporal

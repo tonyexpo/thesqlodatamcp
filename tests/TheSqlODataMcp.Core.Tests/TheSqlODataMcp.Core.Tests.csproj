@@ -13,5 +13,15 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="../../src/TheSqlODataMcp.Core/TheSqlODataMcp.Core.csproj" />
+    <ProjectReference Include="../TheSqlODataMcp.Probe/TheSqlODataMcp.Probe.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
+  <!-- SQL-A5: the probe must be present next to the test assembly so ProcessIsolated can launch it
+       without relying on the repository layout or a second build invocation. -->
+  <Target Name="CopyResourceProbe" AfterTargets="Build">
+    <ItemGroup>
+      <ResourceProbeFiles Include="$(MSBuildThisFileDirectory)../TheSqlODataMcp.Probe/bin/$(Configuration)/net10.0/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ResourceProbeFiles)" DestinationFolder="$(OutDir)probe/%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

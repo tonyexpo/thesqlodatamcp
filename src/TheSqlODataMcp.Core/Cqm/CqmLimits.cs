@@ -65,13 +65,17 @@ internal static class CqmRequestGuard
                 $"The CQM document is {utf8.Length:N0} bytes, above the limit of {limits.MaxBytes:N0} bytes.");
         }
 
+        // SQL7-02: the reader must be able to see documents up to the configured depth so our own
+        // stack counter reports the limit violation (and not a generic malformed-JSON error). The
+        // extra level lets the guard observe the first token beyond the configured bound.
+        var readerDepth = (int)Math.Clamp((long)limits.MaxJsonDepth + 1, ReaderDepth, 1_000_000);
         var reader = new Utf8JsonReader(
             utf8,
             new JsonReaderOptions
             {
                 CommentHandling = JsonCommentHandling.Disallow,
                 AllowTrailingCommas = false,
-                MaxDepth = ReaderDepth,
+                MaxDepth = readerDepth,
             });
 
         var stack = new Stack<Frame>();
@@ -107,17 +111,19 @@ internal static class CqmRequestGuard
                             {
                                 var parent = stack.Peek();
                                 parent.Count += 1;
-                                var limit = ArrayLimit(parent.Name, limits);
+                                var limit = parent.InLiteralValue ? null : ArrayLimit(parent.Name, limits);
                                 if (limit is not null && parent.Count > limit)
                                 {
                                     return Limit(parent.Path, $"The CQM array '{parent.Name}' contains more than {limit:N0} items.");
                                 }
                             }
 
+                            var inLiteralValue = IsInsideLiteralValue(stack, pendingProperty);
                             stack.Push(new Frame(
                                 IsArray: reader.TokenType == JsonTokenType.StartArray,
                                 Name: pendingProperty,
-                                Path: path));
+                                Path: path,
+                                InLiteralValue: inLiteralValue));
                             pendingProperty = null;
                             break;
                         }
@@ -137,13 +143,14 @@ internal static class CqmRequestGuard
                         {
                             var parent = stack.Peek();
                             parent.Count += 1;
-                            var limit = ArrayLimit(parent.Name, limits);
+                            var limit = parent.InLiteralValue ? null : ArrayLimit(parent.Name, limits);
                             if (limit is not null && parent.Count > limit)
                             {
                                 return Limit(parent.Path, $"The CQM array '{parent.Name}' contains more than {limit:N0} items.");
                             }
                         }
-                        else if (stack.Count > 0 && stack.Peek().Name == "page" && pendingProperty == "limit"
+                        else if (stack.Count > 0 && !stack.Peek().InLiteralValue
+                            && stack.Peek().Name == "page" && pendingProperty == "limit"
                             && reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var pageLimit)
                             && pageLimit > limits.MaxPageSize)
                         {
@@ -167,6 +174,22 @@ internal static class CqmRequestGuard
         }
 
         return null;
+    }
+
+    // SQL7-01: `literal.value` carries caller data, not query structure. Names such as `arguments`,
+    // `select` or `page.limit` inside it must not be interpreted as CQM fields; byte/token/depth
+    // bounds stay global.
+    private static bool IsInsideLiteralValue(Stack<Frame> stack, string? pendingProperty)
+    {
+        if (stack.Count == 0)
+        {
+            return false;
+        }
+
+        var parent = stack.Peek();
+        // In the CQM expression grammar the literal form is identified by its `value` property; the
+        // enclosing expression object is not named "literal" on the wire.
+        return parent.InLiteralValue || pendingProperty == "value";
     }
 
     private static int? ArrayLimit(string? name, CqmLimits limits) => name switch
@@ -201,13 +224,15 @@ internal static class CqmRequestGuard
     private static CqmValidationError Limit(string path, string message)
         => new(CqmValidationErrorCodes.LimitExceeded, path, message);
 
-    private sealed class Frame(bool IsArray, string? Name, string Path)
+    private sealed class Frame(bool IsArray, string? Name, string Path, bool InLiteralValue)
     {
         public bool IsArray { get; } = IsArray;
 
         public string? Name { get; } = Name;
 
         public string Path { get; } = Path;
+
+        public bool InLiteralValue { get; } = InLiteralValue;
 
         public int Count { get; set; }
     }

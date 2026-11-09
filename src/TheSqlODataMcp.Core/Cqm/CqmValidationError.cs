@@ -59,12 +59,20 @@ public static class CqmValidationErrorCodes
 /// </summary>
 public sealed class CqmParseResult
 {
+    /// <summary>
+    /// SQL-A6a: the maximum number of errors returned to a caller. A pathological document can produce
+    /// thousands of independently detectable schema violations; reporting all of them is neither useful
+    /// nor bounded. <see cref="TotalErrors"/> still records how many were found.
+    /// </summary>
+    public const int MaxReportedErrors = 100;
+
     private readonly IReadOnlyList<CqmValidationError> errors;
 
-    private CqmParseResult(CqmQuery? query, IReadOnlyList<CqmValidationError> errors)
+    private CqmParseResult(CqmQuery? query, IReadOnlyList<CqmValidationError> errors, int totalErrors)
     {
         Query = query;
         this.errors = errors;
+        TotalErrors = totalErrors;
     }
 
     public bool Succeeded => Query is not null;
@@ -73,21 +81,37 @@ public sealed class CqmParseResult
 
     public IReadOnlyList<CqmValidationError> Errors => errors;
 
+    /// <summary>Number of errors detected before the <see cref="MaxReportedErrors"/> cap.</summary>
+    public int TotalErrors { get; }
+
+    /// <summary>True when <see cref="TotalErrors"/> is greater than the reported <see cref="Errors"/>.</summary>
+    public bool Truncated => TotalErrors > errors.Count;
+
     public static CqmParseResult Success(CqmQuery query)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return new CqmParseResult(query, Array.Empty<CqmValidationError>());
+        return new CqmParseResult(query, Array.Empty<CqmValidationError>(), totalErrors: 0);
     }
 
     public static CqmParseResult Failure(IEnumerable<CqmValidationError> errors)
     {
         ArgumentNullException.ThrowIfNull(errors);
-        var copy = new ReadOnlyCollection<CqmValidationError>(errors.ToArray());
-        if (copy.Count == 0)
+        var reported = new List<CqmValidationError>(MaxReportedErrors);
+        var totalErrors = 0;
+        foreach (var error in errors)
+        {
+            totalErrors += 1;
+            if (reported.Count < MaxReportedErrors)
+            {
+                reported.Add(error);
+            }
+        }
+
+        if (totalErrors == 0)
         {
             throw new ArgumentException("A failure result requires at least one validation error.", nameof(errors));
         }
 
-        return new CqmParseResult(null, copy);
+        return new CqmParseResult(null, new ReadOnlyCollection<CqmValidationError>(reported), totalErrors);
     }
 }

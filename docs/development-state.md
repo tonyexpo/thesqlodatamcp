@@ -1,15 +1,46 @@
 # Development state
 
-**Checkpoint date:** 2026-11-04 (independent QA + architecture delivery plan)
+**Checkpoint date:** 2026-11-09 (SQL7-01…04 + SQL-A5/A6a; checkpoint A′ ready for independent audit)
 
-**Branch:** `main`; the QA report and delivery plan were fast-forwarded from `main-qa` to `main`; no production code
-changed in this documentation checkpoint
+**Branch:** `main`, published at `cc72c80` before this fix cycle; the QA report, dashboard and delivery plan are
+merged on `main`
 
 **Milestone:** 2 — in progress; bounded CQM structural slice accepted, resolver/compiler/executor still pending
 
 This file is the restart point when conversational context is unavailable. Read it after `AGENTS.md` and the project skill.
 
-## Latest checkpoint — 2026-11-06 — CQM and overlay input boundary (SQL-A1…A4)
+## Latest checkpoint — 2026-11-09 — QA7 fixes, child-process probes and bounded error lists
+
+The [2026-11-09 independent QA](./qa-check-2026-11-09T09-39-21Z.md) accepted SQL-A1–A4 and returned SQL7-01 (medium)
+plus SQL7-02/03/04 (low). All four are fixed; SQL-A5 and SQL-A6a close Phase A′.
+
+- **SQL7-01:** the request guard now treats `literal.value` as caller data. Property names and arrays inside a
+  literal no longer trigger `select`/`joins`/`groupBy`/`orderBy`/`arguments`/`page.limit` limits; byte, token and
+  JSON-depth limits remain global. Regression tests cover reserved names, 101-item arrays, `page.limit` 6,000 and
+  depth inside a literal.
+- **SQL7-02:** the configured `MaxJsonDepth` is honoured by `JsonDocument`, `JsonNode`, the typed serializer and the
+  depth-pre-scan reader; a depth-70 document with `MaxJsonDepth=100` now parses instead of failing at the implicit 64.
+- **SQL7-03:** the published schema declares `maxItems` for `select` (1,000), `joins` (8), `groupBy`/`orderBy` (12)
+  and operator/function `arguments` (100), and `page.limit` maximum 5,000. `docs/cqm.md` lists the server-side
+  byte/token/depth/expression budgets and states that the server verdict is authoritative.
+- **SQL7-04:** diagnostic paths are built from JSON Pointer segments, not `InstanceLocation.ToString()`, so property
+  names containing `/` or `~` keep their decoded spelling (`a/b~c`, not `a.b~c` or `a~1b~0c`).
+- **SQL-A5:** `tests/TheSqlODataMcp.Probe` runs the three resource oracles in a child process with
+  `DOTNET_GCHeapHardLimit` and a hard timeout; `ProcessIsolated` launches it and the test assembly copies the probe
+  output. A regression to the exponential/recursive path fails the parent test instead of hanging it.
+- **SQL-A6a:** `CqmParseResult` and `SemanticOverlayImportResult` cap reported errors at 100 and expose
+  `TotalErrors`/`Truncated`; tests cover an 11,000-error CQM list, an 80,000-error overlay list and a wide invalid
+  overlay. `SQL-A6b` (`Query:*` binding) remains with SQL-07.
+
+Local gates: warning-free build; **379/379 non-SQL tests** (Core 243, Persistence 37, SqlServer 94, Integration 4,
+Protocol 1); formatter clean; Markdown links pass. The two real SQL Server integration tests were not run locally
+(no Docker); remote CI covers them.
+
+**Next:** independent audit of checkpoint A′ (this fix cycle). Then SQL-01b (introspection diagnostics) and SQL-01c
+(public catalog boundary), which do not depend on the owner; SQL-01a/01d remain blocked on SQL-00 decisions 4/5.
+No host code before checkpoint C.
+
+## Previous checkpoint — 2026-11-06 — CQM and overlay input boundary (SQL-A1…A4)
 
 The 6 November QA (report and ordered queue kept on `main-qa` as `qa-check-2026-11-06T08-30-00Z.md` and
 `dev-queue-2026-11-06T08-30-00Z.md`) found two input-boundary hazards: CQM schema evaluation was exponential in

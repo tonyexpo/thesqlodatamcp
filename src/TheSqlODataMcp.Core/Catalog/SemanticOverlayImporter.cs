@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json.Nodes;
 using Json.Schema;
+using TheSqlODataMcp.Core.Cqm;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using YamlDotNet.Core;
@@ -669,8 +670,7 @@ public static class SemanticOverlayImporter
                 continue;
             }
 
-            var pointer = detail.InstanceLocation.ToString();
-            var path = pointer.Length == 0 ? "$" : "$" + pointer.Replace('/', '.');
+            var path = JsonPointerPath.ToJsonPath(detail.InstanceLocation);
             foreach (var error in detail.Errors!)
             {
                 var message = string.IsNullOrEmpty(error.Key) ? error.Value : $"{error.Key}: {error.Value}";

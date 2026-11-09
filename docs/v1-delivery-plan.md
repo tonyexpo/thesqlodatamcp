@@ -184,5 +184,6 @@ Each new QA states its baseline and affected step IDs, rechecks previous finding
 and validates documentation claims against working artifacts. Keep historical reports; do not rewrite a timeout as
 a pass after a diagnostic retry. Milestone-level QA is requested, not an uncontrolled fix/review loop.
 
-**Next development ticket:** SQL-00 acceptance closeout, then SQL-01/02 (discovery/exposure and bound identifiers)
-before type inference/compiler. This document and QA are committed on `main-qa` only; no feature was implemented here.
+**Next development ticket:** independent audit of checkpoint A′ (SQL7-01…04 + SQL-A5/A6a), then SQL-01b/01c while
+SQL-00 decisions 4/5 are pending, then SQL-01a/01d and SQL-02 (discovery/exposure and bound identifiers) before type
+inference/compiler. This document and the QA are merged on `main`; no host or compiler feature is implied.

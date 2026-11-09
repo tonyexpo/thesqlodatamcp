@@ -98,12 +98,23 @@ public static class SemanticOverlayValidationErrorCodes
 /// </summary>
 public sealed class SemanticOverlayImportResult
 {
+    /// <summary>
+    /// SQL-A6a: the maximum number of errors returned to an administrator. A wide invalid overlay can
+    /// produce thousands of schema violations; the first errors are reported and
+    /// <see cref="TotalErrors"/> records the full count.
+    /// </summary>
+    public const int MaxReportedErrors = 100;
+
     private readonly IReadOnlyList<SemanticOverlayValidationError> errors;
 
-    private SemanticOverlayImportResult(SemanticOverlay? overlay, IReadOnlyList<SemanticOverlayValidationError> errors)
+    private SemanticOverlayImportResult(
+        SemanticOverlay? overlay,
+        IReadOnlyList<SemanticOverlayValidationError> errors,
+        int totalErrors)
     {
         Overlay = overlay;
         this.errors = errors;
+        TotalErrors = totalErrors;
     }
 
     /// <summary>True when the import produced a valid <see cref="SemanticOverlay"/> with no errors.</summary>
@@ -112,24 +123,43 @@ public sealed class SemanticOverlayImportResult
     /// <summary>The validated overlay when <see cref="Succeeded"/> is true; otherwise null.</summary>
     public SemanticOverlay? Overlay { get; }
 
-    /// <summary>Every validation error detected, in detection order. Empty when <see cref="Succeeded"/> is true.</summary>
+    /// <summary>Validation errors detected, in detection order, capped at <see cref="MaxReportedErrors"/>.</summary>
     public IReadOnlyList<SemanticOverlayValidationError> Errors => errors;
+
+    /// <summary>Number of errors detected before the <see cref="MaxReportedErrors"/> cap.</summary>
+    public int TotalErrors { get; }
+
+    /// <summary>True when <see cref="TotalErrors"/> is greater than the reported <see cref="Errors"/>.</summary>
+    public bool Truncated => TotalErrors > errors.Count;
 
     public static SemanticOverlayImportResult Success(SemanticOverlay overlay)
     {
         ArgumentNullException.ThrowIfNull(overlay);
-        return new SemanticOverlayImportResult(overlay, Array.Empty<SemanticOverlayValidationError>());
+        return new SemanticOverlayImportResult(overlay, Array.Empty<SemanticOverlayValidationError>(), totalErrors: 0);
     }
 
     public static SemanticOverlayImportResult Failure(IEnumerable<SemanticOverlayValidationError> errors)
     {
         ArgumentNullException.ThrowIfNull(errors);
-        var copy = new ReadOnlyCollection<SemanticOverlayValidationError>(errors.ToArray());
-        if (copy.Count == 0)
+        var reported = new List<SemanticOverlayValidationError>(MaxReportedErrors);
+        var totalErrors = 0;
+        foreach (var error in errors)
+        {
+            totalErrors += 1;
+            if (reported.Count < MaxReportedErrors)
+            {
+                reported.Add(error);
+            }
+        }
+
+        if (totalErrors == 0)
         {
             throw new ArgumentException("A failure result requires at least one validation error.", nameof(errors));
         }
 
-        return new SemanticOverlayImportResult(null, copy);
+        return new SemanticOverlayImportResult(
+            null,
+            new ReadOnlyCollection<SemanticOverlayValidationError>(reported),
+            totalErrors);
     }
 }

@@ -62,7 +62,9 @@ public static class CqmJson
 
         try
         {
-            using var document = JsonDocument.Parse(json);
+            // SQL7-02: the guard accepted the configured depth, so the DOM parsers must not impose
+            // their default 64-level ceiling on top of it.
+            using var document = JsonDocument.Parse(json, DocumentOptions(limits));
             if (CqmUnicode.TryFindInvalidUnicode(document.RootElement, "$", out var invalidUnicodePath))
             {
                 return Failure(
@@ -109,7 +111,7 @@ public static class CqmJson
         JsonNode? node;
         try
         {
-            node = JsonNode.Parse(json);
+            node = JsonNode.Parse(json, nodeOptions: null, DocumentOptions(limits));
         }
         catch (JsonException ex)
         {
@@ -175,7 +177,7 @@ public static class CqmJson
         CqmQuery? query;
         try
         {
-            query = JsonSerializer.Deserialize<CqmQuery>(json, SerializerOptions);
+            query = JsonSerializer.Deserialize<CqmQuery>(json, SerializerOptionsFor(limits));
         }
         catch (JsonException ex)
         {
@@ -219,6 +221,20 @@ public static class CqmJson
 
     private static CqmParseResult Failure(CqmValidationError error) => CqmParseResult.Failure([error]);
 
+    private static JsonDocumentOptions DocumentOptions(CqmLimits limits) => new()
+    {
+        CommentHandling = JsonCommentHandling.Disallow,
+        AllowTrailingCommas = false,
+        MaxDepth = limits.MaxJsonDepth,
+    };
+
+    // The typed serializer has its own default depth ceiling (64). Reuse the shared options unless a
+    // host configured a different depth, in which case the copy carries the same converters (SQL7-02).
+    private static JsonSerializerOptions SerializerOptionsFor(CqmLimits limits)
+        => limits.MaxJsonDepth == SerializerOptions.MaxDepth
+            ? SerializerOptions
+            : new JsonSerializerOptions(SerializerOptions) { MaxDepth = limits.MaxJsonDepth };
+
     private static JsonSerializerOptions CreateSerializerOptions()
     {
         var options = new JsonSerializerOptions
@@ -228,6 +244,7 @@ public static class CqmJson
             ReadCommentHandling = JsonCommentHandling.Disallow,
             AllowTrailingCommas = false,
             UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+            MaxDepth = 64,
         };
 
         options.Converters.Add(new CanonicalScalarTypeJsonConverter());
@@ -247,7 +264,7 @@ public static class CqmJson
             }
 
             var pointer = detail.InstanceLocation.ToString();
-            var path = ToJsonPath(pointer);
+            var path = JsonPointerPath.ToJsonPath(detail.InstanceLocation);
             foreach (var error in detail.Errors!)
             {
                 var message = string.IsNullOrEmpty(error.Key) ? error.Value : $"{error.Key}: {error.Value}";
@@ -427,30 +444,4 @@ public static class CqmJson
                 ? path
                 : string.Concat("$", path);
 
-    private static string ToJsonPath(string pointer)
-    {
-        if (pointer.Length == 0)
-        {
-            return "$";
-        }
-
-        var builder = new StringBuilder("$");
-        foreach (var segment in pointer.Split('/').Skip(1))
-        {
-            var unescaped = segment
-                .Replace("~1", "/", StringComparison.Ordinal)
-                .Replace("~0", "~", StringComparison.Ordinal);
-
-            if (int.TryParse(unescaped, NumberStyles.None, CultureInfo.InvariantCulture, out _))
-            {
-                builder.Append('[').Append(unescaped).Append(']');
-            }
-            else
-            {
-                builder.Append('.').Append(unescaped);
-            }
-        }
-
-        return builder.ToString();
-    }
 }

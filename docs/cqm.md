@@ -53,6 +53,30 @@ The v1 operator, function, aggregate, and canonical scalar vocabularies are exac
 
 Schema diagnostics filter evaluator branch noise so each reported path points at an actionable location. Valid `double`/`json` literals outside decimal range are preserved end to end; the schema evaluator receives a sanitized numeric copy only to avoid a `JsonSchema.Net` decimal-conversion limitation. Errors are collected as stable `code`/`path`/`message` values (`CqmValidationError`) instead of throwing one violation at a time.
 
+## Server request limits
+
+The schema documents the default maximum widths and page size, and the server enforces them before schema
+evaluation. Byte, token, JSON-depth and expression-depth budgets are server-side and cannot be expressed in the
+published schema.
+
+| Limit | Default |
+| --- | --- |
+| Request size | 1 MiB (UTF-8 bytes) |
+| JSON nesting | 64 levels |
+| JSON tokens | 200,000 |
+| `select` items | 1,000 |
+| `joins` | 8 |
+| `groupBy` expressions | 12 |
+| `orderBy` keys | 12 |
+| Operator/function `arguments` | 100 |
+| `page.limit` | 5,000 |
+| Expression nesting | 20 |
+
+The server verdict is authoritative: a client that validates against `cqm.v1.schema.json` alone may accept a
+document that the server rejects under a tighter configured budget. `literal.value` carries caller data, not query
+structure, so property names inside it do not trigger the query-width limits; the global byte, token and depth
+bounds still apply.
+
 Catalog entity/field/relationship resolution, type inference, expression normalization, group-by completeness, join-priority resolution, administrator limits, and SQL compilation are later Milestone 2 slices. No CQM document can execute until those slices exist.
 
 ## Join shape
