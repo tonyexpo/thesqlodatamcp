@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- SQL-01c catalog boundary test: public `Protocols`/`Web` surfaces may not expose `MergedCatalog` or
+  `TechnicalCatalog`, so future adapters must resolve metadata through `CatalogReadView`.
 - Owner-requested [2026-11-04 QA/architecture checkpoint](./qa-check-2026-11-04T09-54-31Z.md) of `2f63e58`: TS3 reproductions closed, 359 full local tests + 3 fixture-static pass, exact-source CI observed; ADR 0016's structural slice independently accepted. Added [SQL-00–17 delivery plan](./v1-delivery-plan.md), dependencies, per-step test gates and full handoff-v1 acceptance crosswalk; no application implementation or scope expansion. The QA report, plan and tracking were then fast-forwarded from `main-qa` to `main`; that documentation checkpoint is local until pushed.
 - Independent [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces TS3-01/02/03, and is now followed by a local fix cycle that closes them with regressions. The report was merged from `main-qa` into `main`; the new fix commit is not pushed.
 - Owner-requested [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.

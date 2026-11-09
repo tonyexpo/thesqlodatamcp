@@ -36,9 +36,11 @@ Local gates: warning-free build; **379/379 non-SQL tests** (Core 243, Persistenc
 Protocol 1); formatter clean; Markdown links pass. The two real SQL Server integration tests were not run locally
 (no Docker); remote CI covers them.
 
-**Next:** independent audit of checkpoint A′ (this fix cycle). Then SQL-01b (introspection diagnostics) and SQL-01c
-(public catalog boundary), which do not depend on the owner; SQL-01a/01d remain blocked on SQL-00 decisions 4/5.
-No host code before checkpoint C.
+**Next:** independent audit of checkpoint A′ (this fix cycle). **SQL-01c is implemented** (`CatalogBoundaryTests`
+rejects public protocol/Web surfaces exposing `MergedCatalog`/`TechnicalCatalog`); **SQL-01b** (introspection
+diagnostics and named warnings for unusual metadata) is the next independent ticket and needs a warnings
+representation on the technical catalog. SQL-01a/01d remain blocked on SQL-00 decisions 4/5. No host code before
+checkpoint C.
 
 ## Previous checkpoint — 2026-11-06 — CQM and overlay input boundary (SQL-A1…A4)
 
