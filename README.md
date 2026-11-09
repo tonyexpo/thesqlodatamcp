@@ -61,6 +61,7 @@ The gateway is a catalog and query layer, not a BI dashboard builder, metric reg
 - [Canonical Query Model v1](./docs/cqm.md) — public query contract, expression forms, and validation boundary.
 - [Architecture](./docs/architecture.md) — concise target architecture and legacy disposition.
 - [Roadmap](./docs/roadmap.md) — ordered v1 milestones, dependencies, and exit gates.
+- [Status dashboard](./docs/status.html) — current development, CI, QA, decisions and release-readiness overview.
 - [Backlog](./docs/backlog.md) — actionable implementation checklist.
 - [v1 delivery plan](./docs/v1-delivery-plan.md) — dependency-ordered tickets, per-step gates and handoff acceptance crosswalk for development and future QA.
 - [Development state](./docs/development-state.md) — verified restart checkpoint, open gates, and next dependency-ordered work.
