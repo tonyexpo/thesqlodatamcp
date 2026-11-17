@@ -103,13 +103,13 @@ offset-bearing `datetime` and more than seven fractional digits are rejected. No
 
 ## Local QA closure (2026-11-02)
 
-The [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) confirmed automatic-join representation and the main temporal
+The post-fix QA (historical, in Git) confirmed automatic-join representation and the main temporal
 corrections, and identified the dangling decimal separator (TS3-03). The local fix cycle closes it: every temporal
 parser now requires at least one digit after a present separator. Exact-source remote CI was green on `f16f653`;
-The [2026-11-04 independent QA](./qa-check-2026-11-04T09-54-31Z.md) and exact-source CI on `2f63e58` now accept
-ADR 0016's bounded structural slice. The [delivery plan](./v1-delivery-plan.md) tracks the still-unimplemented binding,
+The 2026-11-04 independent QA (historical, in Git) and exact-source CI on `2f63e58` now accept
+ADR 0016's bounded structural slice. The [delivery plan](./backlog.md) tracks the still-unimplemented binding,
 typing, normalization, join resolution, compiler, executor and operational gates; no executable query is implied.
 
-The [previous QA](./qa-check-2026-11-02T10-54-29Z.md) found TS2-01/TS2-02; both are fixed and regression-tested.
+The previous QA (historical, in Git) found TS2-01/TS2-02; both are fixed and regression-tested.
 Structural success is still not catalog/type/operational validation: disconnected joins and expensive scans must be
 rejected by later resolver/type/limit stages; `page` only bounds returned pagination, not source work.

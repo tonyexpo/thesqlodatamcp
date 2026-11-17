@@ -2,12 +2,19 @@
 
 ## [Unreleased]
 
+### Changed
+- Workflow and documentation alignment (2026-11-17): `AGENTS.md` adopts the shared owner workflow (per-step
+  same-model adversarial QA sub-agent, P0–P3, PR delivery per range, milestone UAT). Canonical docs are now
+  `status.md`/`status.html`, `backlog.md` (absorbs roadmap, SQL-00–17 plan and work queues), `decisions.md` (index of
+  `decisions/`), `qa-status.md`. Removed the technical-lead skill, `development-state.md`, roadmap, delivery plan,
+  dated QA reports and queues (kept in Git history); retired `main-qa` (tag `archive/main-qa-2026-11-09`).
+
 ### Added
 - SQL-01c catalog boundary test: public `Protocols`/`Web` surfaces may not expose `MergedCatalog` or
   `TechnicalCatalog`, so future adapters must resolve metadata through `CatalogReadView`.
-- Owner-requested [2026-11-04 QA/architecture checkpoint](./qa-check-2026-11-04T09-54-31Z.md) of `2f63e58`: TS3 reproductions closed, 359 full local tests + 3 fixture-static pass, exact-source CI observed; ADR 0016's structural slice independently accepted. Added [SQL-00–17 delivery plan](./v1-delivery-plan.md), dependencies, per-step test gates and full handoff-v1 acceptance crosswalk; no application implementation or scope expansion. The QA report, plan and tracking were then fast-forwarded from `main-qa` to `main`; that documentation checkpoint is local until pushed.
-- Independent [post-fix QA](./qa-check-2026-11-02T14-46-14Z.md) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces TS3-01/02/03, and is now followed by a local fix cycle that closes them with regressions. The report was merged from `main-qa` into `main`; the new fix commit is not pushed.
-- Owner-requested [2026-11-02 adversarial QA](./qa-check-2026-11-02T10-54-29Z.md), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.
+- Owner-requested 2026-11-04 QA/architecture checkpoint (historical, in Git) of `2f63e58`: TS3 reproductions closed, 359 full local tests + 3 fixture-static pass, exact-source CI observed; ADR 0016's structural slice independently accepted. Added [SQL-00–17 delivery plan](./backlog.md), dependencies, per-step test gates and full handoff-v1 acceptance crosswalk; no application implementation or scope expansion. The QA report, plan and tracking were then fast-forwarded from `main-qa` to `main`; that documentation checkpoint is local until pushed.
+- Independent post-fix QA (historical, in Git) of published `f16f653`: verifies exact-source green CI and original fixes, reproduces TS3-01/02/03, and is now followed by a local fix cycle that closes them with regressions. The report was merged from `main-qa` into `main`; the new fix commit is not pushed.
+- Owner-requested 2026-11-02 adversarial QA (historical, in Git), saved locally on `main-qa` over unpublished CQM commit `dbe98fb`: fresh warning-free build, 324 passing non-SQL tests, package/link audits, independent Core and real-SQLite probes, explicit open catalog/CQM findings and pinned-SDK/SQL CI limitations. Updated restart/backlog/roadmap/CQM tracking without changing production code or publishing local development.
 - Initial project setup.
 - MCP connector concept for SQL DQL queries.
 - Public project handoff documenting the transition from Qwen 3.6 35B to Codex 5.6 Terra.

@@ -1,162 +1,158 @@
-# Backlog
+# Backlog — thesqlodatamcp
 
-## Source of truth
+Owner-agreed plan to the handoff's complete **v1**. The product baseline and the v1 definition of done (§29) are in
+[AI_DATA_GATEWAY_HANDOFF.md](AI_DATA_GATEWAY_HANDOFF.md); decisions in [decisions.md](decisions.md); current state in
+[status.md](status.md). This plan elaborates the handoff, it never reduces it: deferring a v1 requirement needs an
+explicit owner scope change.
 
-The [AI Data Gateway handoff](./AI_DATA_GATEWAY_HANDOFF.md) is the authoritative product baseline. The [roadmap](./roadmap.md) defines milestone order and exit gates. This file tracks implementation work; it must not silently change settled product boundaries.
+## v1 endpoint and exclusions
 
-For bounded development tickets and future QA use [SQL-00–17](./v1-delivery-plan.md), including the handoff §29
-acceptance crosswalk and evidence ledger. The [2026-11-04 QA](./qa-check-2026-11-04T09-54-31Z.md) closes TS3 cases and
-accepts ADR 0016's structural slice; it does not mark the query engine, host or full v1 complete.
+Downloadable Windows/Linux and Docker application; SQL Server reporting source with read-only rights; persistent
+SQLite control store; optional semantic import; real MCP OAuth client; entity and analytical queries; equivalent base
+OData; CQM `QUERY`/`POST`; administrative revocation; restart without state loss.
 
-## Milestone 0 — Rebaseline and de-risk
+**Not in v1:** report builder, raw SQL, query-result persistence/cache, per-user row/column security, other database
+providers, scale-out, OData `$apply`/writes/navigation, cloud deployment. TS-08 (ordinal in the structural hash) and
+TS-09 (dotted schema names) stay triaged debt unless a real database needs them.
 
-### Documentation and decisions
+## Step states
 
-- [x] Import the complete original AI Data Gateway handoff into `docs/` without modification.
-- [x] Reconcile README, architecture, roadmap, backlog, project status, and changelog with the handoff.
-- [x] Preserve the obsolete PoC handoff and QA record in Git history and the historical tag; remove them from `main`.
-- [x] Set `thesqlodatamcp` as the definitive public product and repository name.
-- [x] Select the corresponding .NET solution/project/assembly/namespace casing during scaffolding.
-- [x] Confirm Apache License 2.0 as the final license.
-- [x] Retain and rebaseline this existing public Git repository.
-- [x] Preserve the final PoC as `legacy-poc-final-2026-07-18` and remove obsolete source/tests from `main`.
-- [x] Record project identity, repository continuity, historical preservation, and licensing in ADR 0001.
-- [ ] Record subsequent settled implementation choices as short ADRs.
+`PLANNED` → `IN_PROGRESS` → `IMPLEMENTED_PENDING_QA` → `DONE` (or `DONE — UAT pending`). Also `BLOCKED` (with reason),
+`DEFERRED_BY_OWNER`. Effort S/M/L is relative, not a calendar promise.
 
-### Implementation-time research spikes
+## Milestone 2 — CQM and SQL Server query engine (in progress)
 
-- [x] Verify the current supported official .NET MCP SDK with Streamable HTTP and structured tool output.
-- [x] Verify ASP.NET Core OData compatibility with .NET 10 and runtime EDM generation without a reporting-source EF model.
-- [x] Verify current OpenIddict flows for PKCE, dynamic client registration, resource indicators, reference tokens, refresh, and revocation; record that RFC 7591 registration requires application-owned implementation or another validated component.
-- [x] Select JSON Schema and YAML/front-matter libraries after strict-validation prototypes.
-- [x] Define a provider-neutral deterministic reporting-catalog fixture and SQL Server bootstrap/teardown harness.
-- [x] Select disposable SQL Server integration-test infrastructure that works locally and in CI.
+Milestones 0 (rebaseline) and 1 (catalog foundation) are done; see *Done* below.
 
-### Solution baseline
+### SQL-00 — v1 support matrix · `BLOCKED` (owner decisions)
+Record the answers as one ADR ("v1 support matrix"). Recommended defaults in italics:
+1. Supported SQL Server versions for the source: *2019, 2022, 2025; CI exercises 2022.*
+2. Operating systems/artifacts: *Windows x64 and Linux x64 self-contained + Docker image.*
+3. MCP clients proven end to end: *MCP Inspector plus one real desktop client chosen by the owner.*
+4. Default exposure: *"visible unless excluded", but a non-empty `DataSource:IncludedSchemas` is required at startup
+   (no implicit `dbo`).* Blocks SQL-01a.
+5. Public guide: *an administrator-written `publicGuide` overlay field is what `get_reporting_guide` returns; the catalog
+   narrative stays internal.* Blocks SQL-01d.
 
-- [x] Scaffold the five target source projects and four test projects without further fragmentation.
-- [x] Add central package/version management, nullable analysis, formatting, analyzers, and deterministic builds.
-- [x] Establish CI for restore, build, unit tests, and documentation/link checks.
-- [x] Remove legacy tracked `bin/`/`obj/` artifacts and ignore local agent state.
-- [x] Establish the new example-configuration and local-secret ignore convention when the solution is scaffolded.
+### Checkpoint B — discovery and exposure
 
-## Milestone 1 — Catalog foundation
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-01a** | SQL-00 item 4 | `IncludedSchemas`/`ExcludedObjects` applied **in the SQL** (parameterized) by the introspector; FKs whose target is outside the boundary are dropped with a revision warning; options validated at startup. Accept: on the fixture with a second schema and a cross-schema FK, excluded objects are absent from the technical catalog JSON, control store and logs; the cross-schema FK yields a warning; empty `IncludedSchemas` fails validation naming the key. Closes TS-02. | M |
+| **SQL-01b** | — | Introspection diagnostics: every projection/type-mapper failure names `schema.object[.column]`; unknown structural metadata (ledger `generated_always_type` 5–8, graph, in-memory, external tables) is skipped with a named warning; inconsistent metadata fails with a named error. Needs a warnings representation on the technical catalog. Accept: ledger column and graph table → catalog built + warnings; corrupt decimal metadata → one error naming the column. Closes TS-05. | M |
+| **SQL-01d** | SQL-00 item 5 | `publicGuide` overlay field and `CatalogReadView.PublicGuide`: schema, importer, canonical JSON, hash. The guide states that the server verdict is authoritative over schema-only client validation (TS5-03). Accept: round-trip, hash changes with the field, absent field → `null`; hidden-object names in the guide are the administrator's responsibility (documented). | S |
 
-- [x] Define the provider-neutral technical catalog, entity, field, key, index, relationship, canonical/provider type models, and deterministic structural hash.
-- [x] Define catalog capability and revision/lifecycle models alongside their first production consumers. (No separate capability type was introduced — see ADR 0012 for the deliberate scope decision.)
-- [x] Implement SQL Server schema/table/view/column/key/index/FK/computed/temporal/description introspection.
-- [x] Exclude system and unsupported programmable objects by construction.
-- [x] Implement canonical SQL type mapping with preserved provider details.
-- [x] Implement Markdown plus YAML/front-matter import and the v1 structured schema.
-- [x] Reject forbidden semantic sections and invalid physical references.
-- [x] Implement merge precedence, FK/configured relationships, keyless-view rules, and deterministic hashes.
-- [x] Add SQLite control-store migrations and catalog revision persistence.
-- [x] Implement atomic activation, last-valid rollback behavior, bootstrap modes, and in-memory catalog/search indexes.
-- [x] Cover catalog parsing, merging, revisions, drift, and real SQL Server introspection with tests.
+Checkpoint B acceptance: discovery/exposure probes on the real SQL fixture in CI; no hidden object name in any serializer.
 
-## Adversarial QA repair gates — 2026-11-02
+### Checkpoint C — bound identifiers
 
-The [current report](./qa-check-2026-11-02T10-54-29Z.md) supplements the untriaged 2026-10-28 review. Historical
-Milestone 1 positive-path acceptance does not close these demonstrated defects or public-boundary risks.
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-02a** | Checkpoint B | `ICatalogSnapshot` (immutable `CatalogReadView` + revision id) and `CqmBinder` for `from`, join sources, field references and aliases; unknown/hidden/ambiguous names fail with stable paths. | M |
+| **SQL-02b** | 02a | Projection output columns, duplicate/ambiguous alias rules, `orderBy`/`having` alias resolution. | M |
+| **SQL-02c** | 02a | One query, one revision: the binder captures the snapshot once; a test activates a new revision between bind and use and proves the old snapshot is used. | S |
+| **SQL-02d** | 02a | `page.limit`/`offset` and query limits validated against a `Query:*` options type, reusing `CqmLimits` (absorbs SQL-A6b). | S |
 
-- [x] TS-03: detect semantic/overlay-only changes during `ImportIfChanged`, including exposure changes. Candidate status,
-      technical/merged hashes and validation outcome are compared; real-SQLite regression added.
-- [x] TS-04: return structured errors for null YAML subgraphs and numeric overflow; bound input size/depth/alias expansion.
-- [x] TS-07: make bootstrap's returned revision agree with persisted active selection after clock rollback; avoid loading all historical JSON to select one row. Non-monotonic activation is rejected; selection projects id/timestamp before loading one row.
-- [x] TS2-01: represent automatic relationship resolution in CQM DTO/schema without implementing an unapproved raw-SQL escape hatch. Both absent is valid; both present is rejected.
-- [x] TS2-02: define deterministic temporal literal grammar, offset and precision rules; reject incomplete values.
-- [x] Validate the unpublished CQM slice with pinned-SDK formatter and real SQL Server **locally**. ADR 0016 stayed Proposed until the exact-source `2f63e58` CI and the independent 2026-11-04 QA accepted its bounded structural slice.
-- [x] TS-01: add the exposed-only `CatalogReadView` Core boundary and tests (hidden entities, hidden-target relationships,
-      warnings/Markdown). **Still open for wiring** into every public adapter in Milestone 3/4.
-- [ ] TS-02, before public catalog/query hosting: make `IncludedSchemas`/`ExcludedObjects` SQL-side introspector options,
-      define cross-boundary FK behavior, and validate them at startup.
-- [ ] TS-06, before host/OAuth/admin acceptance: explicit proxy trust list, empty-admin-token denial, MCP Origin policy and startup validation; scaffold values are not implemented security.
-- [x] Triage TS-05/08/09/10 with evidence: unusual metadata diagnostics, ordinal hash policy, dotted identifiers and
-      supply-chain automation. No previous hypothesis is promoted to a reproduced defect; they remain design/automation debt.
-- [ ] Wire `CatalogReadView` into JSON/OData/MCP catalog and query surfaces before Milestone 3/4 exposes metadata.
+Checkpoint C acceptance: table-driven tests for hidden, unknown, case-different and duplicate names; no source
+identifier ever built from request text. **No host code (SQL-07+) starts before checkpoint C.**
 
-## Milestone 2 — CQM and SQL Server query engine
+### Query engine
 
-### Independent post-fix QA gates (2026-11-02)
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-03** | SQL-02 | Deterministic expression normalization, operand/result typing, nullability, literal conversions, operator/function/aggregate capabilities, provider-independent errors. Accept: complete vocabulary tables, null semantics, numeric/temporal precision, overflow, division, malformed/deep/large trees; normalization idempotent. | L |
+| **SQL-04** | SQL-03 | Joins: explicit `on` > named relationship > automatic only if one unambiguous candidate; inner/left, composite equality, prior-source linkage; reject cross/disconnected/cyclic shapes. Entity vs analytical classification, grouping, aggregates, `having`. Accept: ambiguity errors list candidates; self/composite joins, keyless sources, aggregate nulls, join amplification. | L |
+| **SQL-05** | SQL-04 | SQL Server compiler and typed parameter binder: one `SELECT`, bracket-quoted catalog identifiers, deterministic aliases, explicit SQL types for every parameter, no SQL fragments or EF reporting model; total count as a separate controlled operation. Accept: golden tests for the v1 vocabulary; adversarial strings cannot add SQL/batches/comments/writes; compiled examples run on the real fixture with typed expected results. | L |
+| **SQL-06** | SQL-05 | Execution: read-only ADO.NET connection, typed reading, cancellation/timeout/concurrency, row/page/byte/join/group/depth/node budgets, `MaxResultBytes` enforced while reading, permit released in `finally`; compact result envelope (§10). Accept: real SQL tests at/below/above limits, cancelled/slow/source-down queries, no literal/data leakage in logs; docs state pagination does not bound scan cost. | L |
 
-The [follow-up](./qa-check-2026-11-02T14-46-14Z.md) distinguishes implemented fixes above from incomplete closure:
+## Milestone 3 — Host and JSON API
 
-- [x] TS3-01: null relationship join-pair returns collected errors, not `NullReferenceException`; both import entry points
-      have regressions.
-- [x] TS3-02: `CatalogReadView` sanitizes the physical FK graph and omits catalog-level narrative; a default serializer
-      test proves the hidden target is unreachable. Adapter wiring remains the separate Milestone 3/4 gate above.
-- [x] TS3-03: a present fractional separator requires 1–7 digits in temporal literals; the reported dangling-dot values
-      are rejected.
-- [x] Accept ADR 0016's structural slice after exact-source `2f63e58` CI and independent 2026-11-04 QA; resolver,
-       type inference, compiler/executor and public-host acceptance remain future work.
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-07** | SQL-01, SQL-06 | ASP.NET host lifecycle, SQLite migrations, bootstrap/introspection/validation/activation/readiness order (§16), fail-safe configuration and secrets. TS-06: forwarded-header allow-list, PublicBaseUrl/TLS validation, empty bootstrap token = admin disabled, MCP `Origin` policy, each with a startup test. Accept: empty/new/old SQLite, restart, invalid bootstrap, clock rollback, source outage/recovery; live ≠ ready; spoofed forwarding cannot alter auth/issuer. No anonymous data exposure. | L |
+| **SQL-08** | SQL-06, SQL-07 | JSON/HTTP vertical slice (§12): catalog/entity routes, `QUERY` and `POST` on one handler, `/query/validate` without execution, vendor media type, `Accept-Query`, Problem Details. Deny by default until SQL-09/10. Accept: negotiation/method/body/unknown-property errors, hidden metadata denial, real HTTP tests on the host. | M |
 
-### Planned query-engine work
+## Milestone 4 — OAuth and backoffice
 
-- [x] Define versioned strict CQM DTOs and a published JSON Schema.
-- [x] Implement catalog-independent structural validation, canonical literal typing, alias scope, and stable error codes/paths. (ADR 0016)
-- [ ] Implement expression normalization and type inference.
-- [ ] Implement entity/analytical classification, grouping rules, aggregate rules, and v1 operator/function capabilities.
-- [ ] Implement explicit/named/automatic join resolution with ambiguity errors and v1 join limits.
-- [ ] Implement provider abstractions and SQL Server catalog-only identifier resolution/quoting.
-- [ ] Compile exactly one parameterized `SELECT`; expose no SQL-fragment or raw-query escape hatch.
-- [ ] Implement typed parameter binding, deterministic aliases, offset paging, stable-order warnings, and total-count behavior.
-- [ ] Implement compact result envelopes, cancellation, timeout, concurrency, row, byte, join, aggregate, and expression limits.
-- [ ] Add golden compiler tests and disposable-SQL integration tests for the full v1 query surface.
-- [ ] Add security regression tests for injection through every external string, query amplification, and accidental writes.
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-09** | SQL-07 | Persist OpenIddict state, crypto/data-protection keys and hashed one-time approval tokens; control store holds no query results. Accept: restart keeps state without plaintext secrets; backup/restore with key material rehearsed. | M |
+| **SQL-10** | SQL-09 | Standalone OAuth: discovery/protected-resource metadata, capped/rate-limited public DCR, authorization code + PKCE, resource indicators, reference tokens, refresh, client/admin revocation. Accept: a real client authorizes; wrong PKCE/resource/redirect, replay, expiry and registration abuse fail; revocation effective on the next request and after restart; anonymous access denied. | L |
+| **SQL-11** | SQL-01, 07, 09, 10 | Protected minimal backoffice (§15): separate admin login, secure short sessions, CSRF/same-site/brute-force defenses; status/source test, approval tokens, OAuth revocation, catalog upload/validate/activate/recover/refresh/export, sanitized audit. Accept: browser tests for unauthorized/CSRF/expired sessions, invalid uploads, last-valid recovery, revoke → immediate denial. No raw SQL box or raw token listing. | L |
 
-## Milestone 3 — JSON API and operational baseline
+## Milestone 5 — OData and MCP adapters
 
-- [ ] Build the ASP.NET Core host, configuration validation, forwarded-header ordering, and safe secret sources.
-- [ ] Implement versioned catalog/entity endpoints.
-- [ ] Implement shared HTTP `QUERY` and `POST` execution plus `POST /query/validate`.
-- [ ] Implement the versioned vendor media type, `Accept-Query`, strict JSON parsing, and Problem Details codes/paths.
-- [ ] Implement liveness/readiness, source-down behavior, correlation IDs, safe structured logs, and metrics baseline.
-- [ ] Add sample SQL database/seed/catalog and Docker Compose development setup.
-- [ ] Add JSON protocol and end-to-end integration tests.
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-12** | SQL-04, 06, 08, 10 | OData v1: runtime EDM, service document/CSDL, tables and keyed views, key/collection routes, select/filter/orderby/top/skip/count, server paging; published capability matrix; unsupported features fail explicitly. Accept: real OData client results match JSON CQM; hidden objects absent; Power BI tested where practical. | L |
+| **SQL-13** | SQL-06, 08, 10 | MCP Streamable HTTP: `get_reporting_guide`, `search_catalog`, `describe_entities`, `get_query_capabilities`, `query_data`, `aggregate_data`, `validate_query`; strict schemas and structured content; Markdown returned inertly. Accept: initialize/list/call/errors, auth/Origin denial, reconnect/restart, real OAuth MCP client + Inspector. | L |
+| **SQL-14** | SQL-08, 10, 12, 13 | Cross-adapter equivalence corpus (JSON POST/QUERY, MCP, OData) and least-privilege proof with a database account that cannot write. | M |
 
-## Milestone 4 — OData and MCP adapters
+## Milestone 6 — Hardening and v1 release
 
-### OData v1
+| Step | Depends on | Deliverable and acceptance | Effort |
+| --- | --- | --- | --- |
+| **SQL-15** | SQL-11, 14 | Threat model (§20), supply chain/secrets/errors review, bounded concurrent load, SQLite/crypto recovery, disk-full/permission/restart tests; triage TS-05/08/09/10 on evidence. Logs exclude tokens/literals/results/Markdown. | L |
+| **SQL-16** | SQL-15 | Docker/Compose and self-contained Windows/Linux artifacts, sample DB/catalog/config, install/OAuth/catalog-authoring/backup/restore/upgrade/troubleshooting guides. Accept: clean installs and upgrades from real artifacts; restore to another host. | L |
+| **SQL-17** | SQL-16 + all | RC: frozen artifact, complete suites, client/security matrix, capability docs, release notes, final adversarial review. Accept: every §29 row evidenced (table below); owner authorizes tag and release. | M |
 
-- [ ] Publish the read-only OData capability matrix.
-- [ ] Implement service document and runtime XML CSDL metadata.
-- [ ] Expose tables and keyed views; exclude keyless views unless YAML provides a logical key.
-- [ ] Map GET by key/collection, `$select`, `$filter`, `$orderby`, `$top`, `$skip`, `$count`, null handling, core functions, and server paging to CQM.
-- [ ] Add real-client and Power BI compatibility tests where practical.
+### Handoff §29 acceptance crosswalk
 
-### MCP v1
-
-- [ ] Host MCP over Streamable HTTP using the validated current SDK.
-- [ ] Implement `get_reporting_guide`, `search_catalog`, `describe_entities`, and `get_query_capabilities`.
-- [ ] Implement `query_data`, `aggregate_data`, and `validate_query` as CQM façades.
-- [ ] Publish strict input/output schemas and conforming structured content.
-- [ ] Ensure semantic Markdown is returned as data, not injected into tool descriptions or server instructions.
-- [ ] Add MCP initialize/list/call/error tests, MCP Inspector coverage, and a real-client E2E.
-- [ ] Add cross-adapter equivalence tests across JSON, OData, and MCP.
-
-## Milestone 5 — OAuth, persistence, and backoffice
-
-- [ ] Implement standalone OpenIddict OAuth discovery/metadata and authorization code + PKCE.
-- [ ] Implement capped/rate-limited dynamic public-client registration and required resource indicators.
-- [ ] Implement reference access tokens, refresh tokens, client revocation, and administrative token/grant/client/session revocation.
-- [ ] Implement hashed, one-time-displayed approval tokens that never grant direct data access.
-- [ ] Persist OpenIddict state and cryptographic/data-protection material safely in the control store.
-- [ ] Implement separate bootstrap admin authentication and the protected minimal backoffice.
-- [ ] Support connection status/test, OAuth administration, approval tokens, catalog validation/activation/rollback/refresh/export, and minimal audit.
-- [ ] Apply secure cookies, antiforgery, same-site rules, short sessions, rate limits, constant-time comparisons, and upload limits.
-- [ ] Prove anonymous denial, PKCE, refresh, revocation, restart persistence, CSRF protection, and log/error redaction in tests.
-
-## Milestone 6 — v1 hardening and public release
-
-- [ ] Complete and review the threat model against implementation and tests.
-- [ ] Verify source-database least privilege and inability to write independently of application validation.
-- [ ] Validate default limits under query-amplification and concurrency pressure.
-- [ ] Produce Docker, Docker Compose, and self-contained Windows/Linux artifacts.
-- [ ] Write deployment, OAuth, configuration, catalog-authoring, backup/restore, and troubleshooting guides.
-- [ ] Add security policy, contribution guide, issue templates, OData matrix, samples, automated releases, and upgrade notes.
-- [ ] Execute MCP Inspector, real MCP client, real OData client, Power BI where practical, Docker, persistence, and clean-install E2E scenarios.
-- [ ] Demonstrate every item in the handoff v1 definition of done before tagging v1.
+| User outcome | Steps | Required proof |
+| --- | --- | --- |
+| Download release/container | SQL-16/17 | Install the frozen published artifact |
+| Configure SQL Server + persistent SQLite | SQL-01/07/16 | New host, persisted volume, no source writes |
+| Import optional Markdown/YAML | SQL-01/07/11 | Both input shapes and the no-overlay case |
+| Start the app | SQL-07/16 | Readiness/liveness and failed-source behaviour |
+| Authorize a real MCP client via OAuth | SQL-09/10/13 | Real client flow, not a mock token |
+| Discover/inspect the catalog | SQL-01/08/12/13 | Hidden-object denial; type/key/relationship metadata |
+| Entity and analytical queries without SQL | SQL-02–06/13 | Real fixture golden outputs and injection negatives |
+| Equivalent base OData | SQL-12/14 | Client plus shared equivalence corpus |
+| JSON `QUERY` or `POST` | SQL-08/14 | Both methods, same handler/result |
+| Revoke a client in the backoffice | SQL-10/11/14 | Immediate denial, persistent revocation |
+| Restart without losing OAuth/catalog | SQL-07/09/10/16 | SQLite/keys restored, valid and revoked states |
+| Source cannot write; docs accurate | SQL-14–17 | Least-privilege proof, reviewed docs |
+| Unsupported OData explicit; real clients | SQL-12–17 | Capability matrix and interoperability logs |
+| Windows/Linux downloads work | SQL-16/17 | Clean-machine artifact smoke per OS |
 
 ## Post-v1
 
-Post-v1 scope follows the six-release roadmap in the authoritative handoff. Do not pull v2+ features into v1 unless they remove a proven blocker or the project owner explicitly changes scope.
+Direction from the handoff: v2 richer relationships/OData navigation, explain, external OIDC, SQL Server control store,
+multi-replica foundations; v3 OData analytics, Entra ID, managed identity, keyset paging, Power BI hardening; v4
+PostgreSQL/MySQL and read-only GraphQL preview; v5 ODBC dialects incl. Databricks/Spark SQL; v6 mature OData 4.01
+profile and stable extension contracts. Not pulled into v1 without an owner scope change.
+
+## UAT — Milestone 2
+
+None pending (Milestone 2 has no owner-only checks).
+
+## Done
+
+| Item | Outcome |
+| --- | --- |
+| Milestone 0 | Rebaseline from the handoff, naming/licence (ADR 0001), library spikes, solution scaffold, CI (2026-07-21). |
+| Milestone 1 | Technical catalog, SQL Server type mapping and introspection, semantic overlay import/merge, revisions, SQLite persistence, activation/bootstrap, search (ADR 0006–0015, 2026-09-09). |
+| QA repair gates 2026-11-02 | TS-03/04/07, TS2-01/02, TS3-01/02/03 fixed; `CatalogReadView` boundary. |
+| CQM v1 structural slice | Strict DTOs, published JSON Schema, structural validator (ADR 0016, accepted 2026-11-04). |
+| Phase A / A′ | SQL-A1–A4 input boundaries (request guard, linear expression validation, per-thread schemas, overlay crash safety); SQL7-01…04 fixes; SQL-A5 child-process probes; SQL-A6a bounded error lists. |
+| SQL-01c | Public catalog boundary test (`CatalogBoundaryTests`). |
+
+## Carried over
+
+Open deferred findings only, under the step that must handle them first: ID · severity · origin · SHA · description.
+
+- **SQL-01a:** TS-02 · P1 · QA 2026-11-02 · `dbe98fb` · `IncludedSchemas`/`ExcludedObjects` must be SQL-side introspector
+  options with defined cross-boundary FK behaviour, validated at startup, before any public catalog/query hosting.
+- **SQL-01b:** TS-05 · P2 · QA 2026-11-02 · `dbe98fb` · unusual metadata diagnostics (see SQL-01b).
+- **SQL-07:** TS-06 · P1 · QA 2026-11-02 · `dbe98fb` · proxy trust list, empty admin token denial, MCP Origin policy and
+  startup validation before host/OAuth/admin acceptance.
+- **SQL-08/12/13:** TS-01 wiring · P1 · QA 2026-11-02 · `dbe98fb` · wire `CatalogReadView` into every public catalog and
+  query surface (boundary already enforced by SQL-01c).
+- **SQL-04:** REL-NAME · P2 · ADR 0011 audit 2026-08-22 · — · an overlay relationship may share its `Name` with an
+  FK-discovered one (dedup by name + provenance); named-relationship join resolution needs an explicit rule first.
+- **SQL-07:** ADR-0014-LIM · P2 · ADR 0014 · — · `GetActiveAsync` materializes every activated revision's JSON with no
+  retention; `CatalogBootstrapCoordinator.RunAsync` assumes a single caller. Revisit before wiring into the host.
+- **SQL-10:** DCR · P2 · ADR 0003 spike · — · OpenIddict does not implement RFC 7591 dynamic client registration: design
+  and security-test a bounded registration endpoint (redirect URI, client type, rate, resource validation).
+- **SQL-15:** TS-08/09/10 · P3 · QA 2026-11-02 · `dbe98fb` · ordinal hash policy, dotted identifiers, supply-chain
+  automation — triaged design debt, reopen only on real evidence.
