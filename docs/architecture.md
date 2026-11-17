@@ -1,8 +1,6 @@
 # Architecture
 
-Execution companion: [SQL-00–17](./v1-delivery-plan.md), stable development/QA gates through the handoff's complete v1.
-The [2026-11-04 checkpoint](./qa-check-2026-11-04T09-54-31Z.md) accepts only the TS3/structural-foundation slice;
-catalog resolution, query execution, public hosting/auth and real-client release gates remain future work.
+Plan: [backlog.md](./backlog.md); decisions: [decisions.md](./decisions.md); current state: [status.md](./status.md).
 
 ## Status and authority
 
@@ -61,7 +59,7 @@ Protocol syntax never reaches the provider directly. Every request becomes a ver
 - The internal search index intentionally retains administrative metadata; protocol adapters must resolve catalog
   metadata through `CatalogReadView`, which keeps only exposed entities and relationships whose target is exposed. It
   also rebuilds the physical entity with only exposed-target FKs and omits catalog name/title/description/warnings/
-  Markdown, so a default serializer cannot reach a hidden target ([post-fix QA TS3-02](./qa-check-2026-11-02T14-46-14Z.md)).
+  Markdown, so a default serializer cannot reach a hidden target (post-fix QA TS3-02 (historical, in Git)).
   Adapter wiring remains a Milestone 3/4 gate; the Core boundary itself is tested.
 - Foreign keys are relationship hints. Explicit valid join conditions take priority.
 - The technical catalog is provider-neutral, preserves physical identifier casing and provider type details, supports keyless views, and has deterministic canonical JSON and a structural SHA-256 hash.
