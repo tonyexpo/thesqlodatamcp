@@ -34,3 +34,6 @@ packages/
 **/appsettings.Local.json
 **/appsettings.*.local.json
 **/secrets.json
+
+# Local QA and gate evidence (AGENTS.md, Evidence)
+artifacts/

@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Changed
+- Portable workflow playbook (2026-11-18): added `docs/workflow-playbook.md`, identical in every owner repository
+  (new-project setup, migration, templates, rationale); the `AGENTS.md` core block points to it. `.gitignore` now
+  excludes `artifacts/`.
 - Workflow and documentation alignment (2026-11-17): `AGENTS.md` adopts the shared owner workflow (per-step
   same-model adversarial QA sub-agent, P0–P3, PR delivery per range, milestone UAT). Canonical docs are now
   `status.md`/`status.html`, `backlog.md` (absorbs roadmap, SQL-00–17 plan and work queues), `decisions.md` (index of
