@@ -96,6 +96,8 @@ with green CI, and never let evidence fill the VM disk. `status.md`/`qa-status.m
 - Language: English for AGENTS.md and agent-facing docs; `status.html` in English.
 - No real customer data, cloud provisioning, paid APIs or new credentials without owner approval.
 - Use bounded probes (time/memory limits) on the shared VM.
+- `docs/workflow-playbook.md` is the portable description of this workflow (new-project setup, migration,
+  templates, rationale). It is identical in every owner repository; update it together with this block.
 
 <!-- END CORE -->
 
