@@ -14,7 +14,7 @@
 ### Canonical documents (`docs/`)
 | File | Purpose |
 | --- | --- |
-| `backlog.md` | Complete owner-agreed plan: milestones, numbered steps, acceptance criteria, UAT checklist, carried-over findings. |
+| `backlog.md` | Complete owner-agreed plan: milestones, numbered steps, acceptance criteria, milestone gates, UAT checklist, carried-over findings. |
 | `architecture.md` | Complete current architecture. |
 | `decisions.md` | All settled decisions, one entry each, newest last. |
 | `status.md` | Technical project status. **Source of truth.** Current state only, in tables, about 80 lines at most. |
@@ -47,7 +47,8 @@ For each step, in order:
 1. **Carried-over first.** Resolve the step's `Carried over` findings, or re-defer each with a written reason.
 2. **Implement** in the project source tree, with tests in the existing test tree (do not rename project folders).
    Change only the step's scope; never alter unrelated user work.
-3. **Run the local gates** listed under *Repository specifics*. Record pass/fail/skip counts.
+3. **Run the local gates** listed under *Repository specifics*: the fast tier always, targeted slow tests only for
+   the areas the step changed (see *Test tiers and CI*). Record pass/fail/skip counts.
 4. **Commit the candidate** on the range branch and record its full SHA.
 5. **Adversarial QA.** Start a new QA sub-agent: same model and configuration, fresh context, read-only, on the
    exact candidate SHA. Give it the step's acceptance criteria, repository rules and gate commands — not the
@@ -74,6 +75,16 @@ the owner become fix steps in `backlog.md`.
 | P1 | Wrong behaviour on a required path, missing required test/criterion | Blocks the step |
 | P2 | Limited-impact defect, robustness or coverage gap | Deferred to next step |
 | P3 | Cosmetic, documentation, minor cleanup | Deferred to next step |
+
+### Test tiers and CI
+| Tier | Content | When |
+| --- | --- | --- |
+| Fast | Build, lint, unit, fast integration, a few smoke E2E. Minutes, not tens of minutes. | Every step locally; CI on every PR and on `main`, docs-only changes included. |
+| Targeted | E2E/UI, integration or performance tests for the area the step changed. | Locally in the step and by the QA sub-agent, only when that area changed. |
+| Milestone gate | Explicit cases listed in the milestone's `Gates` table in `backlog.md` (full E2E/UX suite, cross-browser, performance budgets, devices). | Explicit step at milestone end, or when the owner asks; local run or manual CI workflow. |
+
+Never weaken a test to keep CI fast: move it to the right tier. Timing-sensitive tests do not belong in the fast tier.
+*Repository specifics* name the commands of each tier.
 
 ### Delivery and STOP
 - STOP when the authorized range is complete, when the owner ends the session, after a non-converging QA loop,

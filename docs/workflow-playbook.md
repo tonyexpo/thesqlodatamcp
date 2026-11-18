@@ -25,14 +25,16 @@ Update this file and the core block in all repositories together.
 2. **Authorization.** The owner names a step or a range: "procedi con step 4–10".
 3. **Session start.** The development chat fetches, checks the previous PR and the CI on `main`, triages
    Dependabot, creates branch `dev/<first>-<last>`.
-4. **Per step loop.** Carried-over findings first → implement + tests → local gates → commit → adversarial QA
+4. **Per step loop.** Carried-over findings first → implement + tests → local gates (fast tier always, targeted
+   slow tests only for what changed) → commit → adversarial QA
    sub-agent (same model and configuration, fresh context, read-only) → fix P0/P1 and re-run QA, **max 3 rounds** →
    defer P2/P3 into `backlog.md` *Carried over* and `qa-status.md` → owner-only checks into the milestone *UAT*
    checklist, step `DONE — UAT pending` → update docs, commit → next step.
 5. **Delivery.** Push the range branch, open a PR whose description is the STOP report, wait for PR CI, STOP.
 6. **Owner review.** The owner merges with *Create a merge commit* (merge = approval), or asks for fixes, which
    re-enter the loop. The chat never pushes to `main`, merges or force-pushes.
-7. **Milestone end.** The owner runs the UAT checklist; problems become fix steps in `backlog.md`.
+7. **Milestone end.** An explicit gate step runs the milestone `Gates` cases (full E2E/UX, performance, …); the
+   owner runs the UAT checklist. Problems become fix steps in `backlog.md`.
 8. **Housekeeping.** Evidence in git-ignored `artifacts/<step>/` is deleted after merge with green CI; merged
    `dev/*` branches are deleted.
 
@@ -46,7 +48,8 @@ Update this file and the core block in all repositories together.
    `decisions.md` as they are made.
 3. Write `backlog.md` (all milestones and steps, each with acceptance criteria), `architecture.md`, initial
    `status.md`/`status.html`, empty `qa-status.md`, `changelog.md`. Owner reviews and approves.
-4. Set up CI (gate commands identical to the local ones), branch protection on `main` if wanted, Dependabot.
+4. Set up CI on the **fast tier** only (same commands as locally, runs on every PR and push), a manual workflow
+   (`workflow_dispatch`) for milestone-gate suites if they need CI, branch protection on `main` if wanted, Dependabot.
 5. First development request from the owner. From here the core block governs.
 
 A repository still in analysis may stop at step 2–3 with an incomplete backlog; no development starts until the
@@ -78,7 +81,7 @@ steps exist.
 
 ## Repository specifics
 - Stack and pinned versions: ...
-- Local gates (exact commands, in order): ...
+- Test tiers (exact commands): fast (local + CI on every PR/push), targeted (per changed area), milestone gate.
 - CI: workflows and required jobs; CI must be green on the PR head and on `main` after merge.
 - Product boundaries / never-do list: ...
 - Where decisions live (`docs/decisions.md`, plus ADR folder if any).
@@ -95,6 +98,9 @@ Goal and scope (in / out). Step states: PLANNED → IN_PROGRESS → IMPLEMENTED_
 | Step | Title | Acceptance criteria | State |
 | --- | --- | --- | --- |
 | P-01 | ... | testable criteria | PLANNED |
+
+## Gates — Milestone M1
+| Gate | Command / procedure | State |
 
 ## UAT — Milestone M1
 | Item | From | State |
@@ -162,6 +168,7 @@ rerun the gates itself, probe failure paths and edge cases, and return a verdict
 | --- | --- |
 | Design before code, explicit step authorization | Owner keeps scope control; long ranges can run unattended. |
 | Adversarial QA, same model, fresh context | Fresh eyes without inherited assumptions; same capability as the author. |
+| Fast CI, slow suites by area and at milestone end | Waiting tens of minutes for hundreds of UI tests on every unrelated change wastes time and CI minutes. |
 | Max 3 QA rounds | A non-converging loop signals a design problem the owner must see. |
 | P2/P3 written into the backlog | Chat memory is lost between sessions; written findings are not. |
 | Owner checks as UAT at milestone end | The owner cannot test by hand inside a long range. |
