@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Changed
+- Test tiers (2026-11-18): owner-decided test tiers in the shared workflow: fast CI (build, lint, unit, smoke) on every PR and push, docs-only included;
+  targeted slow tests only for the areas a step changes; full E2E/UX, performance and device suites as explicit
+  milestone `Gates` in `backlog.md`. Core block and `workflow-playbook.md` updated.
 - Portable workflow playbook (2026-11-18): added `docs/workflow-playbook.md`, identical in every owner repository
   (new-project setup, migration, templates, rationale); the `AGENTS.md` core block points to it. `.gitignore` now
   excludes `artifacts/`.
